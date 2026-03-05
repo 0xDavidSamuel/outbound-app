@@ -1,63 +1,54 @@
 import { NextResponse } from 'next/server';
 
-// Top nomad/travel cities by Teleport slug
-const CITY_SLUGS = [
-  'amsterdam', 'barcelona', 'berlin', 'bangkok', 'bali',
-  'budapest', 'cape-town', 'chiang-mai', 'dubai', 'hong-kong',
-  'istanbul', 'jakarta', 'kuala-lumpur', 'lagos', 'lima',
-  'lisbon', 'london', 'madrid', 'medellin', 'melbourne',
-  'mexico-city', 'miami', 'milan', 'montreal', 'mumbai',
-  'nairobi', 'new-york', 'paris', 'prague', 'san-francisco-bay-area',
-  'santiago', 'sao-paulo', 'seoul', 'shanghai', 'singapore',
-  'stockholm', 'sydney', 'taipei', 'tel-aviv', 'tokyo',
-  'toronto', 'vienna', 'warsaw', 'zurich', 'los-angeles',
-  'denver', 'austin', 'seattle', 'boston', 'chicago',
+const CITIES = [
+  { slug: 'lisbon', name: 'Lisbon', country: 'Portugal', image: 'https://images.unsplash.com/photo-1558370781-d6196949e317?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.2, 'Cost of Living': 6.8, 'Safety': 7.5, 'Startup Culture': 6.9, 'Outdoors & Adventure': 7.8 }, overall: 72 },
+  { slug: 'barcelona', name: 'Barcelona', country: 'Spain', image: 'https://images.unsplash.com/photo-1523531294919-4bcd7c65e216?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.5, 'Cost of Living': 5.5, 'Safety': 6.8, 'Startup Culture': 7.2, 'Outdoors & Adventure': 8.1 }, overall: 70 },
+  { slug: 'berlin', name: 'Berlin', country: 'Germany', image: 'https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.8, 'Cost of Living': 5.8, 'Safety': 7.2, 'Startup Culture': 8.5, 'Outdoors & Adventure': 6.5 }, overall: 71 },
+  { slug: 'amsterdam', name: 'Amsterdam', country: 'Netherlands', image: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.2, 'Cost of Living': 4.2, 'Safety': 7.8, 'Startup Culture': 7.5, 'Outdoors & Adventure': 6.8 }, overall: 74 },
+  { slug: 'tokyo', name: 'Tokyo', country: 'Japan', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&auto=format&fit=crop', scores: { 'Internet Access': 9.2, 'Cost of Living': 4.5, 'Safety': 9.5, 'Startup Culture': 6.8, 'Outdoors & Adventure': 7.2 }, overall: 78 },
+  { slug: 'singapore', name: 'Singapore', country: 'Singapore', image: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&auto=format&fit=crop', scores: { 'Internet Access': 9.5, 'Cost of Living': 3.8, 'Safety': 9.2, 'Startup Culture': 8.8, 'Outdoors & Adventure': 6.2 }, overall: 80 },
+  { slug: 'dubai', name: 'Dubai', country: 'UAE', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.5, 'Cost of Living': 4.5, 'Safety': 9.0, 'Startup Culture': 7.8, 'Outdoors & Adventure': 6.0 }, overall: 76 },
+  { slug: 'bangkok', name: 'Bangkok', country: 'Thailand', image: 'https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.8, 'Cost of Living': 8.2, 'Safety': 6.5, 'Startup Culture': 6.2, 'Outdoors & Adventure': 7.5 }, overall: 68 },
+  { slug: 'chiang-mai', name: 'Chiang Mai', country: 'Thailand', image: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.2, 'Cost of Living': 9.0, 'Safety': 7.8, 'Startup Culture': 5.5, 'Outdoors & Adventure': 8.5 }, overall: 71 },
+  { slug: 'bali', name: 'Bali', country: 'Indonesia', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&auto=format&fit=crop', scores: { 'Internet Access': 6.5, 'Cost of Living': 8.8, 'Safety': 7.2, 'Startup Culture': 5.8, 'Outdoors & Adventure': 9.2 }, overall: 70 },
+  { slug: 'medellin', name: 'Medellín', country: 'Colombia', image: 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.0, 'Cost of Living': 8.5, 'Safety': 6.0, 'Startup Culture': 6.5, 'Outdoors & Adventure': 8.0 }, overall: 68 },
+  { slug: 'mexico-city', name: 'Mexico City', country: 'Mexico', image: 'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.0, 'Cost of Living': 7.8, 'Safety': 5.5, 'Startup Culture': 7.0, 'Outdoors & Adventure': 7.0 }, overall: 67 },
+  { slug: 'cape-town', name: 'Cape Town', country: 'South Africa', image: 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&auto=format&fit=crop', scores: { 'Internet Access': 6.8, 'Cost of Living': 7.5, 'Safety': 5.0, 'Startup Culture': 6.2, 'Outdoors & Adventure': 9.5 }, overall: 67 },
+  { slug: 'prague', name: 'Prague', country: 'Czech Republic', image: 'https://images.unsplash.com/photo-1541849546-216549ae216d?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.8, 'Cost of Living': 6.5, 'Safety': 8.2, 'Startup Culture': 6.8, 'Outdoors & Adventure': 7.0 }, overall: 72 },
+  { slug: 'budapest', name: 'Budapest', country: 'Hungary', image: 'https://images.unsplash.com/photo-1551867633-194f125bddfa?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.5, 'Cost of Living': 7.2, 'Safety': 7.8, 'Startup Culture': 6.5, 'Outdoors & Adventure': 7.2 }, overall: 71 },
+  { slug: 'madrid', name: 'Madrid', country: 'Spain', image: 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.8, 'Cost of Living': 5.8, 'Safety': 7.5, 'Startup Culture': 7.0, 'Outdoors & Adventure': 7.0 }, overall: 71 },
+  { slug: 'vienna', name: 'Vienna', country: 'Austria', image: 'https://images.unsplash.com/photo-1609767760800-0ee3a8b7e7f5?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.0, 'Cost of Living': 5.2, 'Safety': 9.0, 'Startup Culture': 6.8, 'Outdoors & Adventure': 7.5 }, overall: 77 },
+  { slug: 'zurich', name: 'Zurich', country: 'Switzerland', image: 'https://images.unsplash.com/photo-1515488764276-beab7607c1e6?w=800&auto=format&fit=crop', scores: { 'Internet Access': 9.0, 'Cost of Living': 2.0, 'Safety': 9.5, 'Startup Culture': 7.5, 'Outdoors & Adventure': 8.5 }, overall: 78 },
+  { slug: 'stockholm', name: 'Stockholm', country: 'Sweden', image: 'https://images.unsplash.com/photo-1509356843151-3e7d96241e11?w=800&auto=format&fit=crop', scores: { 'Internet Access': 9.0, 'Cost of Living': 3.5, 'Safety': 8.5, 'Startup Culture': 8.8, 'Outdoors & Adventure': 8.0 }, overall: 78 },
+  { slug: 'seoul', name: 'Seoul', country: 'South Korea', image: 'https://images.unsplash.com/photo-1601621915196-2621bfb0cd6e?w=800&auto=format&fit=crop', scores: { 'Internet Access': 9.8, 'Cost of Living': 5.5, 'Safety': 8.8, 'Startup Culture': 7.5, 'Outdoors & Adventure': 6.8 }, overall: 76 },
+  { slug: 'taipei', name: 'Taipei', country: 'Taiwan', image: 'https://images.unsplash.com/photo-1470004914212-05527e49370b?w=800&auto=format&fit=crop', scores: { 'Internet Access': 9.5, 'Cost of Living': 6.5, 'Safety': 9.2, 'Startup Culture': 7.0, 'Outdoors & Adventure': 7.5 }, overall: 77 },
+  { slug: 'hong-kong', name: 'Hong Kong', country: 'China', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop', scores: { 'Internet Access': 9.2, 'Cost of Living': 3.0, 'Safety': 8.5, 'Startup Culture': 7.8, 'Outdoors & Adventure': 6.5 }, overall: 74 },
+  { slug: 'kuala-lumpur', name: 'Kuala Lumpur', country: 'Malaysia', image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.5, 'Cost of Living': 8.0, 'Safety': 7.0, 'Startup Culture': 6.5, 'Outdoors & Adventure': 7.0 }, overall: 68 },
+  { slug: 'nairobi', name: 'Nairobi', country: 'Kenya', image: 'https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=800&auto=format&fit=crop', scores: { 'Internet Access': 6.5, 'Cost of Living': 7.8, 'Safety': 5.5, 'Startup Culture': 7.0, 'Outdoors & Adventure': 8.0 }, overall: 63 },
+  { slug: 'lagos', name: 'Lagos', country: 'Nigeria', image: 'https://images.unsplash.com/photo-1589456506629-b2ea1a8576f6?w=800&auto=format&fit=crop', scores: { 'Internet Access': 5.5, 'Cost of Living': 7.5, 'Safety': 4.5, 'Startup Culture': 6.8, 'Outdoors & Adventure': 6.0 }, overall: 55 },
+  { slug: 'tel-aviv', name: 'Tel Aviv', country: 'Israel', image: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.5, 'Cost of Living': 4.0, 'Safety': 6.5, 'Startup Culture': 9.2, 'Outdoors & Adventure': 7.5 }, overall: 73 },
+  { slug: 'istanbul', name: 'Istanbul', country: 'Turkey', image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.0, 'Cost of Living': 7.5, 'Safety': 6.5, 'Startup Culture': 6.5, 'Outdoors & Adventure': 7.5 }, overall: 67 },
+  { slug: 'paris', name: 'Paris', country: 'France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.0, 'Cost of Living': 4.0, 'Safety': 7.0, 'Startup Culture': 7.8, 'Outdoors & Adventure': 6.8 }, overall: 72 },
+  { slug: 'london', name: 'London', country: 'UK', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.5, 'Cost of Living': 3.5, 'Safety': 7.5, 'Startup Culture': 9.0, 'Outdoors & Adventure': 6.5 }, overall: 75 },
+  { slug: 'new-york', name: 'New York', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.2, 'Cost of Living': 2.5, 'Safety': 7.0, 'Startup Culture': 9.5, 'Outdoors & Adventure': 6.0 }, overall: 74 },
+  { slug: 'san-francisco', name: 'San Francisco', country: 'USA', image: 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.8, 'Cost of Living': 1.5, 'Safety': 6.0, 'Startup Culture': 9.8, 'Outdoors & Adventure': 7.5 }, overall: 73 },
+  { slug: 'miami', name: 'Miami', country: 'USA', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.8, 'Cost of Living': 4.5, 'Safety': 6.5, 'Startup Culture': 7.5, 'Outdoors & Adventure': 8.0 }, overall: 68 },
+  { slug: 'toronto', name: 'Toronto', country: 'Canada', image: 'https://images.unsplash.com/photo-1517090504586-fde19ea6066f?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.0, 'Cost of Living': 4.5, 'Safety': 7.8, 'Startup Culture': 8.0, 'Outdoors & Adventure': 7.0 }, overall: 74 },
+  { slug: 'montreal', name: 'Montreal', country: 'Canada', image: 'https://images.unsplash.com/photo-1519178614-68673b201f36?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.8, 'Cost of Living': 5.5, 'Safety': 7.5, 'Startup Culture': 7.8, 'Outdoors & Adventure': 7.2 }, overall: 72 },
+  { slug: 'sydney', name: 'Sydney', country: 'Australia', image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.5, 'Cost of Living': 4.0, 'Safety': 8.5, 'Startup Culture': 7.2, 'Outdoors & Adventure': 9.0 }, overall: 75 },
+  { slug: 'melbourne', name: 'Melbourne', country: 'Australia', image: 'https://images.unsplash.com/photo-1514395462725-fb4566210144?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.8, 'Cost of Living': 4.2, 'Safety': 8.2, 'Startup Culture': 7.0, 'Outdoors & Adventure': 8.5 }, overall: 74 },
+  { slug: 'milan', name: 'Milan', country: 'Italy', image: 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.5, 'Cost of Living': 5.0, 'Safety': 7.2, 'Startup Culture': 6.8, 'Outdoors & Adventure': 6.5 }, overall: 69 },
+  { slug: 'sao-paulo', name: 'São Paulo', country: 'Brazil', image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.0, 'Cost of Living': 6.5, 'Safety': 4.5, 'Startup Culture': 7.5, 'Outdoors & Adventure': 6.0 }, overall: 62 },
+  { slug: 'lima', name: 'Lima', country: 'Peru', image: 'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=800&auto=format&fit=crop', scores: { 'Internet Access': 6.5, 'Cost of Living': 8.0, 'Safety': 5.5, 'Startup Culture': 5.8, 'Outdoors & Adventure': 7.0 }, overall: 60 },
+  { slug: 'santiago', name: 'Santiago', country: 'Chile', image: 'https://images.unsplash.com/photo-1588714477688-cf28a50e94f7?w=800&auto=format&fit=crop', scores: { 'Internet Access': 7.0, 'Cost of Living': 6.8, 'Safety': 6.5, 'Startup Culture': 6.8, 'Outdoors & Adventure': 8.2 }, overall: 67 },
+  { slug: 'warsaw', name: 'Warsaw', country: 'Poland', image: 'https://images.unsplash.com/photo-1519197924294-4ba991a11128?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.0, 'Cost of Living': 6.8, 'Safety': 7.8, 'Startup Culture': 7.0, 'Outdoors & Adventure': 6.5 }, overall: 70 },
+  { slug: 'mumbai', name: 'Mumbai', country: 'India', image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&auto=format&fit=crop', scores: { 'Internet Access': 6.8, 'Cost of Living': 8.5, 'Safety': 6.0, 'Startup Culture': 7.2, 'Outdoors & Adventure': 5.5 }, overall: 61 },
+  { slug: 'jakarta', name: 'Jakarta', country: 'Indonesia', image: 'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=800&auto=format&fit=crop', scores: { 'Internet Access': 6.5, 'Cost of Living': 8.2, 'Safety': 6.0, 'Startup Culture': 6.5, 'Outdoors & Adventure': 5.8 }, overall: 58 },
+  { slug: 'los-angeles', name: 'Los Angeles', country: 'USA', image: 'https://images.unsplash.com/photo-1445251836269-d158eaa028a6?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.0, 'Cost of Living': 3.5, 'Safety': 6.2, 'Startup Culture': 8.8, 'Outdoors & Adventure': 8.0 }, overall: 70 },
+  { slug: 'austin', name: 'Austin', country: 'USA', image: 'https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.2, 'Cost of Living': 5.0, 'Safety': 7.0, 'Startup Culture': 8.5, 'Outdoors & Adventure': 7.5 }, overall: 72 },
+  { slug: 'denver', name: 'Denver', country: 'USA', image: 'https://images.unsplash.com/photo-1546156929-a4c0ac411f47?w=800&auto=format&fit=crop', scores: { 'Internet Access': 8.0, 'Cost of Living': 5.2, 'Safety': 7.2, 'Startup Culture': 7.5, 'Outdoors & Adventure': 9.2 }, overall: 72 },
 ];
 
-async function fetchCity(slug: string) {
-  try {
-    const [scoresRes, imgRes] = await Promise.all([
-      fetch(`https://api.teleport.org/api/urban_areas/slug:${slug}/scores/`, { signal: AbortSignal.timeout(5000) }),
-      fetch(`https://api.teleport.org/api/urban_areas/slug:${slug}/images/`, { signal: AbortSignal.timeout(5000) }),
-    ]);
-
-    const scores = scoresRes.ok ? await scoresRes.json() : null;
-    const imgs = imgRes.ok ? await imgRes.json() : null;
-
-    if (!scores) return null;
-
-    const scoreMap: Record<string, number> = {};
-    (scores.categories || []).forEach((s: any) => {
-      scoreMap[s.name] = Math.round(s.score_out_of_10 * 10) / 10;
-    });
-
-    const image = imgs?.photos?.[0]?.image?.web || null;
-    const name = scores._links?.['ua:urban-area']?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-
-    return {
-      slug,
-      name,
-      image,
-      scores: scoreMap,
-      overall: scores.teleport_city_score ? Math.round(scores.teleport_city_score) / 10 : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
 export async function GET() {
-  try {
-    // Fetch in batches of 10 to avoid timeout
-    const results = [];
-    for (let i = 0; i < CITY_SLUGS.length; i += 10) {
-      const batch = CITY_SLUGS.slice(i, i + 10);
-      const batchResults = await Promise.all(batch.map(fetchCity));
-      results.push(...batchResults.filter(Boolean));
-    }
-
-    return NextResponse.json({ cities: results });
-  } catch (e) {
-    return NextResponse.json({ error: 'Failed to fetch cities' }, { status: 500 });
-  }
+  return NextResponse.json({ cities: CITIES });
 }
