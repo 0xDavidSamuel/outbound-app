@@ -16,13 +16,13 @@ export default function HomePage() {
     });
   };
 
-  const signInWithX = async () => {
+  /*const signInWithX = async () => {
     setLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-  };
+  };*/
 
   return (
     <>
@@ -340,10 +340,6 @@ export default function HomePage() {
                 <GHIcon />
                 {loading ? 'Loading...' : 'Enter with GitHub'}
               </button>
-              <button className="btn-enter-x" onClick={signInWithX} disabled={loading}>
-                <XIcon />
-                {loading ? 'Loading...' : 'Enter with X'}
-              </button>
             </div>
           </div>
           <div className="scroll-hint"><span className="scroll-line" />Scroll</div>
@@ -403,10 +399,6 @@ export default function HomePage() {
               <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
                 <GHIcon />
                 {loading ? 'Loading...' : 'Enter with GitHub'}
-              </button>
-              <button className="btn-enter-x" onClick={signInWithX} disabled={loading}>
-                <XIcon />
-                {loading ? 'Loading...' : 'Enter with X'}
               </button>
             </div>
           </div>
