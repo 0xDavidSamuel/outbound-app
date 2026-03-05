@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Outbound — Find developers near you',
-  description: 'Discover developers in your city. Passive map-based discovery for builders.',
+  title: 'Outbound — Never travel alone again.',
+  description: 'Discover developers in your city. Passive map-based discovery for nomads.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
