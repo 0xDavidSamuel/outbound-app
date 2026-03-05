@@ -1,392 +1,984 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import NavBar from '@/components/ui/NavBar';
 
-export default function HomePage() {
-  const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const TRAVELER_TYPES = [
+  { id: 'nomad',    emoji: '🌏', label: 'Digital Nomad',   desc: 'Laptop + passport = office' },
+  { id: 'expat',    emoji: '☕', label: 'Expat',            desc: 'Put down roots abroad' },
+  { id: 'solo',     emoji: '🎒', label: 'Solo Traveler',   desc: 'Just me, myself & wifi' },
+  { id: 'remote',   emoji: '💻', label: 'Remote Worker',   desc: 'Work from anywhere crew' },
+  { id: 'explorer', emoji: '🏔', label: 'Adventure Seeker', desc: 'Always chasing the next thing' },
+  { id: 'slow',     emoji: '🌿', label: 'Slow Traveler',   desc: 'Deep dives, not quick stops' },
+];
+
+const VIBES = [
+  { id: 'settling', emoji: '🏠', label: 'Settling in' },
+  { id: 'exploring', emoji: '🗺', label: 'Exploring' },
+  { id: 'working', emoji: '⚡', label: 'Deep work mode' },
+  { id: 'socializing', emoji: '🤝', label: 'Meeting people' },
+  { id: 'moving', emoji: '✈️', label: 'In transit' },
+  { id: 'recharging', emoji: '🌊', label: 'Recharging' },
+];
+
+const COUNTRY_EMOJIS: Record<string, string> = {
+  'US': '🇺🇸', 'GB': '🇬🇧', 'JP': '🇯🇵', 'FR': '🇫🇷', 'DE': '🇩🇪',
+  'BR': '🇧🇷', 'MX': '🇲🇽', 'CA': '🇨🇦', 'AU': '🇦🇺', 'IN': '🇮🇳',
+  'CN': '🇨🇳', 'KR': '🇰🇷', 'ES': '🇪🇸', 'IT': '🇮🇹', 'PT': '🇵🇹',
+  'NL': '🇳🇱', 'SE': '🇸🇪', 'NO': '🇳🇴', 'SG': '🇸🇬', 'AE': '🇦🇪',
+  'AR': '🇦🇷', 'CL': '🇨🇱', 'CO': '🇨🇴', 'PL': '🇵🇱', 'TR': '🇹🇷',
+  'TH': '🇹🇭', 'VN': '🇻🇳', 'ID': '🇮🇩', 'PH': '🇵🇭', 'ZA': '🇿🇦',
+  'NG': '🇳🇬', 'EG': '🇪🇬', 'GH': '🇬🇭', 'KE': '🇰🇪', 'MA': '🇲🇦',
+  'NZ': '🇳🇿', 'CH': '🇨🇭', 'AT': '🇦🇹', 'BE': '🇧🇪', 'DK': '🇩🇰',
+  'GR': '🇬🇷', 'HR': '🇭🇷', 'CZ': '🇨🇿', 'HU': '🇭🇺', 'RO': '🇷🇴',
+  'GE': '🇬🇪', 'TW': '🇹🇼', 'MY': '🇲🇾', 'NP': '🇳🇵', 'KH': '🇰🇭',
+  'EC': '🇪🇨', 'CR': '🇨🇷', 'PA': '🇵🇦', 'PE': '🇵🇪',
+};
+
+const COUNTRY_NAMES: Record<string, string> = {
+  'US': 'United States', 'GB': 'United Kingdom', 'JP': 'Japan', 'FR': 'France',
+  'DE': 'Germany', 'BR': 'Brazil', 'MX': 'Mexico', 'CA': 'Canada',
+  'AU': 'Australia', 'IN': 'India', 'CN': 'China', 'KR': 'South Korea',
+  'ES': 'Spain', 'IT': 'Italy', 'PT': 'Portugal', 'NL': 'Netherlands',
+  'SE': 'Sweden', 'NO': 'Norway', 'SG': 'Singapore', 'AE': 'UAE',
+  'AR': 'Argentina', 'CL': 'Chile', 'CO': 'Colombia', 'PL': 'Poland',
+  'TR': 'Turkey', 'TH': 'Thailand', 'VN': 'Vietnam', 'ID': 'Indonesia',
+  'PH': 'Philippines', 'ZA': 'South Africa', 'NG': 'Nigeria', 'EG': 'Egypt',
+  'GH': 'Ghana', 'KE': 'Kenya', 'MA': 'Morocco', 'NZ': 'New Zealand',
+  'CH': 'Switzerland', 'AT': 'Austria', 'BE': 'Belgium', 'DK': 'Denmark',
+  'GR': 'Greece', 'HR': 'Croatia', 'CZ': 'Czech Republic', 'HU': 'Hungary',
+  'RO': 'Romania', 'GE': 'Georgia', 'TW': 'Taiwan', 'MY': 'Malaysia',
+  'NP': 'Nepal', 'KH': 'Cambodia', 'EC': 'Ecuador', 'CR': 'Costa Rica',
+  'PA': 'Panama', 'PE': 'Peru',
+};
+
+const ALL_BADGES = [
+  { id: 'founding_member', emoji: '🥇', label: 'Founding Member', desc: 'Joined during beta' },
+  { id: 'first_stamp',     emoji: '📮', label: 'First Stamp',     desc: 'Added your first country' },
+  { id: 'globe_trotter',   emoji: '🌍', label: 'Globe Trotter',   desc: '5+ countries visited' },
+  { id: 'continent_hopper',emoji: '✈️', label: 'Continent Hopper',desc: '3+ continents' },
+  { id: 'nomad_certified', emoji: '🌏', label: 'Nomad Certified', desc: '10+ countries visited' },
+  { id: 'local_legend',    emoji: '🏙', label: 'Local Legend',    desc: 'Active in your city' },
+  { id: 'event_host',      emoji: '⚡', label: 'Event Host',      desc: 'Hosted a local meetup' },
+  { id: 'connector',       emoji: '🤝', label: 'Connector',       desc: 'Helped 5+ travelers' },
+  { id: 'early_bird',      emoji: '🐣', label: 'Early Bird',      desc: 'Active in the first week' },
+  { id: 'storyteller',     emoji: '📸', label: 'Storyteller',     desc: '10+ posts in the Feed' },
+];
+
+function getEarnedBadges(profile: any): string[] {
+  const earned: string[] = ['founding_member', 'early_bird'];
+  const countries = profile.countries_visited || [];
+  if (countries.length >= 1) earned.push('first_stamp');
+  if (countries.length >= 5) earned.push('globe_trotter');
+  if (countries.length >= 10) earned.push('nomad_certified');
+  if (profile.lat && profile.lng) earned.push('local_legend');
+  return earned;
+}
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
+
+export default function PassportPage() {
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioText, setBioText] = useState('');
+  const [addingCountry, setAddingCountry] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+  const [savingType, setSavingType] = useState(false);
+  const [savingVibe, setSavingVibe] = useState(false);
   const supabase = createClient();
+  const router = useRouter();
 
-  const signInWithGitHub = async () => {
-    setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+  useEffect(() => {
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.push('/'); return; }
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      setProfile(data);
+      setBioText(data?.bio || '');
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const saveBio = async () => {
+    await supabase.from('profiles').update({ bio: bioText }).eq('id', profile.id);
+    setProfile({ ...profile, bio: bioText });
+    setEditingBio(false);
   };
+
+  const setTravelerType = async (type: string) => {
+    setSavingType(true);
+    await supabase.from('profiles').update({ traveler_type: type }).eq('id', profile.id);
+    setProfile({ ...profile, traveler_type: type });
+    setSavingType(false);
+  };
+
+  const setCurrentVibe = async (vibe: string) => {
+    setSavingVibe(true);
+    await supabase.from('profiles').update({ current_vibe: vibe }).eq('id', profile.id);
+    setProfile({ ...profile, current_vibe: vibe });
+    setSavingVibe(false);
+  };
+
+  const addCountry = async (code: string) => {
+    const current = profile.countries_visited || [];
+    if (current.includes(code)) return;
+    const updated = [...current, code];
+    await supabase.from('profiles').update({ countries_visited: updated }).eq('id', profile.id);
+    setProfile({ ...profile, countries_visited: updated });
+    setAddingCountry(false);
+    setCountrySearch('');
+  };
+
+  const removeCountry = async (code: string) => {
+    const updated = (profile.countries_visited || []).filter((c: string) => c !== code);
+    await supabase.from('profiles').update({ countries_visited: updated }).eq('id', profile.id);
+    setProfile({ ...profile, countries_visited: updated });
+  };
+
+  if (loading) return (
+    <div style={{ height: '100vh', background: '#09090f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16, animation: 'bounce 0.8s infinite alternate' }}>🌏</div>
+        <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, color: '#555', letterSpacing: '0.05em' }}>loading your hub...</p>
+      </div>
+      <style>{`@keyframes bounce { to { transform: translateY(-8px); } }`}</style>
+    </div>
+  );
+
+  const earnedBadges = getEarnedBadges(profile);
+  const countries = profile?.countries_visited || [];
+  const travelerType = TRAVELER_TYPES.find(t => t.id === profile?.traveler_type);
+  const currentVibe = VIBES.find(v => v.id === profile?.current_vibe);
+  const memberYear = new Date(profile?.created_at).getFullYear();
+  const filteredCountries = Object.entries(COUNTRY_NAMES).filter(([code, name]) =>
+    !countries.includes(code) && name.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   return (
     <>
       <style suppressHydrationWarning>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&family=DM+Sans:wght@300;400;500&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; overflow: hidden; background: #080808; }
 
-        :root {
-          --bg: #080808;
-          --accent: #e8ff47;
-          --text: #fff;
-          --dim: #444;
-          --border: #111;
+        body {
+          background: #09090f;
+          color: #fff;
+          font-family: 'DM Sans', sans-serif;
         }
 
-        .grain {
-          position: fixed; inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-          pointer-events: none; z-index: 999; opacity: 0.35;
+        .pp-page {
+          min-height: 100vh;
+          padding: 80px 20px 140px;
+          max-width: 760px;
+          margin: 0 auto;
         }
 
-        .top-bar {
-          position: fixed; top: 0; left: 0; right: 0; height: 52px;
-          display: flex; align-items: center; padding: 0 48px; z-index: 100;
-        }
-        .wordmark { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.35em; color: var(--accent); text-transform: uppercase; }
-
-        .beta-pill {
-          position: fixed; bottom: 28px; left: 48px;
-          font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.2em;
-          color: var(--accent); background: rgba(232,255,71,0.07);
-          border: 1px solid rgba(232,255,71,0.18); padding: 5px 10px;
-          border-radius: 4px; z-index: 100; text-transform: uppercase;
+        /* ── HERO CARD ── */
+        .pp-hero {
+          background: linear-gradient(145deg, #13131f 0%, #0f0f1a 100%);
+          border: 1.5px solid #1e1e30;
+          border-radius: 28px;
+          padding: 32px;
+          margin-bottom: 20px;
+          position: relative;
+          overflow: hidden;
         }
 
-        .scroll-area {
-          width: 100vw; height: 100vh;
-          overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none;
-        }
-        .scroll-area::-webkit-scrollbar { display: none; }
-
-        .section {
-          height: 100vh; scroll-snap-align: start;
-          display: flex; align-items: center; padding: 0 48px;
-          position: relative; overflow: hidden; border-bottom: 1px solid var(--border);
+        .pp-hero::before {
+          content: '';
+          position: absolute;
+          top: -60px; right: -60px;
+          width: 200px; height: 200px;
+          background: radial-gradient(circle, rgba(232,255,71,0.07) 0%, transparent 70%);
+          pointer-events: none;
         }
 
-        .ghost {
-          position: absolute; font-family: 'Bebas Neue', sans-serif;
-          color: rgba(255,255,255,0.025); pointer-events: none;
-          user-select: none; white-space: nowrap; line-height: 1;
+        .pp-hero-top {
+          display: flex;
+          align-items: flex-start;
+          gap: 20px;
+          margin-bottom: 24px;
         }
 
-        .eyebrow {
-          font-family: 'DM Mono', monospace; font-size: 9px;
-          letter-spacing: 0.5em; color: var(--dim); text-transform: uppercase; margin-bottom: 24px;
+        /* chibi avatar frame */
+        .pp-avatar-frame {
+          position: relative;
+          flex-shrink: 0;
         }
 
-        .hero-title {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(72px, 10vw, 148px);
-          line-height: 0.88; color: var(--text); margin-bottom: 32px;
-        }
-        .hero-title em { color: var(--accent); font-style: normal; }
-
-        .hero-sub {
-          font-size: 14px; color: var(--dim); line-height: 1.9;
-          max-width: 360px; margin-bottom: 48px; font-weight: 300;
-        }
-
-        .cta-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-
-        .btn-enter {
-          display: flex; align-items: center; gap: 10px;
-          background: var(--accent); color: #080808; border: none;
-          padding: 13px 28px; font-family: 'DM Mono', monospace; font-size: 11px;
-          letter-spacing: 0.12em; text-transform: uppercase; border-radius: 6px;
-          cursor: pointer; transition: opacity 0.2s, transform 0.15s; font-weight: 500;
-        }
-        .btn-enter:hover { opacity: 0.88; transform: translateY(-1px); }
-        .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        .btn-ghost {
-          display: flex; align-items: center; gap: 10px;
-          background: transparent; color: #fff; border: 1px solid #222;
-          padding: 13px 28px; font-family: 'DM Mono', monospace; font-size: 11px;
-          letter-spacing: 0.12em; text-transform: uppercase; border-radius: 6px;
-          cursor: pointer; transition: border-color 0.2s, color 0.2s, transform 0.15s;
-          text-decoration: none;
-        }
-        .btn-ghost:hover { border-color: #444; color: var(--accent); transform: translateY(-1px); }
-
-        .scroll-hint {
-          position: absolute; bottom: 32px; left: 48px;
-          display: flex; align-items: center; gap: 10px;
-          font-family: 'DM Mono', monospace; font-size: 9px;
-          letter-spacing: 0.3em; color: #222; text-transform: uppercase;
-        }
-        .scroll-line { width: 32px; height: 1px; background: #1a1a1a; }
-
-        .section-label {
-          position: absolute; left: 48px; top: 40px;
-          font-family: 'DM Mono', monospace; font-size: 9px;
-          letter-spacing: 0.45em; color: #222; text-transform: uppercase;
+        .pp-avatar {
+          width: 88px;
+          height: 88px;
+          border-radius: 50%;
+          border: 3px solid #e8ff47;
+          overflow: hidden;
+          background: #1a1a2e;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Fredoka One', cursive;
+          font-size: 32px;
+          color: #e8ff47;
+          position: relative;
+          z-index: 1;
         }
 
-        /* S2 pillars */
-        .pillars {
+        .pp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .pp-avatar-ring {
+          position: absolute;
+          inset: -6px;
+          border-radius: 50%;
+          border: 2px dashed rgba(232,255,71,0.2);
+          animation: spin 12s linear infinite;
+        }
+
+        .pp-avatar-dot {
+          position: absolute;
+          top: 2px; right: 2px;
+          width: 18px; height: 18px;
+          border-radius: 50%;
+          background: #e8ff47;
+          border: 2.5px solid #09090f;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .pp-identity { flex: 1; min-width: 0; }
+
+        .pp-name {
+          font-family: 'Fredoka One', cursive;
+          font-size: 28px;
+          color: #fff;
+          line-height: 1.1;
+          margin-bottom: 4px;
+        }
+
+        .pp-handle {
+          font-family: 'Nunito', sans-serif;
+          font-size: 13px;
+          color: #3d3d55;
+          font-weight: 600;
+          margin-bottom: 12px;
+        }
+
+        .pp-type-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(232,255,71,0.1);
+          border: 1px solid rgba(232,255,71,0.25);
+          border-radius: 20px;
+          padding: 5px 12px;
+          font-family: 'Nunito', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          color: #e8ff47;
+        }
+
+        .pp-type-badge.unset {
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(255,255,255,0.08);
+          color: #2a2a40;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .pp-type-badge.unset:hover { border-color: rgba(232,255,71,0.2); color: #444; }
+
+        /* bio */
+        .pp-bio {
+          font-family: 'Nunito', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          color: #4a4a6a;
+          line-height: 1.6;
+          cursor: pointer;
+          padding: 10px 14px;
+          border-radius: 14px;
+          border: 1.5px dashed transparent;
+          transition: all 0.2s;
+          margin-bottom: 20px;
+        }
+        .pp-bio:hover { border-color: rgba(232,255,71,0.2); color: #6a6a8a; }
+        .pp-bio.has-bio { color: #9090b0; }
+
+        .pp-bio-edit {
+          width: 100%;
+          background: rgba(255,255,255,0.04);
+          border: 1.5px solid rgba(232,255,71,0.3);
+          border-radius: 14px;
+          padding: 10px 14px;
+          font-family: 'Nunito', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          color: #fff;
+          outline: none;
+          resize: none;
+          height: 72px;
+          margin-bottom: 8px;
+        }
+
+        .pp-bio-actions {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+
+        .pp-btn-save {
+          font-family: 'Nunito', sans-serif;
+          font-size: 12px;
+          font-weight: 800;
+          background: #e8ff47;
+          color: #09090f;
+          border: none;
+          border-radius: 20px;
+          padding: 6px 16px;
+          cursor: pointer;
+          transition: transform 0.15s;
+        }
+        .pp-btn-save:hover { transform: scale(1.03); }
+
+        .pp-btn-cancel {
+          font-family: 'Nunito', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          background: transparent;
+          color: #3a3a55;
+          border: 1px solid #1e1e30;
+          border-radius: 20px;
+          padding: 6px 16px;
+          cursor: pointer;
+          transition: border-color 0.2s;
+        }
+        .pp-btn-cancel:hover { border-color: #333350; }
+
+        /* stats strip */
+        .pp-stats {
+          display: flex;
+          gap: 0;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid #1a1a2a;
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        .pp-stat {
+          flex: 1;
+          padding: 12px;
+          text-align: center;
+          border-right: 1px solid #1a1a2a;
+        }
+        .pp-stat:last-child { border-right: none; }
+
+        .pp-stat-num {
+          font-family: 'Fredoka One', cursive;
+          font-size: 22px;
+          color: #e8ff47;
+          line-height: 1;
+          margin-bottom: 3px;
+        }
+
+        .pp-stat-label {
+          font-family: 'Nunito', sans-serif;
+          font-size: 10px;
+          font-weight: 700;
+          color: #2a2a40;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        /* ── SECTION WRAPPER ── */
+        .pp-card {
+          background: linear-gradient(145deg, #13131f 0%, #0f0f1a 100%);
+          border: 1.5px solid #1e1e30;
+          border-radius: 24px;
+          padding: 24px;
+          margin-bottom: 16px;
+        }
+
+        .pp-section-title {
+          font-family: 'Fredoka One', cursive;
+          font-size: 18px;
+          color: #fff;
+          margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .pp-section-sub {
+          font-family: 'Nunito', sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          color: #2a2a40;
+          margin-bottom: 16px;
+        }
+
+        /* ── TRAVELER TYPE PICKER ── */
+        .pp-type-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 28px 60px;
-          max-width: 560px;
-        }
-        .pillar { display: flex; flex-direction: column; gap: 5px; }
-        .pillar-icon { font-size: 18px; margin-bottom: 4px; }
-        .pillar-name { font-size: 13px; font-weight: 500; color: #fff; }
-        .pillar-desc { font-size: 12px; color: #444; line-height: 1.6; font-weight: 300; }
-
-        /* S3 stats */
-        .stats-row {
-          display: flex; gap: 48px; margin-bottom: 48px; flex-wrap: wrap;
-        }
-        .stat { display: flex; flex-direction: column; gap: 4px; }
-        .stat-num {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 52px; color: var(--accent); line-height: 1;
-        }
-        .stat-label {
-          font-family: 'DM Mono', monospace; font-size: 9px;
-          color: #333; letter-spacing: 0.2em; text-transform: uppercase;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
         }
 
-        /* S4 use cases */
-        .use-cases { display: flex; flex-direction: column; gap: 16px; max-width: 520px; }
-        .use-case {
-          display: flex; align-items: flex-start; gap: 16px;
-          padding: 16px; background: rgba(255,255,255,0.02);
-          border: 1px solid #111; border-radius: 10px;
-        }
-        .use-case-num {
-          font-family: 'Bebas Neue', sans-serif; font-size: 32px;
-          color: rgba(232,255,71,0.2); line-height: 1; flex-shrink: 0; width: 32px;
-        }
-        .use-case-text { font-size: 13px; color: #555; line-height: 1.7; font-weight: 300; }
-        .use-case-text strong { color: #888; font-weight: 500; }
-
-        /* S5 final */
-        .final-title {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(72px, 11vw, 150px);
-          line-height: 0.88; color: var(--text); margin-bottom: 12px;
-        }
-        .final-sub {
-          font-size: 13px; color: #2a2a2a;
-          font-style: italic; font-weight: 300; margin-bottom: 40px;
+        .pp-type-card {
+          background: rgba(255,255,255,0.02);
+          border: 1.5px solid #1a1a2a;
+          border-radius: 16px;
+          padding: 14px 10px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s;
         }
 
-        .side-tagline {
-          position: absolute; right: 48px; bottom: 48px; text-align: right;
-        }
-        .side-tagline span {
-          display: block; font-family: 'DM Mono', monospace;
-          font-size: 9px; letter-spacing: 0.25em; color: #1e1e1e; text-transform: uppercase;
-        }
-        .side-tagline span + span {
-          font-family: 'DM Sans', sans-serif; letter-spacing: 0;
-          font-size: 11px; color: #1a1a1a; margin-top: 4px;
+        .pp-type-card:hover {
+          border-color: rgba(232,255,71,0.2);
+          background: rgba(232,255,71,0.03);
+          transform: translateY(-2px);
         }
 
-        /* live ticker */
-        .ticker-wrap {
-          position: absolute; bottom: 0; left: 0; right: 0;
-          height: 36px; border-top: 1px solid #0e0e0e;
-          overflow: hidden; display: flex; align-items: center;
+        .pp-type-card.selected {
+          border-color: #e8ff47;
+          background: rgba(232,255,71,0.07);
         }
-        .ticker {
-          display: flex; gap: 0; white-space: nowrap;
-          animation: ticker 30s linear infinite;
+
+        .pp-type-emoji {
+          font-size: 28px;
+          line-height: 1;
+          margin-bottom: 6px;
+          display: block;
+          transition: transform 0.2s;
         }
-        .ticker-item {
-          font-family: 'DM Mono', monospace; font-size: 9px;
-          color: #1e1e1e; letter-spacing: 0.2em; text-transform: uppercase;
-          padding: 0 32px;
+        .pp-type-card:hover .pp-type-emoji { transform: scale(1.15); }
+        .pp-type-card.selected .pp-type-emoji { animation: wiggle 0.4s ease; }
+
+        @keyframes wiggle {
+          0%, 100% { transform: rotate(0); }
+          25% { transform: rotate(-8deg); }
+          75% { transform: rotate(8deg); }
         }
-        .ticker-dot { color: var(--accent); }
-        @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        .pp-type-name {
+          font-family: 'Nunito', sans-serif;
+          font-size: 11px;
+          font-weight: 800;
+          color: #6060 80;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: block;
+          margin-bottom: 2px;
+        }
+        .pp-type-card.selected .pp-type-name { color: #e8ff47; }
+
+        .pp-type-desc {
+          font-family: 'Nunito', sans-serif;
+          font-size: 10px;
+          font-weight: 600;
+          color: #2a2a40;
+          line-height: 1.3;
+        }
+
+        /* ── VIBE PICKER ── */
+        .pp-vibe-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .pp-vibe-chip {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          border-radius: 20px;
+          border: 1.5px solid #1a1a2a;
+          background: rgba(255,255,255,0.02);
+          cursor: pointer;
+          transition: all 0.18s;
+          font-family: 'Nunito', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          color: #3a3a55;
+        }
+
+        .pp-vibe-chip:hover {
+          border-color: rgba(232,255,71,0.25);
+          color: #6a6a8a;
+          transform: scale(1.03);
+        }
+
+        .pp-vibe-chip.selected {
+          border-color: #e8ff47;
+          background: rgba(232,255,71,0.08);
+          color: #e8ff47;
+        }
+
+        .pp-vibe-emoji { font-size: 16px; }
+
+        /* ── COUNTRY STAMPS ── */
+        .pp-stamps-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+          gap: 10px;
+        }
+
+        .pp-stamp {
+          background: rgba(255,255,255,0.03);
+          border: 1.5px solid #1a1a2a;
+          border-radius: 16px;
+          padding: 12px 6px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
+          cursor: pointer;
+          transition: all 0.2s;
+          position: relative;
+          animation: stampIn 0.3s ease both;
+        }
+
+        @keyframes stampIn {
+          from { opacity: 0; transform: scale(0.7) rotate(-5deg); }
+          to   { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        .pp-stamp:hover { transform: translateY(-3px) scale(1.04); border-color: #2a2a3a; }
+
+        .pp-stamp-flag { font-size: 30px; line-height: 1; }
+
+        .pp-stamp-code {
+          font-family: 'Nunito', sans-serif;
+          font-size: 9px;
+          font-weight: 800;
+          color: #2a2a40;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+
+        .pp-stamp-remove {
+          position: absolute;
+          top: 3px; right: 3px;
+          width: 16px; height: 16px;
+          border-radius: 50%;
+          background: #1a1a2a;
+          border: none;
+          color: #444;
+          font-size: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          transition: opacity 0.2s;
+          padding: 0;
+          line-height: 1;
+        }
+        .pp-stamp:hover .pp-stamp-remove { opacity: 1; }
+
+        .pp-stamp-empty {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 40px 20px;
+          border: 2px dashed #1a1a2a;
+          border-radius: 20px;
+          font-family: 'Nunito', sans-serif;
+          font-size: 14px;
+          font-weight: 700;
+          color: #2a2a40;
+          line-height: 1.6;
+        }
+
+        /* add country btn */
+        .pp-add-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 9px 16px;
+          border-radius: 20px;
+          border: 1.5px dashed rgba(232,255,71,0.3);
+          background: rgba(232,255,71,0.04);
+          color: #e8ff47;
+          font-family: 'Nunito', sans-serif;
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.2s;
+          margin-top: 16px;
+        }
+        .pp-add-btn:hover { background: rgba(232,255,71,0.09); border-style: solid; }
+
+        /* country search */
+        .pp-country-search {
+          background: rgba(255,255,255,0.04);
+          border: 1.5px solid rgba(232,255,71,0.2);
+          border-radius: 14px;
+          padding: 10px 14px;
+          font-family: 'Nunito', sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          color: #fff;
+          outline: none;
+          width: 100%;
+          margin-top: 14px;
+          margin-bottom: 12px;
+        }
+        .pp-country-search::placeholder { color: #2a2a40; }
+        .pp-country-search:focus { border-color: rgba(232,255,71,0.4); }
+
+        .pp-country-results {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          max-height: 160px;
+          overflow-y: auto;
+          margin-bottom: 4px;
+        }
+
+        .pp-country-opt {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid #1a1a2a;
+          border-radius: 10px;
+          padding: 5px 9px;
+          cursor: pointer;
+          font-family: 'Nunito', sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          color: #4a4a6a;
+          transition: all 0.15s;
+        }
+        .pp-country-opt:hover { border-color: #e8ff47; color: #fff; transform: scale(1.03); }
+
+        /* ── BADGES ── */
+        .pp-badges-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 10px;
+        }
+
+        .pp-badge {
+          background: rgba(255,255,255,0.02);
+          border: 1.5px solid #1a1a2a;
+          border-radius: 18px;
+          padding: 16px 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 7px;
+          text-align: center;
+          transition: all 0.2s;
+        }
+
+        .pp-badge.earned {
+          border-color: rgba(232,255,71,0.3);
+          background: rgba(232,255,71,0.04);
+        }
+
+        .pp-badge.earned:hover { transform: translateY(-3px); border-color: rgba(232,255,71,0.5); }
+
+        .pp-badge.locked { opacity: 0.3; filter: grayscale(1) blur(0.5px); }
+
+        .pp-badge-emoji {
+          font-size: 30px;
+          line-height: 1;
+          transition: transform 0.2s;
+        }
+        .pp-badge.earned:hover .pp-badge-emoji { transform: scale(1.2) rotate(-5deg); }
+
+        .pp-badge-name {
+          font-family: 'Nunito', sans-serif;
+          font-size: 11px;
+          font-weight: 800;
+          color: #5a5a7a;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .pp-badge.earned .pp-badge-name { color: #e8ff47; }
+
+        .pp-badge-desc {
+          font-family: 'Nunito', sans-serif;
+          font-size: 10px;
+          font-weight: 600;
+          color: #2a2a40;
+          line-height: 1.4;
+        }
+
+        .pp-badge-check {
+          font-family: 'Nunito', sans-serif;
+          font-size: 9px;
+          font-weight: 800;
+          color: #e8ff47;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+
+        /* ── WHO'S IT FOR callout ── */
+        .pp-callout {
+          background: linear-gradient(135deg, rgba(232,255,71,0.06) 0%, rgba(232,255,71,0.02) 100%);
+          border: 1.5px solid rgba(232,255,71,0.12);
+          border-radius: 20px;
+          padding: 20px;
+          text-align: center;
+          margin-bottom: 16px;
+        }
+
+        .pp-callout-headline {
+          font-family: 'Fredoka One', cursive;
+          font-size: 20px;
+          color: #e8ff47;
+          margin-bottom: 6px;
+        }
+
+        .pp-callout-sub {
+          font-family: 'Nunito', sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          color: #4a4a6a;
+          line-height: 1.5;
+        }
+
+        .pp-personas {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: center;
+          margin-top: 14px;
+        }
+
+        .pp-persona-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 12px;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid #1e1e30;
+          font-family: 'Nunito', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          color: #4a4a6a;
+        }
 
         @media (max-width: 600px) {
-          .section { padding: 0 24px; }
-          .pillars { grid-template-columns: 1fr; gap: 20px; }
-          .stats-row { gap: 28px; }
-          .top-bar { padding: 0 24px; }
-          .beta-pill { left: 24px; }
-          .scroll-hint { left: 24px; }
+          .pp-page { padding: 70px 14px 140px; }
+          .pp-hero { padding: 20px; }
+          .pp-type-grid { grid-template-columns: repeat(2, 1fr); }
+          .pp-badges-grid { grid-template-columns: repeat(2, 1fr); }
+          .pp-name { font-size: 22px; }
+          .pp-avatar { width: 72px; height: 72px; font-size: 26px; }
         }
       `}</style>
 
-      <div className="grain" />
-      <div className="top-bar"><span className="wordmark">outbound</span></div>
-      <div className="beta-pill">Beta · Open</div>
+      <NavBar user={{ avatar_url: profile?.avatar_url ?? undefined, username: profile?.username ?? undefined }} />
 
-      <div className="scroll-area" ref={scrollRef}>
+      <div className="pp-page">
 
-        {/* S1 — Hero */}
-        <section className="section">
-          <span className="ghost" style={{ fontSize: '28vw', bottom: '-4vw', right: '-2vw' }}>OUT</span>
-          <div style={{ maxWidth: 680 }}>
-            <p className="eyebrow">For nomads · Expats · Solo travelers</p>
-            <h1 className="hero-title">
-              Never travel<br />
-              alone<br />
-              <em>again.</em>
-            </h1>
-            <p className="hero-sub">
-              Outbound is a real-time network for people who live and work internationally. Find travelers in your city, get local intel, connect with people who've actually been there.
-            </p>
-            <div className="cta-group">
-              <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
-                <GHIcon />
-                {loading ? 'Loading...' : 'Join Outbound'}
+        {/* ── HERO CARD ── */}
+        <div className="pp-hero">
+          <div className="pp-hero-top">
+            <div className="pp-avatar-frame">
+              <div className="pp-avatar-ring" />
+              <div className="pp-avatar">
+                {profile?.avatar_url
+                  ? <img src={profile.avatar_url} alt="avatar" />
+                  : (profile?.username?.[0] || '?').toUpperCase()
+                }
+              </div>
+              <div className="pp-avatar-dot">✈</div>
+            </div>
+
+            <div className="pp-identity">
+              <div className="pp-name">{profile?.full_name || profile?.username || 'Wanderer'}</div>
+              <div className="pp-handle">@{profile?.username} · member since {memberYear}</div>
+              {travelerType
+                ? <div className="pp-type-badge">{travelerType.emoji} {travelerType.label}</div>
+                : <div className="pp-type-badge unset" onClick={() => document.getElementById('type-picker')?.scrollIntoView({ behavior: 'smooth' })}>
+                    ✦ Pick your traveler type ↓
+                  </div>
+              }
+            </div>
+          </div>
+
+          {/* bio */}
+          {editingBio ? (
+            <>
+              <textarea
+                className="pp-bio-edit"
+                value={bioText}
+                onChange={e => setBioText(e.target.value)}
+                placeholder="Tell the world who you are in one line..."
+                autoFocus
+                maxLength={120}
+              />
+              <div className="pp-bio-actions">
+                <button className="pp-btn-save" onClick={saveBio}>Save</button>
+                <button className="pp-btn-cancel" onClick={() => { setEditingBio(false); setBioText(profile?.bio || ''); }}>Cancel</button>
+              </div>
+            </>
+          ) : (
+            <div
+              className={`pp-bio${profile?.bio ? ' has-bio' : ''}`}
+              onClick={() => setEditingBio(true)}
+            >
+              {profile?.bio || '✏️  Add a one-liner about yourself...'}
+            </div>
+          )}
+
+          {/* stats */}
+          <div className="pp-stats">
+            <div className="pp-stat">
+              <div className="pp-stat-num">{countries.length}</div>
+              <div className="pp-stat-label">Countries</div>
+            </div>
+            <div className="pp-stat">
+              <div className="pp-stat-num">{earnedBadges.length}</div>
+              <div className="pp-stat-label">Badges</div>
+            </div>
+            <div className="pp-stat">
+              <div className="pp-stat-num">{Math.min(Math.max(countries.length * 10, 5), 99)}</div>
+              <div className="pp-stat-label">Wanderer Score</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── CALLOUT — who it's for ── */}
+        <div className="pp-callout">
+          <div className="pp-callout-headline">This is your hub 🌍</div>
+          <div className="pp-callout-sub">
+            Whether you're a nomad, expat, solo traveler or remote worker —<br />
+            your passport tells the world who you are.
+          </div>
+          <div className="pp-personas">
+            {['🌏 Nomad', '☕ Expat', '🎒 Solo Traveler', '💻 Remote Worker', '🏔 Explorer', '🌿 Slow Traveler'].map(p => (
+              <span key={p} className="pp-persona-chip">{p}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── CURRENT VIBE ── */}
+        <div className="pp-card">
+          <div className="pp-section-title">⚡ Current Vibe</div>
+          <div className="pp-section-sub">What are you up to right now?</div>
+          <div className="pp-vibe-row">
+            {VIBES.map(v => (
+              <button
+                key={v.id}
+                className={`pp-vibe-chip${profile?.current_vibe === v.id ? ' selected' : ''}`}
+                onClick={() => setCurrentVibe(v.id)}
+                disabled={savingVibe}
+              >
+                <span className="pp-vibe-emoji">{v.emoji}</span>
+                {v.label}
               </button>
-              <a className="btn-ghost" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">
-                Shop
-              </a>
-            </div>
+            ))}
           </div>
-          <div className="scroll-hint"><span className="scroll-line" />Scroll</div>
+        </div>
 
-          {/* Ticker */}
-          <div className="ticker-wrap">
-            <div className="ticker">
-              {[
-                '🇯🇵 Tokyo', '🇵🇹 Lisbon', '🇹🇭 Chiang Mai', '🇨🇴 Medellín', '🇲🇽 Mexico City',
-                '🇮🇩 Bali', '🇪🇸 Barcelona', '🇩🇪 Berlin', '🇦🇪 Dubai', '🇰🇷 Seoul',
-                '🇧🇷 São Paulo', '🇰🇪 Nairobi', '🇦🇺 Melbourne', '🇺🇸 Miami', '🇨🇱 Santiago',
-                '🇹🇷 Istanbul', '🇵🇱 Warsaw', '🇳🇱 Amsterdam', '🇨🇿 Prague', '🇿🇦 Cape Town',
-              ].concat([
-                '🇯🇵 Tokyo', '🇵🇹 Lisbon', '🇹🇭 Chiang Mai', '🇨🇴 Medellín', '🇲🇽 Mexico City',
-                '🇮🇩 Bali', '🇪🇸 Barcelona', '🇩🇪 Berlin', '🇦🇪 Dubai', '🇰🇷 Seoul',
-                '🇧🇷 São Paulo', '🇰🇪 Nairobi', '🇦🇺 Melbourne', '🇺🇸 Miami', '🇨🇱 Santiago',
-                '🇹🇷 Istanbul', '🇵🇱 Warsaw', '🇳🇱 Amsterdam', '🇨🇿 Prague', '🇿🇦 Cape Town',
-              ]).map((city, i) => (
-                <span key={i} className="ticker-item">
-                  {city} <span className="ticker-dot">·</span>
-                </span>
-              ))}
-            </div>
+        {/* ── TRAVELER TYPE ── */}
+        <div className="pp-card" id="type-picker">
+          <div className="pp-section-title">🧳 I am a...</div>
+          <div className="pp-section-sub">Pick the traveler type that fits you best</div>
+          <div className="pp-type-grid">
+            {TRAVELER_TYPES.map(t => (
+              <div
+                key={t.id}
+                className={`pp-type-card${profile?.traveler_type === t.id ? ' selected' : ''}`}
+                onClick={() => !savingType && setTravelerType(t.id)}
+              >
+                <span className="pp-type-emoji">{t.emoji}</span>
+                <span className="pp-type-name">{t.label}</span>
+                <span className="pp-type-desc">{t.desc}</span>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
 
-        {/* S2 — What it is */}
-        <section className="section">
-          <span className="ghost" style={{ fontSize: '22vw', top: '50%', right: '-2vw', transform: 'translateY(-50%)' }}>LIVE</span>
-          <span className="section-label">The Platform</span>
-          <div style={{ width: '100%', paddingTop: 20 }}>
-            <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(52px, 7vw, 100px)', lineHeight: 0.9, color: '#fff', marginBottom: 48 }}>
-              Everything you<br />need on the road.
-            </h2>
-            <div className="pillars">
-              {[
-                { icon: '📍', name: 'Who\'s nearby', desc: 'See other travelers in your city right now. Meet people, share space, stop being alone.' },
-                { icon: '🏠', name: 'Places to stay', desc: 'Nomad-friendly rooms, apartments, colivings — listed by people who actually live there.' },
-                { icon: '🧠', name: 'Ground intelligence', desc: 'Real-time tips on WiFi, safety, neighbourhoods, hidden spots. No outdated blogs.' },
-                { icon: '🌍', name: 'Destination rooms', desc: 'Join Japan, Colombia, Portugal — connect with locals, expats, and fellow travelers.' },
-                { icon: '⚡', name: 'Events & meetups', desc: 'Find what\'s happening near you — co-working days, dinners, experiences.' },
-                { icon: '💼', name: 'Work while you roam', desc: 'Bounties, grants, remote contracts. Opportunities that move with you.' },
-              ].map(f => (
-                <div className="pillar" key={f.name}>
-                  <div className="pillar-icon">{f.icon}</div>
-                  <span className="pillar-name">{f.name}</span>
-                  <span className="pillar-desc">{f.desc}</span>
+        {/* ── COUNTRY STAMPS ── */}
+        <div className="pp-card">
+          <div className="pp-section-title">🗺 Countries Visited</div>
+          <div className="pp-section-sub">
+            {countries.length === 0
+              ? 'Your travel history starts here — add your first stamp!'
+              : `${countries.length} stamp${countries.length === 1 ? '' : 's'} collected`
+            }
+          </div>
+
+          <div className="pp-stamps-grid">
+            {countries.length === 0 && (
+              <div className="pp-stamp-empty">
+                🌍<br />No stamps yet.<br />Every journey starts somewhere.
+              </div>
+            )}
+            {countries.map((code: string) => (
+              <div key={code} className="pp-stamp">
+                <span className="pp-stamp-flag">{COUNTRY_EMOJIS[code] || '🏳'}</span>
+                <span className="pp-stamp-code">{code}</span>
+                <button className="pp-stamp-remove" onClick={() => removeCountry(code)}>×</button>
+              </div>
+            ))}
+          </div>
+
+          <button className="pp-add-btn" onClick={() => setAddingCountry(!addingCountry)}>
+            {addingCountry ? '✕ Close' : '+ Add stamp'}
+          </button>
+
+          {addingCountry && (
+            <>
+              <input
+                className="pp-country-search"
+                placeholder="Search country..."
+                value={countrySearch}
+                onChange={e => setCountrySearch(e.target.value)}
+                autoFocus
+              />
+              <div className="pp-country-results">
+                {filteredCountries.slice(0, 40).map(([code, name]) => (
+                  <div key={code} className="pp-country-opt" onClick={() => addCountry(code)}>
+                    <span>{COUNTRY_EMOJIS[code] || '🏳'}</span>
+                    <span>{name}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── BADGES ── */}
+        <div className="pp-card">
+          <div className="pp-section-title">🏆 Badges</div>
+          <div className="pp-section-sub">
+            {earnedBadges.length} earned · {ALL_BADGES.length - earnedBadges.length} to unlock
+          </div>
+          <div className="pp-badges-grid">
+            {ALL_BADGES.map(badge => {
+              const earned = earnedBadges.includes(badge.id);
+              return (
+                <div key={badge.id} className={`pp-badge${earned ? ' earned' : ' locked'}`}>
+                  <span className="pp-badge-emoji">{badge.emoji}</span>
+                  <span className="pp-badge-name">{badge.label}</span>
+                  <span className="pp-badge-desc">{badge.desc}</span>
+                  {earned && <span className="pp-badge-check">✓ Earned</span>}
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        </section>
-
-        {/* S3 — The problem / market */}
-        <section className="section">
-          <span className="ghost" style={{ fontSize: '26vw', bottom: '-5vw', left: '-2vw' }}>MOVE</span>
-          <span className="section-label">The Movement</span>
-          <div style={{ maxWidth: 560 }}>
-            <p className="eyebrow">35M+ digital nomads. Zero platform built for them.</p>
-            <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(52px, 8vw, 106px)', lineHeight: 0.9, color: '#fff', marginBottom: 40 }}>
-              The world is your<br /><em style={{ color: '#e8ff47', fontStyle: 'normal' }}>office.</em>
-            </h2>
-            <div className="stats-row">
-              <div className="stat">
-                <span className="stat-num">35M+</span>
-                <span className="stat-label">Digital nomads</span>
-              </div>
-              <div className="stat">
-                <span className="stat-num">195</span>
-                <span className="stat-label">Countries</span>
-              </div>
-              <div className="stat">
-                <span className="stat-num">0</span>
-                <span className="stat-label">Platforms built for them</span>
-              </div>
-            </div>
-            <p style={{ fontSize: 13, color: '#333', lineHeight: 1.9, fontWeight: 300, maxWidth: 420 }}>
-              Right now travelers rely on scattered WhatsApp groups, outdated Reddit threads, and random blog posts written years ago. Outbound replaces all of that with a real-time, location-aware network built specifically for people on the move.
-            </p>
-          </div>
-          <div className="side-tagline">
-            <span>outbound</span>
-            <span>The operating system for nomad life.</span>
-          </div>
-        </section>
-
-        {/* S4 — Use cases / stories */}
-        <section className="section">
-          <span className="ghost" style={{ fontSize: '24vw', top: '-3vw', right: '-2vw' }}>HERE</span>
-          <span className="section-label">Real Scenarios</span>
-          <div>
-            <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(48px, 6vw, 88px)', lineHeight: 0.9, color: '#fff', marginBottom: 32 }}>
-              Built for moments<br /><em style={{ color: '#e8ff47', fontStyle: 'normal' }}>like these.</em>
-            </h2>
-            <div className="use-cases">
-              {[
-                { num: '01', text: 'You just landed in <strong>Tokyo</strong> for the first time. Open Outbound — see 4 people in Shinjuku right now. One\'s been here 6 months. You message them. Dinner sorted.' },
-                { num: '02', text: 'You\'re heading to <strong>Medellín</strong> next month. Join the Colombia community. Ask what neighbourhood. Get 12 real answers from people who live there.' },
-                { num: '03', text: 'You\'re in <strong>Bali</strong>, the power went out, WiFi is down across Canggu. Someone posts a safety update. You know before the travel blogs do.' },
-                { num: '04', text: 'You\'ve been <strong>alone on the road</strong> for 6 weeks. Outbound shows you 3 other nomads in your city this week. You\'re not alone anymore.' },
-              ].map(uc => (
-                <div className="use-case" key={uc.num}>
-                  <span className="use-case-num">{uc.num}</span>
-                  <span className="use-case-text" dangerouslySetInnerHTML={{ __html: uc.text }} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* S5 — Enter */}
-        <section className="section">
-          <span className="ghost" style={{ fontSize: '26vw', top: '-4vw', right: '-2vw' }}>IN</span>
-          <div>
-            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.4em', color: '#444', textTransform: 'uppercase', marginBottom: 16 }}>
-              For the well-traveled and the soon-to-be.
-            </p>
-            <h2 className="final-title">
-              Join<br />Outbound.
-            </h2>
-            <p className="final-sub">Currently in beta. Free to join. Travelers worldwide.</p>
-            <div className="cta-group">
-              <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
-                <GHIcon />
-                {loading ? 'Loading...' : 'Join Now'}
-              </button>
-              <a className="btn-ghost" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">
-                Shop Outbound
-              </a>
-            </div>
-          </div>
-          <div className="side-tagline">
-            <span>outbound</span>
-            <span>Travelers helping travelers.</span>
-          </div>
-        </section>
+        </div>
 
       </div>
     </>
-  );
-}
-
-function GHIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-    </svg>
   );
 }
