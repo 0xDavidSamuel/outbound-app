@@ -12,8 +12,8 @@ const NAV_ITEMS = [
   { label: 'Events',   href: '/events',   icon: '◇' },
   { label: 'Jobs',     href: '/jobs',     icon: '□' },
   { label: 'Tools',    href: '/tools',    icon: '⊞' },
-  { label: 'Store',    href: 'https://outboundwear.com', icon: '◻', external: true },
   { label: 'Map',      href: '/map',      icon: '◎' },
+  { label: 'Store',    href: 'https://outboundwear.com', icon: '◻', external: true },
 ];
 
 export default function NavBar({ user }: { user: { avatar_url?: string; username?: string } }) {
