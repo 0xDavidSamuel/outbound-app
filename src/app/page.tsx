@@ -16,6 +16,14 @@ export default function HomePage() {
     });
   };
 
+  const signInWithX = async () => {
+    setLoading(true);
+    await supabase.auth.signInWithOAuth({
+      provider: 'twitter',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+
   return (
     <>
       <style suppressHydrationWarning>{`
@@ -41,6 +49,42 @@ export default function HomePage() {
           opacity: 0.35;
         }
 
+        .top-bar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 52px;
+          display: flex;
+          align-items: center;
+          padding: 0 48px;
+          z-index: 100;
+        }
+
+        .wordmark {
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.35em;
+          color: var(--accent);
+          text-transform: uppercase;
+        }
+
+        .beta-pill {
+          position: fixed;
+          bottom: 28px;
+          left: 48px;
+          font-family: 'DM Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.2em;
+          color: var(--accent);
+          background: rgba(232,255,71,0.07);
+          border: 1px solid rgba(232,255,71,0.18);
+          padding: 5px 10px;
+          border-radius: 4px;
+          z-index: 100;
+          text-transform: uppercase;
+        }
+
         .scroll-area {
           width: 100vw;
           height: 100vh;
@@ -55,7 +99,7 @@ export default function HomePage() {
           scroll-snap-align: start;
           display: flex;
           align-items: center;
-          padding: 0 96px;
+          padding: 0 48px;
           position: relative;
           overflow: hidden;
           border-bottom: 1px solid var(--border);
@@ -71,29 +115,6 @@ export default function HomePage() {
           line-height: 1;
         }
 
-        /* top wordmark */
-        .top-bar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 48px;
-          display: flex;
-          align-items: center;
-          padding: 0 96px;
-          z-index: 100;
-          border-bottom: 1px solid transparent;
-        }
-
-        .wordmark {
-          font-family: 'DM Mono', monospace;
-          font-size: 11px;
-          letter-spacing: 0.35em;
-          color: var(--accent);
-          text-transform: uppercase;
-        }
-
-        /* S1 */
         .eyebrow {
           font-family: 'DM Mono', monospace;
           font-size: 9px;
@@ -121,7 +142,7 @@ export default function HomePage() {
           font-weight: 300;
         }
 
-        .cta-group { display: flex; align-items: center; gap: 16px; }
+        .cta-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
         .btn-enter {
           display: flex;
@@ -143,10 +164,30 @@ export default function HomePage() {
         .btn-enter:hover { opacity: 0.88; transform: translateY(-1px); }
         .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+        .btn-enter-x {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: #fff;
+          color: #080808;
+          border: none;
+          padding: 13px 28px;
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: opacity 0.2s, transform 0.15s;
+          font-weight: 500;
+        }
+        .btn-enter-x:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-enter-x:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
         .scroll-hint {
           position: absolute;
           bottom: 32px;
-          left: 96px;
+          left: 48px;
           display: flex;
           align-items: center;
           gap: 10px;
@@ -158,7 +199,6 @@ export default function HomePage() {
         }
         .scroll-line { width: 32px; height: 1px; background: #1a1a1a; }
 
-        /* S2 */
         .s2-title {
           font-family: 'Bebas Neue', sans-serif;
           font-size: clamp(56px, 8vw, 112px);
@@ -193,7 +233,7 @@ export default function HomePage() {
 
         .section-label {
           position: absolute;
-          left: 96px;
+          left: 48px;
           top: 40px;
           font-family: 'DM Mono', monospace;
           font-size: 9px;
@@ -202,7 +242,6 @@ export default function HomePage() {
           text-transform: uppercase;
         }
 
-        /* S3 */
         .s3-pre {
           font-family: 'DM Mono', monospace;
           font-size: 9px;
@@ -229,7 +268,6 @@ export default function HomePage() {
           max-width: 420px;
         }
 
-        /* S4 */
         .s4-label {
           font-family: 'DM Mono', monospace;
           font-size: 9px;
@@ -257,7 +295,7 @@ export default function HomePage() {
 
         .side-tagline {
           position: absolute;
-          right: 96px;
+          right: 48px;
           bottom: 48px;
           text-align: right;
         }
@@ -276,32 +314,10 @@ export default function HomePage() {
           color: #1a1a1a;
           margin-top: 4px;
         }
-
-        .beta-pill {
-          position: fixed;
-          bottom: 28px;
-          left: 96px;
-          font-family: 'DM Mono', monospace;
-          font-size: 8px;
-          letter-spacing: 0.2em;
-          color: var(--accent);
-          background: rgba(232,255,71,0.08);
-          border: 1px solid rgba(232,255,71,0.2);
-          padding: 5px 10px;
-          border-radius: 4px;
-          z-index: 100;
-          text-transform: uppercase;
-        }
       `}</style>
 
       <div className="grain" />
-
-      {/* Top wordmark */}
-      <div className="top-bar">
-        <span className="wordmark">outbound</span>
-      </div>
-
-      {/* Beta pill */}
+      <div className="top-bar"><span className="wordmark">outbound</span></div>
       <div className="beta-pill">Beta</div>
 
       <div className="scroll-area" ref={scrollRef}>
@@ -322,14 +338,15 @@ export default function HomePage() {
             <div className="cta-group">
               <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
                 <GHIcon />
-                {loading ? 'Loading...' : 'Enter Outbound'}
+                {loading ? 'Loading...' : 'Enter with GitHub'}
+              </button>
+              <button className="btn-enter-x" onClick={signInWithX} disabled={loading}>
+                <XIcon />
+                {loading ? 'Loading...' : 'Enter with X'}
               </button>
             </div>
           </div>
-          <div className="scroll-hint">
-            <span className="scroll-line" />
-            Scroll
-          </div>
+          <div className="scroll-hint"><span className="scroll-line" />Scroll</div>
         </section>
 
         {/* S2 — Experience */}
@@ -380,15 +397,16 @@ export default function HomePage() {
           <span className="ghost" style={{ fontSize: '26vw', top: '-4vw', right: '-2vw' }}>IN</span>
           <div>
             <p className="s4-label">For the well-traveled and the soon-to-be.</p>
-            <h2 className="s4-title">
-              Enter<br />
-              Outbound.
-            </h2>
+            <h2 className="s4-title">Enter<br />Outbound.</h2>
             <p className="s4-sub">Currently in beta. Some features may be limited or under development.</p>
             <div className="cta-group">
               <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
                 <GHIcon />
-                {loading ? 'Loading...' : 'Enter Outbound'}
+                {loading ? 'Loading...' : 'Enter with GitHub'}
+              </button>
+              <button className="btn-enter-x" onClick={signInWithX} disabled={loading}>
+                <XIcon />
+                {loading ? 'Loading...' : 'Enter with X'}
               </button>
             </div>
           </div>
@@ -407,6 +425,14 @@ function GHIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
     </svg>
   );
 }
