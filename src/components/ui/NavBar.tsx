@@ -6,11 +6,11 @@ import { createClient } from '@/lib/supabase';
 const NAV_ITEMS = [
   { label: 'Passport', href: '/passport', icon: '◉' },
   { label: 'Map', href: '/map', icon: '◎' },
+  { label: 'Events', href: '/events', icon: '◇' },
+  { label: 'Jobs', href: '/jobs', icon: '□' },
   { label: 'Feed', href: '/feed', icon: '≡' },
   { label: 'Community', href: '/community', icon: '◈' },
   { label: 'Cities', href: '/cities', icon: '⬡' },
-  { label: 'Events', href: '/events', icon: '◇' },
-  { label: 'Jobs', href: '/jobs', icon: '□' },
   { label: 'Tools', href: '/tools', icon: '⊞' },
   { label: 'Store', href: 'https://outboundwear.com', icon: '◻', external: true },
 ];
@@ -72,11 +72,7 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
           text-transform: uppercase;
         }
 
-        .nav-divider {
-          width: 1px;
-          height: 12px;
-          background: #1a1a1a;
-        }
+        .nav-divider { width: 1px; height: 12px; background: #1a1a1a; }
 
         .nav-avatar {
           width: 22px;
@@ -152,10 +148,8 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
           white-space: nowrap;
           flex-shrink: 0;
         }
-
         .nav-item:hover { color: #666; background: rgba(255,255,255,0.03); }
         .nav-item.active { color: #080808; background: #e8ff47; }
-
         .nav-item.store { color: #e8ff47; }
         .nav-item.store:hover { background: rgba(232,255,71,0.08); color: #e8ff47; }
 
@@ -207,7 +201,7 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
           <div className="nav-pill">
             {NAV_ITEMS.map((item, i) => (
               <>
-                {i === 2 && <div key="sep1" className="nav-sep" />}
+                {i === 4 && <div key="sep1" className="nav-sep" />}
                 {i === NAV_ITEMS.length - 1 && <div key="sep2" className="nav-sep" />}
                 <div
                   key={item.href}
