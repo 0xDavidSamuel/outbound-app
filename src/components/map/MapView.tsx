@@ -21,7 +21,7 @@ export default function MapView({ developers, events, externalEvents, currentUse
   const [viewport, setViewport] = useState({
     longitude: currentUser?.lng ?? -118.2437,
     latitude: currentUser?.lat ?? 34.0522,
-    zoom: 11,
+    zoom: 3,
   });
 
   const closePopups = useCallback(() => {
