@@ -3,8 +3,6 @@
 import { useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 
-const NAV_ITEMS = ['Feed', 'Community', 'Map', 'Cities', 'Events', 'Jobs', 'Tools'];
-
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,67 +41,9 @@ export default function HomePage() {
           opacity: 0.35;
         }
 
-        .shell {
-          display: flex;
-          height: 100vh;
-          width: 100vw;
-          overflow: hidden;
-        }
-
-        .sidebar-left {
-          width: 48px;
-          border-right: 1px solid var(--border);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: space-between;
-          padding: 28px 0;
-          flex-shrink: 0;
-          z-index: 10;
-        }
-
-        .wordmark {
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          font-family: 'DM Mono', monospace;
-          font-size: 10px;
-          letter-spacing: 0.35em;
-          color: var(--accent);
-          text-transform: uppercase;
-        }
-
-        .nav-list { list-style: none; display: flex; flex-direction: column; }
-
-        .nav-link {
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          font-family: 'DM Mono', monospace;
-          font-size: 9px;
-          letter-spacing: 0.18em;
-          color: var(--dim);
-          text-transform: uppercase;
-          padding: 12px 8px;
-          cursor: pointer;
-          transition: color 0.2s;
-          display: block;
-        }
-        .nav-link:hover { color: #888; }
-
-        .beta {
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          font-family: 'DM Mono', monospace;
-          font-size: 8px;
-          letter-spacing: 0.2em;
-          color: var(--accent);
-          background: rgba(232,255,71,0.08);
-          border: 1px solid rgba(232,255,71,0.2);
-          padding: 8px 5px;
-          border-radius: 4px;
-        }
-
         .scroll-area {
-          flex: 1;
+          width: 100vw;
+          height: 100vh;
           overflow-y: scroll;
           scroll-snap-type: y mandatory;
           scrollbar-width: none;
@@ -115,7 +55,7 @@ export default function HomePage() {
           scroll-snap-align: start;
           display: flex;
           align-items: center;
-          padding: 0 72px;
+          padding: 0 96px;
           position: relative;
           overflow: hidden;
           border-bottom: 1px solid var(--border);
@@ -131,6 +71,28 @@ export default function HomePage() {
           line-height: 1;
         }
 
+        /* top wordmark */
+        .top-bar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          padding: 0 96px;
+          z-index: 100;
+          border-bottom: 1px solid transparent;
+        }
+
+        .wordmark {
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.35em;
+          color: var(--accent);
+          text-transform: uppercase;
+        }
+
         /* S1 */
         .eyebrow {
           font-family: 'DM Mono', monospace;
@@ -143,7 +105,7 @@ export default function HomePage() {
 
         .hero-title {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(80px, 11vw, 152px);
+          font-size: clamp(80px, 11vw, 156px);
           line-height: 0.88;
           color: var(--text);
           margin-bottom: 36px;
@@ -168,7 +130,7 @@ export default function HomePage() {
           background: var(--accent);
           color: #080808;
           border: none;
-          padding: 13px 26px;
+          padding: 13px 28px;
           font-family: 'DM Mono', monospace;
           font-size: 11px;
           letter-spacing: 0.12em;
@@ -181,25 +143,10 @@ export default function HomePage() {
         .btn-enter:hover { opacity: 0.88; transform: translateY(-1px); }
         .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        .btn-request {
-          font-family: 'DM Mono', monospace;
-          font-size: 10px;
-          letter-spacing: 0.12em;
-          color: var(--dim);
-          text-transform: uppercase;
-          background: none;
-          border: 1px solid var(--border);
-          padding: 13px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: color 0.2s, border-color 0.2s;
-        }
-        .btn-request:hover { color: var(--text); border-color: #333; }
-
         .scroll-hint {
           position: absolute;
           bottom: 32px;
-          left: 72px;
+          left: 96px;
           display: flex;
           align-items: center;
           gap: 10px;
@@ -239,7 +186,6 @@ export default function HomePage() {
           justify-content: center;
           font-size: 13px;
           margin-bottom: 6px;
-          color: var(--dim);
         }
 
         .feature-name { font-size: 13px; font-weight: 500; color: var(--text); }
@@ -247,10 +193,8 @@ export default function HomePage() {
 
         .section-label {
           position: absolute;
-          left: 72px;
-          top: 50%;
-          writing-mode: vertical-rl;
-          transform: rotate(180deg) translateY(50%);
+          left: 96px;
+          top: 40px;
           font-family: 'DM Mono', monospace;
           font-size: 9px;
           letter-spacing: 0.45em;
@@ -282,7 +226,7 @@ export default function HomePage() {
           color: var(--dim);
           line-height: 1.9;
           font-weight: 300;
-          max-width: 380px;
+          max-width: 420px;
         }
 
         /* S4 */
@@ -292,7 +236,7 @@ export default function HomePage() {
           letter-spacing: 0.4em;
           color: var(--dim);
           text-transform: uppercase;
-          margin-bottom: 4px;
+          margin-bottom: 16px;
         }
 
         .s4-title {
@@ -313,7 +257,7 @@ export default function HomePage() {
 
         .side-tagline {
           position: absolute;
-          right: 72px;
+          right: 96px;
           bottom: 48px;
           text-align: right;
         }
@@ -325,173 +269,135 @@ export default function HomePage() {
           color: #1e1e1e;
           text-transform: uppercase;
         }
-        .side-tagline span + span { font-family: 'DM Sans', sans-serif; letter-spacing: 0; font-size: 11px; color: #1a1a1a; margin-top: 4px; }
-
-        /* RIGHT SIDEBAR */
-        .sidebar-right {
-          width: 48px;
-          border-left: 1px solid var(--border);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: space-between;
-          padding: 28px 0;
-          flex-shrink: 0;
-          z-index: 10;
+        .side-tagline span + span {
+          font-family: 'DM Sans', sans-serif;
+          letter-spacing: 0;
+          font-size: 11px;
+          color: #1a1a1a;
+          margin-top: 4px;
         }
 
-        .btn-access {
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
+        .beta-pill {
+          position: fixed;
+          bottom: 28px;
+          left: 96px;
           font-family: 'DM Mono', monospace;
-          font-size: 9px;
+          font-size: 8px;
           letter-spacing: 0.2em;
+          color: var(--accent);
+          background: rgba(232,255,71,0.08);
+          border: 1px solid rgba(232,255,71,0.2);
+          padding: 5px 10px;
+          border-radius: 4px;
+          z-index: 100;
           text-transform: uppercase;
-          background: #8b1a1a;
-          color: #fff;
-          border: none;
-          padding: 18px 7px;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background 0.2s;
         }
-        .btn-access:hover { background: #a52020; }
-
-        .btn-upgrade {
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          font-family: 'DM Mono', monospace;
-          font-size: 9px;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          background: transparent;
-          color: var(--dim);
-          border: 1px solid #161616;
-          padding: 14px 7px;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .btn-upgrade:hover { color: #888; border-color: #222; }
       `}</style>
 
       <div className="grain" />
 
-      <div className="shell">
-        {/* LEFT SIDEBAR */}
-        <aside className="sidebar-left">
-          <span className="wordmark">outbound</span>
-          <ul className="nav-list">
-            {NAV_ITEMS.map(item => (
-              <li key={item}><span className="nav-link">{item}</span></li>
-            ))}
-          </ul>
-          <span className="beta">Beta</span>
-        </aside>
+      {/* Top wordmark */}
+      <div className="top-bar">
+        <span className="wordmark">outbound</span>
+      </div>
 
-        {/* SCROLL AREA */}
-        <div className="scroll-area" ref={scrollRef}>
+      {/* Beta pill */}
+      <div className="beta-pill">Beta</div>
 
-          {/* S1 — Hero */}
-          <section className="section">
-            <span className="ghost" style={{ fontSize: '30vw', bottom: '-6vw', right: '-2vw' }}>OUT</span>
-            <div style={{ maxWidth: 680 }}>
-              <p className="eyebrow">Beyond routine — For builders</p>
-              <h1 className="hero-title">
-                This is not<br />
-                a platform.<br />
-                <em>It's a shift.</em>
-              </h1>
-              <p className="hero-sub">
-                Outbound is designed for developers who build beyond conventional structures. Find your people. Work anywhere. Connect locally.
-              </p>
-              <div className="cta-group">
-                <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
-                  <GHIcon />
-                  {loading ? 'Loading...' : 'Enter Outbound'}
-                </button>
-                <button className="btn-request">Request Access →</button>
-              </div>
-            </div>
-            <div className="scroll-hint">
-              <span className="scroll-line" />
-              Scroll
-            </div>
-          </section>
+      <div className="scroll-area" ref={scrollRef}>
 
-          {/* S2 — Experience */}
-          <section className="section">
-            <span className="ghost" style={{ fontSize: '22vw', top: '50%', right: '-2vw', transform: 'translateY(-50%)' }}>MOVE</span>
-            <span className="section-label">The Experience</span>
-            <div style={{ marginLeft: 40, width: '100%' }}>
-              <h2 className="s2-title">Move with<br />intention.</h2>
-              <div className="features-grid">
-                {[
-                  { icon: '📍', name: 'Discover elevated spaces', desc: 'Curated locations for those who work differently.' },
-                  { icon: '🌐', name: 'Travel with purpose', desc: 'Every destination becomes a chapter.' },
-                  { icon: '⚡', name: 'Connect in new cities', desc: 'Find your people wherever you land.' },
-                  { icon: '〰', name: 'Stay aligned globally', desc: 'Real-time connections across time zones.' },
-                ].map(f => (
-                  <div className="feature-item" key={f.name}>
-                    <div className="feature-icon">{f.icon}</div>
-                    <span className="feature-name">{f.name}</span>
-                    <span className="feature-desc">{f.desc}</span>
-                  </div>
-                ))}
-              </div>
+        {/* S1 — Hero */}
+        <section className="section">
+          <span className="ghost" style={{ fontSize: '30vw', bottom: '-6vw', right: '-2vw' }}>OUT</span>
+          <div style={{ maxWidth: 700 }}>
+            <p className="eyebrow">Beyond routine — For builders</p>
+            <h1 className="hero-title">
+              This is not<br />
+              a platform.<br />
+              <em>It's a shift.</em>
+            </h1>
+            <p className="hero-sub">
+              Outbound is designed for developers who build beyond conventional structures. Find your people. Work anywhere. Connect locally.
+            </p>
+            <div className="cta-group">
+              <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
+                <GHIcon />
+                {loading ? 'Loading...' : 'Enter Outbound'}
+              </button>
             </div>
-          </section>
+          </div>
+          <div className="scroll-hint">
+            <span className="scroll-line" />
+            Scroll
+          </div>
+        </section>
 
-          {/* S3 — Private Network */}
-          <section className="section">
-            <span className="ghost" style={{ fontSize: '28vw', bottom: '-6vw', left: '-2vw' }}>BOUND</span>
-            <div style={{ maxWidth: 580 }}>
-              <p className="s3-pre">Elevated · Unrestricted</p>
-              <h2 className="s3-title">
-                A private<br />
-                network built<br />
-                for the <em>globally<br />inclined.</em>
-              </h2>
-              <p className="s3-body">
-                Not another social platform. Outbound is infrastructure for the way developers actually live — building across cities, crossing time zones, finding signal in the noise.
-              </p>
+        {/* S2 — Experience */}
+        <section className="section">
+          <span className="ghost" style={{ fontSize: '22vw', top: '50%', right: '-2vw', transform: 'translateY(-50%)' }}>MOVE</span>
+          <span className="section-label">The Experience</span>
+          <div style={{ width: '100%', paddingTop: 20 }}>
+            <h2 className="s2-title">Move with<br />intention.</h2>
+            <div className="features-grid">
+              {[
+                { icon: '📍', name: 'Discover elevated spaces', desc: 'Curated locations for those who work differently.' },
+                { icon: '🌐', name: 'Travel with purpose', desc: 'Every destination becomes a chapter.' },
+                { icon: '⚡', name: 'Connect in new cities', desc: 'Find your people wherever you land.' },
+                { icon: '〰', name: 'Stay aligned globally', desc: 'Real-time connections across time zones.' },
+              ].map(f => (
+                <div className="feature-item" key={f.name}>
+                  <div className="feature-icon">{f.icon}</div>
+                  <span className="feature-name">{f.name}</span>
+                  <span className="feature-desc">{f.desc}</span>
+                </div>
+              ))}
             </div>
-            <div className="side-tagline">
-              <span>outbound</span>
-              <span>The next frontier of global living.</span>
-            </div>
-          </section>
+          </div>
+        </section>
 
-          {/* S4 — Request Access */}
-          <section className="section">
-            <span className="ghost" style={{ fontSize: '26vw', top: '-4vw', right: '-2vw' }}>IN</span>
-            <div>
-              <p className="s4-label">For the well-traveled and the soon-to-be.</p>
-              <h2 className="s4-title">
-                Request<br />
-                Access.
-              </h2>
-              <p className="s4-sub">Currently in beta. Some features may be limited or under development.</p>
-              <div className="cta-group">
-                <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
-                  <GHIcon />
-                  {loading ? 'Loading...' : 'Enter Outbound'}
-                </button>
-              </div>
-            </div>
-            <div className="side-tagline">
-              <span>outbound</span>
-              <span>The next frontier of global living.</span>
-            </div>
-          </section>
+        {/* S3 — Private Network */}
+        <section className="section">
+          <span className="ghost" style={{ fontSize: '28vw', bottom: '-6vw', left: '-2vw' }}>BOUND</span>
+          <div style={{ maxWidth: 580 }}>
+            <p className="s3-pre">Elevated · Unrestricted</p>
+            <h2 className="s3-title">
+              A private<br />
+              network built<br />
+              for the <em>globally<br />inclined.</em>
+            </h2>
+            <p className="s3-body">
+              Not another social platform. Outbound is infrastructure for the way developers actually live — building across cities, crossing time zones, finding signal in the noise.
+            </p>
+          </div>
+          <div className="side-tagline">
+            <span>outbound</span>
+            <span>The next frontier of global living.</span>
+          </div>
+        </section>
 
-        </div>
+        {/* S4 — Enter */}
+        <section className="section">
+          <span className="ghost" style={{ fontSize: '26vw', top: '-4vw', right: '-2vw' }}>IN</span>
+          <div>
+            <p className="s4-label">For the well-traveled and the soon-to-be.</p>
+            <h2 className="s4-title">
+              Enter<br />
+              Outbound.
+            </h2>
+            <p className="s4-sub">Currently in beta. Some features may be limited or under development.</p>
+            <div className="cta-group">
+              <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
+                <GHIcon />
+                {loading ? 'Loading...' : 'Enter Outbound'}
+              </button>
+            </div>
+          </div>
+          <div className="side-tagline">
+            <span>outbound</span>
+            <span>The next frontier of global living.</span>
+          </div>
+        </section>
 
-        {/* RIGHT SIDEBAR */}
-        <aside className="sidebar-right">
-          <button className="btn-access" onClick={signInWithGitHub}>Request Access</button>
-          <button className="btn-upgrade">⬆ Upgrade</button>
-        </aside>
       </div>
     </>
   );
@@ -504,4 +410,3 @@ function GHIcon() {
     </svg>
   );
 }
-// force redeploy
