@@ -308,8 +308,8 @@ export default function EventsPage() {
                   <div className="event-name">{event.name}</div>
                   {event.tags && event.tags.length > 0 && (
                     <div className="event-tags">
-                      {event.tags.slice(0, 3).map(tag => (
-                        <span key={tag} className="event-tag">{tag}</span>
+                      {event.tags.slice(0, 3).map((tag: any, i: number) => (
+                        <span key={i} className="event-tag">{tag.value || tag}</span>
                       ))}
                     </div>
                   )}
