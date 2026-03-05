@@ -8,24 +8,20 @@ interface TMEvent {
   id: string;
   name: string;
   url: string;
-  dates: { start: { localDate: string; localTime?: string } };
-  images: { url: string; width: number; height: number }[];
+  dates: { start: { localDate: string } };
+  images: { url: string; width: number }[];
   _embedded?: {
-    venues?: {
-      name: string;
-      city: { name: string };
-      country: { name: string };
-    }[];
+    venues?: { name: string; city: { name: string }; country: { name: string } }[];
   };
 }
 
 const CATEGORIES = [
-  { label: 'All',       query: 'crypto blockchain web3' },
-  { label: 'Crypto',    query: 'cryptocurrency bitcoin ethereum' },
-  { label: 'Web3',      query: 'web3 blockchain defi' },
-  { label: 'AI',        query: 'artificial intelligence machine learning' },
-  { label: 'Dev',       query: 'developer hackathon coding' },
-  { label: 'Conference',query: 'tech conference summit' },
+  { label: 'All',        query: 'all' },
+  { label: 'Crypto',     query: 'crypto' },
+  { label: 'Web3',       query: 'web3' },
+  { label: 'AI',         query: 'ai' },
+  { label: 'Dev',        query: 'dev' },
+  { label: 'Conference', query: 'conference' },
 ];
 
 export default function EventsPage() {
@@ -53,10 +49,9 @@ export default function EventsPage() {
       setError(null);
       try {
         const q = CATEGORIES[activeCategory].query;
-        const res = await fetch(`/api/events?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/events?q=${q}`);
         const data = await res.json();
-        const items: TMEvent[] = data?._embedded?.events || [];
-        setEvents(items);
+        setEvents(data.events || []);
       } catch {
         setError('Failed to load events.');
       }
@@ -300,7 +295,7 @@ export default function EventsPage() {
                     <div className="event-name">{event.name}</div>
                     {venue && (
                       <div className="event-location">
-                        📍 {venue.city.name}, {venue.country.name}
+                        📍 {venue.city?.name}{venue.country?.name ? `, ${venue.country.name}` : ''}
                       </div>
                     )}
                     <div className="event-arrow">View event →</div>
