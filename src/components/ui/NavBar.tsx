@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: 'Events', href: '/events', icon: '◇' },
   { label: 'Jobs', href: '/jobs', icon: '□' },
   { label: 'Tools', href: '/tools', icon: '⊞' },
+  { label: 'Store', href: 'https://outboundwear.com', icon: '◻', external: true },
 ];
 
 export default function NavBar({ user }: { user: { avatar_url?: string; username?: string } }) {
@@ -22,6 +23,14 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
   const signOut = async () => {
     await supabase.auth.signOut();
     router.push('/');
+  };
+
+  const handleNav = (item: { href: string; external?: boolean }) => {
+    if (item.external) {
+      window.open(item.href, '_blank');
+    } else {
+      router.push(item.href);
+    }
   };
 
   return (
@@ -103,10 +112,9 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
         }
         .nav-signout:hover { color: #555; }
 
-        /* MAIN PILL */
         .nav-pill-wrapper {
           width: 100%;
-          max-width: 600px;
+          max-width: 680px;
           padding: 0 16px;
           pointer-events: all;
         }
@@ -148,6 +156,9 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
         .nav-item:hover { color: #666; background: rgba(255,255,255,0.03); }
         .nav-item.active { color: #080808; background: #e8ff47; }
 
+        .nav-item.store { color: #e8ff47; }
+        .nav-item.store:hover { background: rgba(232,255,71,0.08); color: #e8ff47; }
+
         .nav-item-icon { font-size: 10px; line-height: 1; }
 
         .nav-sep {
@@ -180,7 +191,6 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
       `}</style>
 
       <div className="nav-shell">
-        {/* Top micro bar */}
         <div className="nav-topbar">
           <span className="nav-wordmark">outbound</span>
           <div className="nav-divider" />
@@ -193,16 +203,16 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
           <button className="nav-signout" onClick={signOut}>out</button>
         </div>
 
-        {/* Scrollable pill */}
         <div className="nav-pill-wrapper">
           <div className="nav-pill">
             {NAV_ITEMS.map((item, i) => (
               <>
                 {i === 2 && <div key="sep1" className="nav-sep" />}
+                {i === NAV_ITEMS.length - 1 && <div key="sep2" className="nav-sep" />}
                 <div
                   key={item.href}
-                  className={`nav-item${pathname === item.href ? ' active' : ''}`}
-                  onClick={() => router.push(item.href)}
+                  className={`nav-item${pathname === item.href ? ' active' : ''}${item.external ? ' store' : ''}`}
+                  onClick={() => handleNav(item)}
                 >
                   <span className="nav-item-icon">{item.icon}</span>
                   {item.label}
