@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 
+const TM_KEY = 'ocG3vDFAcCONwIRC8oUedGQASdNwDFe7';
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get('q') || 'crypto';
+  const keyword = searchParams.get('q') || 'crypto';
 
   try {
     const res = await fetch(
-      `https://www.eventbriteapi.com/v3/events/search/?q=${encodeURIComponent(q)}&expand=venue,logo&sort_by=date`,
-      { headers: { Authorization: `Bearer RFOE43KHLUV4VBKHJPAO` } }
+      `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${encodeURIComponent(keyword)}&classificationName=miscellaneous&size=20&sort=date,asc&apikey=${TM_KEY}`
     );
     const data = await res.json();
     return NextResponse.json(data);

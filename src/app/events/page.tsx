@@ -4,32 +4,32 @@ import { useEffect, useState } from 'react';
 import NavBar from '@/components/ui/NavBar';
 import { createClient } from '@/lib/supabase';
 
-interface Event {
+interface TMEvent {
   id: string;
-  name: { text: string };
-  start: { local: string };
+  name: string;
   url: string;
-  logo?: { url: string };
-  online_event: boolean;
-  venue?: {
-    address: {
-      city: string;
-      country: string;
-    };
+  dates: { start: { localDate: string; localTime?: string } };
+  images: { url: string; width: number; height: number }[];
+  _embedded?: {
+    venues?: {
+      name: string;
+      city: { name: string };
+      country: { name: string };
+    }[];
   };
 }
 
 const CATEGORIES = [
-  { label: 'All', queries: ['crypto', 'web3', 'blockchain', 'hackathon'] },
-  { label: 'Web3', queries: ['web3', 'blockchain'] },
-  { label: 'Crypto', queries: ['cryptocurrency', 'bitcoin', 'ethereum'] },
-  { label: 'AI', queries: ['artificial intelligence', 'machine learning'] },
-  { label: 'Dev', queries: ['developer', 'coding', 'software'] },
-  { label: 'Hackathon', queries: ['hackathon'] },
+  { label: 'All',       query: 'crypto blockchain web3' },
+  { label: 'Crypto',    query: 'cryptocurrency bitcoin ethereum' },
+  { label: 'Web3',      query: 'web3 blockchain defi' },
+  { label: 'AI',        query: 'artificial intelligence machine learning' },
+  { label: 'Dev',       query: 'developer hackathon coding' },
+  { label: 'Conference',query: 'tech conference summit' },
 ];
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<TMEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState(0);
@@ -52,32 +52,16 @@ export default function EventsPage() {
       setLoading(true);
       setError(null);
       try {
-        const queries = CATEGORIES[activeCategory].queries;
-        const results = await Promise.all(
-          queries.map(q => fetch(`/api/events?q=${encodeURIComponent(q)}`).then(r => r.json()))
-        );
-
-        const allEvents: Event[] = [];
-        const seen = new Set();
-        for (const result of results) {
-          if (result.events) {
-            for (const e of result.events) {
-              if (!seen.has(e.id)) {
-                seen.add(e.id);
-                allEvents.push(e);
-              }
-            }
-          }
-        }
-
-        allEvents.sort((a, b) => new Date(a.start.local).getTime() - new Date(b.start.local).getTime());
-        setEvents(allEvents.slice(0, 40));
+        const q = CATEGORIES[activeCategory].query;
+        const res = await fetch(`/api/events?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        const items: TMEvent[] = data?._embedded?.events || [];
+        setEvents(items);
       } catch {
         setError('Failed to load events.');
       }
       setLoading(false);
     };
-
     fetchEvents();
   }, [activeCategory]);
 
@@ -86,9 +70,9 @@ export default function EventsPage() {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const getBestImage = (images: TMEvent['images']) => {
+    if (!images?.length) return null;
+    return images.sort((a, b) => b.width - a.width)[0]?.url;
   };
 
   return (
@@ -126,11 +110,7 @@ export default function EventsPage() {
         }
         .events-title em { color: #e8ff47; font-style: normal; }
 
-        .category-pills {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
+        .category-pills { display: flex; gap: 8px; flex-wrap: wrap; }
 
         .category-pill {
           font-family: 'DM Mono', monospace;
@@ -160,7 +140,6 @@ export default function EventsPage() {
           border-radius: 12px;
           overflow: hidden;
           transition: border-color 0.2s, transform 0.15s;
-          cursor: pointer;
           text-decoration: none;
           display: flex;
           flex-direction: column;
@@ -195,29 +174,11 @@ export default function EventsPage() {
           gap: 8px;
         }
 
-        .event-date-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
         .event-date {
           font-family: 'DM Mono', monospace;
           font-size: 9px;
           letter-spacing: 0.15em;
           color: #e8ff47;
-          text-transform: uppercase;
-        }
-
-        .event-online-tag {
-          font-family: 'DM Mono', monospace;
-          font-size: 8px;
-          letter-spacing: 0.1em;
-          color: #444;
-          background: #111;
-          border: 1px solid #1a1a1a;
-          padding: 2px 6px;
-          border-radius: 3px;
           text-transform: uppercase;
         }
 
@@ -325,33 +286,28 @@ export default function EventsPage() {
 
         {!loading && !error && events.length > 0 && (
           <div className="events-grid">
-            {events.map(event => (
-              <a
-                key={event.id}
-                className="event-card"
-                href={event.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {event.logo?.url
-                  ? <img className="event-image" src={event.logo.url} alt={event.name.text} />
-                  : <div className="event-image-placeholder">OUTBOUND</div>
-                }
-                <div className="event-body">
-                  <div className="event-date-row">
-                    <span className="event-date">{formatDate(event.start.local)} · {formatTime(event.start.local)}</span>
-                    {event.online_event && <span className="event-online-tag">Online</span>}
+            {events.map(event => {
+              const img = getBestImage(event.images);
+              const venue = event._embedded?.venues?.[0];
+              return (
+                <a key={event.id} className="event-card" href={event.url} target="_blank" rel="noopener noreferrer">
+                  {img
+                    ? <img className="event-image" src={img} alt={event.name} />
+                    : <div className="event-image-placeholder">OUTBOUND</div>
+                  }
+                  <div className="event-body">
+                    <span className="event-date">{formatDate(event.dates.start.localDate)}</span>
+                    <div className="event-name">{event.name}</div>
+                    {venue && (
+                      <div className="event-location">
+                        📍 {venue.city.name}, {venue.country.name}
+                      </div>
+                    )}
+                    <div className="event-arrow">View event →</div>
                   </div>
-                  <div className="event-name">{event.name.text}</div>
-                  {event.venue?.address?.city && (
-                    <div className="event-location">
-                      📍 {event.venue.address.city}{event.venue.address.country ? `, ${event.venue.address.country}` : ''}
-                    </div>
-                  )}
-                  <div className="event-arrow">View event →</div>
-                </div>
-              </a>
-            ))}
+                </a>
+              );
+            })}
           </div>
         )}
       </div>
