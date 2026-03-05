@@ -5,13 +5,13 @@ import { createClient } from '@/lib/supabase';
 
 const NAV_ITEMS = [
   { label: 'Passport', href: '/passport', icon: '◉' },
-  { label: 'Events', href: '/events', icon: '◇' },
-  { label: 'Jobs', href: '/jobs', icon: '□' },
   { label: 'Feed', href: '/feed', icon: '≡' },
   { label: 'Community', href: '/community', icon: '◈' },
   { label: 'Cities', href: '/cities', icon: '⬡' },
   { label: 'Tools', href: '/tools', icon: '⊞' },
   { label: 'Map', href: '/map', icon: '◎' },
+  { label: 'Events', href: '/events', icon: '◇' },
+  { label: 'Jobs', href: '/jobs', icon: '□' },
   { label: 'Store', href: 'https://outboundwear.com', icon: '◻', external: true },
 ];
 
