@@ -3,18 +3,21 @@
 import { useRef, useState, useCallback } from 'react';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import { Profile, Event } from '@/types';
+import { ExternalEvent } from '@/app/map/page';
 import DevPopup from './DevPopup';
 import EventPopup from './EventPopup';
 
 interface Props {
   developers: Profile[];
   events: Event[];
+  externalEvents: ExternalEvent[];
   currentUser: Profile | null;
 }
 
-export default function MapView({ developers, events, currentUser }: Props) {
+export default function MapView({ developers, events, externalEvents, currentUser }: Props) {
   const [selectedDev, setSelectedDev] = useState<Profile | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedExternal, setSelectedExternal] = useState<ExternalEvent | null>(null);
   const [viewport, setViewport] = useState({
     longitude: currentUser?.lng ?? -118.2437,
     latitude: currentUser?.lat ?? 34.0522,
@@ -24,6 +27,7 @@ export default function MapView({ developers, events, currentUser }: Props) {
   const closePopups = useCallback(() => {
     setSelectedDev(null);
     setSelectedEvent(null);
+    setSelectedExternal(null);
   }, []);
 
   return (
@@ -45,30 +49,40 @@ export default function MapView({ developers, events, currentUser }: Props) {
             longitude={dev.lng}
             latitude={dev.lat}
             anchor="center"
-            onClick={e => { e.originalEvent.stopPropagation(); setSelectedDev(dev); setSelectedEvent(null); }}
+            onClick={e => { e.originalEvent.stopPropagation(); setSelectedDev(dev); setSelectedEvent(null); setSelectedExternal(null); }}
           >
-            <DevMarker
-              avatar={dev.avatar_url}
-              isCurrentUser={dev.id === currentUser?.id}
-            />
+            <DevMarker avatar={dev.avatar_url} isCurrentUser={dev.id === currentUser?.id} />
           </Marker>
         ) : null
       ))}
 
-      {/* Event pins */}
+      {/* Supabase event pins */}
       {events.map(event => (
         <Marker
           key={event.id}
           longitude={event.lng}
           latitude={event.lat}
           anchor="center"
-          onClick={e => { e.originalEvent.stopPropagation(); setSelectedEvent(event); setSelectedDev(null); }}
+          onClick={e => { e.originalEvent.stopPropagation(); setSelectedEvent(event); setSelectedDev(null); setSelectedExternal(null); }}
         >
-          <EventMarker />
+          <EventMarker type="local" />
         </Marker>
       ))}
 
-      {/* Popups */}
+      {/* External event pins */}
+      {externalEvents.map(event => (
+        <Marker
+          key={event.id}
+          longitude={event.lng}
+          latitude={event.lat}
+          anchor="center"
+          onClick={e => { e.originalEvent.stopPropagation(); setSelectedExternal(event); setSelectedDev(null); setSelectedEvent(null); }}
+        >
+          <EventMarker type="external" />
+        </Marker>
+      ))}
+
+      {/* Dev popup */}
       {selectedDev && selectedDev.lat && selectedDev.lng && (
         <Popup
           longitude={selectedDev.lng}
@@ -82,6 +96,7 @@ export default function MapView({ developers, events, currentUser }: Props) {
         </Popup>
       )}
 
+      {/* Supabase event popup */}
       {selectedEvent && (
         <Popup
           longitude={selectedEvent.lng}
@@ -92,6 +107,20 @@ export default function MapView({ developers, events, currentUser }: Props) {
           offset={20}
         >
           <EventPopup event={selectedEvent} onClose={closePopups} />
+        </Popup>
+      )}
+
+      {/* External event popup */}
+      {selectedExternal && (
+        <Popup
+          longitude={selectedExternal.lng}
+          latitude={selectedExternal.lat}
+          anchor="bottom"
+          onClose={closePopups}
+          closeButton={false}
+          offset={20}
+        >
+          <ExternalEventPopup event={selectedExternal} onClose={closePopups} />
         </Popup>
       )}
     </Map>
@@ -125,20 +154,104 @@ function DevMarker({ avatar, isCurrentUser }: { avatar: string | null; isCurrent
   );
 }
 
-function EventMarker() {
+function EventMarker({ type }: { type: 'local' | 'external' }) {
+  const isExternal = type === 'external';
   return (
     <div
       className="cursor-pointer transition-transform duration-150 hover:scale-110 flex items-center justify-center"
       style={{
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        background: '#e8ff47',
-        boxShadow: '0 0 0 3px rgba(232,255,71,0.2), 0 4px 16px rgba(0,0,0,0.5)',
-        fontSize: 16,
+        width: isExternal ? 32 : 36,
+        height: isExternal ? 32 : 36,
+        borderRadius: isExternal ? '50%' : 10,
+        background: isExternal ? '#080808' : '#e8ff47',
+        border: isExternal ? '2px solid #e8ff47' : 'none',
+        boxShadow: isExternal
+          ? '0 0 0 2px rgba(232,255,71,0.15), 0 4px 16px rgba(0,0,0,0.5)'
+          : '0 0 0 3px rgba(232,255,71,0.2), 0 4px 16px rgba(0,0,0,0.5)',
+        fontSize: isExternal ? 14 : 16,
       }}
     >
-      ⚡
+      {isExternal ? '◇' : '⚡'}
+    </div>
+  );
+}
+
+function ExternalEventPopup({ event, onClose }: { event: ExternalEvent; onClose: () => void }) {
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  return (
+    <div style={{
+      background: '#0d0d0d',
+      border: '1px solid #1a1a1a',
+      borderRadius: 12,
+      padding: 16,
+      minWidth: 220,
+      maxWidth: 280,
+      fontFamily: 'DM Sans, sans-serif',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+        <span style={{
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 8,
+          letterSpacing: '0.3em',
+          color: '#e8ff47',
+          textTransform: 'uppercase',
+        }}>
+          {formatDate(event.startDate)}
+          {event.endDate && event.endDate !== event.startDate ? ` — ${formatDate(event.endDate)}` : ''}
+        </span>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#333', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+      </div>
+
+      <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', lineHeight: 1.4, marginBottom: 8 }}>
+        {event.name}
+      </div>
+
+      {event.city && event.city.toLowerCase() !== 'online' && (
+        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#444', marginBottom: 12 }}>
+          📍 {event.city}{event.country ? `, ${event.country}` : ''}
+        </div>
+      )}
+
+      {event.tags && event.tags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+          {event.tags.slice(0, 3).map((tag, i) => (
+            <span key={i} style={{
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 8,
+              color: '#333',
+              background: '#111',
+              border: '1px solid #1a1a1a',
+              padding: '2px 6px',
+              borderRadius: 3,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+            }}>
+              {typeof tag === 'string' ? tag : tag.value}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <a
+        href={event.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'block',
+          fontFamily: 'DM Mono, monospace',
+          fontSize: 9,
+          letterSpacing: '0.15em',
+          color: '#e8ff47',
+          textTransform: 'uppercase',
+          textDecoration: 'none',
+        }}
+      >
+        View event →
+      </a>
     </div>
   );
 }
