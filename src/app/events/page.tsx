@@ -4,15 +4,15 @@ import { useEffect, useState } from 'react';
 import NavBar from '@/components/ui/NavBar';
 import { createClient } from '@/lib/supabase';
 
-interface TMEvent {
-  id: string;
+interface DevEvent {
   name: string;
   url: string;
-  dates: { start: { localDate: string } };
-  images: { url: string; width: number }[];
-  _embedded?: {
-    venues?: { name: string; city: { name: string }; country: { name: string } }[];
-  };
+  startDate: string;
+  endDate?: string;
+  city?: string;
+  country?: string;
+  online?: boolean;
+  tags?: string[];
 }
 
 const CATEGORIES = [
@@ -25,7 +25,7 @@ const CATEGORIES = [
 ];
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<TMEvent[]>([]);
+  const [events, setEvents] = useState<DevEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState(0);
@@ -63,11 +63,6 @@ export default function EventsPage() {
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
-  const getBestImage = (images: TMEvent['images']) => {
-    if (!images?.length) return null;
-    return images.sort((a, b) => b.width - a.width)[0]?.url;
   };
 
   return (
@@ -141,24 +136,24 @@ export default function EventsPage() {
         }
         .event-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
 
-        .event-image {
+        .event-banner {
           width: 100%;
-          height: 140px;
-          object-fit: cover;
-          background: #111;
-        }
-
-        .event-image-placeholder {
-          width: 100%;
-          height: 140px;
-          background: linear-gradient(135deg, #0e0e0e, #141414);
+          height: 80px;
+          background: linear-gradient(135deg, #0e0e0e, #111);
           display: flex;
           align-items: center;
-          justify-content: center;
+          padding: 0 20px;
+          border-bottom: 1px solid #161616;
+        }
+
+        .event-banner-date {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 40px;
-          color: rgba(232,255,71,0.06);
-          letter-spacing: 0.1em;
+          font-size: 48px;
+          color: rgba(232,255,71,0.08);
+          line-height: 1;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          overflow: hidden;
         }
 
         .event-body {
@@ -186,6 +181,25 @@ export default function EventsPage() {
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+
+        .event-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          margin-top: 2px;
+        }
+
+        .event-tag {
+          font-family: 'DM Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.1em;
+          color: #333;
+          background: #111;
+          border: 1px solid #1a1a1a;
+          padding: 2px 6px;
+          border-radius: 3px;
+          text-transform: uppercase;
         }
 
         .event-location {
@@ -281,28 +295,36 @@ export default function EventsPage() {
 
         {!loading && !error && events.length > 0 && (
           <div className="events-grid">
-            {events.map(event => {
-              const img = getBestImage(event.images);
-              const venue = event._embedded?.venues?.[0];
-              return (
-                <a key={event.id} className="event-card" href={event.url} target="_blank" rel="noopener noreferrer">
-                  {img
-                    ? <img className="event-image" src={img} alt={event.name} />
-                    : <div className="event-image-placeholder">OUTBOUND</div>
-                  }
-                  <div className="event-body">
-                    <span className="event-date">{formatDate(event.dates.start.localDate)}</span>
-                    <div className="event-name">{event.name}</div>
-                    {venue && (
-                      <div className="event-location">
-                        📍 {venue.city?.name}{venue.country?.name ? `, ${venue.country.name}` : ''}
-                      </div>
-                    )}
-                    <div className="event-arrow">View event →</div>
+            {events.map((event, i) => (
+              <a key={i} className="event-card" href={event.url} target="_blank" rel="noopener noreferrer">
+                <div className="event-banner">
+                  <span className="event-banner-date">{formatDate(event.startDate)}</span>
+                </div>
+                <div className="event-body">
+                  <span className="event-date">
+                    {formatDate(event.startDate)}
+                    {event.endDate && event.endDate !== event.startDate ? ` — ${formatDate(event.endDate)}` : ''}
+                  </span>
+                  <div className="event-name">{event.name}</div>
+                  {event.tags && event.tags.length > 0 && (
+                    <div className="event-tags">
+                      {event.tags.slice(0, 3).map(tag => (
+                        <span key={tag} className="event-tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="event-location">
+                    {event.online
+                      ? '🌐 Online'
+                      : event.city
+                        ? `📍 ${event.city}${event.country ? `, ${event.country}` : ''}`
+                        : null
+                    }
                   </div>
-                </a>
-              );
-            })}
+                  <div className="event-arrow">View event →</div>
+                </div>
+              </a>
+            ))}
           </div>
         )}
       </div>
