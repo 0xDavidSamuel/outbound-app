@@ -4,13 +4,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
 const NAV_ITEMS = [
-  { label: 'Map', href: '/map' },
-  { label: 'Feed', href: '/feed' },
-  { label: 'Community', href: '/community' },
-  { label: 'Cities', href: '/cities' },
-  { label: 'Events', href: '/events' },
-  { label: 'Jobs', href: '/jobs' },
-  { label: 'Tools', href: '/tools' },
+  { label: 'Passport', href: '/passport', icon: '◉' },
+  { label: 'Map', href: '/map', icon: '◎' },
+  { label: 'Feed', href: '/feed', icon: '≡' },
+  { label: 'Community', href: '/community', icon: '◈' },
+  { label: 'Cities', href: '/cities', icon: '⬡' },
+  { label: 'Events', href: '/events', icon: '◇' },
+  { label: 'Jobs', href: '/jobs', icon: '□' },
+  { label: 'Tools', href: '/tools', icon: '⊞' },
 ];
 
 export default function NavBar({ user }: { user: { avatar_url?: string; username?: string } }) {
@@ -26,66 +27,51 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
   return (
     <>
       <style suppressHydrationWarning>{`
-        .navbar {
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
+
+        .nav-shell {
           position: fixed;
-          top: 0;
+          bottom: 24px;
           left: 0;
           right: 0;
-          height: 48px;
-          background: rgba(8,8,8,0.92);
-          backdrop-filter: blur(12px);
-          border-bottom: 1px solid #111;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          padding: 0 32px;
-          gap: 0;
-          z-index: 200;
+          gap: 8px;
+          z-index: 500;
+          pointer-events: none;
         }
 
-        .navbar-wordmark {
+        .nav-topbar {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: rgba(10,10,10,0.9);
+          border: 1px solid #161616;
+          border-radius: 40px;
+          padding: 5px 14px 5px 16px;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          pointer-events: all;
+        }
+
+        .nav-wordmark {
           font-family: 'DM Mono', monospace;
-          font-size: 10px;
+          font-size: 9px;
           letter-spacing: 0.35em;
           color: #e8ff47;
           text-transform: uppercase;
-          margin-right: 40px;
-          flex-shrink: 0;
         }
 
-        .navbar-nav {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          flex: 1;
-          list-style: none;
+        .nav-divider {
+          width: 1px;
+          height: 12px;
+          background: #1a1a1a;
         }
 
-        .navbar-link {
-          font-family: 'DM Mono', monospace;
-          font-size: 9px;
-          letter-spacing: 0.18em;
-          color: #444;
-          text-transform: uppercase;
-          padding: 6px 12px;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: color 0.2s, background 0.2s;
-          white-space: nowrap;
-        }
-
-        .navbar-link:hover { color: #888; }
-        .navbar-link.active { color: #e8ff47; background: rgba(232,255,71,0.06); }
-
-        .navbar-right {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-left: auto;
-        }
-
-        .navbar-avatar {
-          width: 28px;
-          height: 28px;
+        .nav-avatar {
+          width: 22px;
+          height: 22px;
           border-radius: 50%;
           border: 1px solid #222;
           background: #111;
@@ -95,18 +81,17 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
           align-items: center;
           justify-content: center;
           font-family: 'DM Mono', monospace;
-          font-size: 10px;
+          font-size: 9px;
           color: #444;
           transition: border-color 0.2s;
           flex-shrink: 0;
         }
+        .nav-avatar:hover { border-color: #e8ff47; }
+        .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-        .navbar-avatar:hover { border-color: #e8ff47; }
-        .navbar-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-        .navbar-signout {
+        .nav-signout {
           font-family: 'DM Mono', monospace;
-          font-size: 9px;
+          font-size: 8px;
           letter-spacing: 0.15em;
           color: #2a2a2a;
           text-transform: uppercase;
@@ -114,55 +99,121 @@ export default function NavBar({ user }: { user: { avatar_url?: string; username
           border: none;
           cursor: pointer;
           transition: color 0.2s;
-          padding: 6px 8px;
+          padding: 0 2px;
         }
-        .navbar-signout:hover { color: #555; }
+        .nav-signout:hover { color: #555; }
 
-        .navbar-upgrade {
+        /* MAIN PILL */
+        .nav-pill-wrapper {
+          width: 100%;
+          max-width: 600px;
+          padding: 0 16px;
+          pointer-events: all;
+        }
+
+        .nav-pill {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          background: rgba(10,10,10,0.92);
+          border: 1px solid #161616;
+          border-radius: 40px;
+          padding: 5px 6px;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+        .nav-pill::-webkit-scrollbar { display: none; }
+
+        .nav-item {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 7px 12px;
+          border-radius: 32px;
+          cursor: pointer;
+          transition: background 0.18s, color 0.18s;
           font-family: 'DM Mono', monospace;
           font-size: 9px;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.12em;
+          color: #383838;
+          text-transform: uppercase;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .nav-item:hover { color: #666; background: rgba(255,255,255,0.03); }
+        .nav-item.active { color: #080808; background: #e8ff47; }
+
+        .nav-item-icon { font-size: 10px; line-height: 1; }
+
+        .nav-sep {
+          width: 1px;
+          height: 14px;
+          background: #141414;
+          margin: 0 2px;
+          flex-shrink: 0;
+        }
+
+        .nav-upgrade {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 7px 12px;
+          border-radius: 32px;
+          cursor: pointer;
+          font-family: 'DM Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.12em;
           color: #e8ff47;
           text-transform: uppercase;
-          background: rgba(232,255,71,0.08);
-          border: 1px solid rgba(232,255,71,0.2);
-          padding: 5px 12px;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: background 0.2s;
+          background: rgba(232,255,71,0.06);
+          border: none;
+          transition: background 0.18s;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
-        .navbar-upgrade:hover { background: rgba(232,255,71,0.14); }
+        .nav-upgrade:hover { background: rgba(232,255,71,0.12); }
       `}</style>
 
-      <nav className="navbar">
-        <span className="navbar-wordmark">outbound</span>
-        <ul className="navbar-nav">
-          {NAV_ITEMS.map(item => (
-            <li key={item.label}>
-              <span
-                className={`navbar-link${pathname === item.href ? ' active' : ''}`}
-                onClick={() => router.push(item.href)}
-              >
-                {item.label}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <div className="navbar-right">
-          <button className="navbar-upgrade">Upgrade</button>
-          <div
-            className="navbar-avatar"
-            onClick={() => router.push('/profile/setup')}
-            title={user.username || 'Profile'}
-          >
+      <div className="nav-shell">
+        {/* Top micro bar */}
+        <div className="nav-topbar">
+          <span className="nav-wordmark">outbound</span>
+          <div className="nav-divider" />
+          <div className="nav-avatar" onClick={() => router.push('/passport')} title={user.username}>
             {user.avatar_url
               ? <img src={user.avatar_url} alt="avatar" />
               : (user.username?.[0] || '?').toUpperCase()
             }
           </div>
-          <button className="navbar-signout" onClick={signOut}>Sign out</button>
+          <button className="nav-signout" onClick={signOut}>out</button>
         </div>
-      </nav>
+
+        {/* Scrollable pill */}
+        <div className="nav-pill-wrapper">
+          <div className="nav-pill">
+            {NAV_ITEMS.map((item, i) => (
+              <>
+                {i === 2 && <div key="sep1" className="nav-sep" />}
+                <div
+                  key={item.href}
+                  className={`nav-item${pathname === item.href ? ' active' : ''}`}
+                  onClick={() => router.push(item.href)}
+                >
+                  <span className="nav-item-icon">{item.icon}</span>
+                  {item.label}
+                </div>
+              </>
+            ))}
+            <div className="nav-sep" />
+            <button className="nav-upgrade">↑ Pro</button>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

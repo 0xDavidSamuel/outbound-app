@@ -88,7 +88,7 @@ export default function ProfileSetupPage() {
     await supabase.from('profiles').upsert({ id: user.id, ...profile });
     setSaved(true);
     setLoading(false);
-    setTimeout(() => router.push('/map'), 800);
+    setTimeout(() => router.push('/passport'), 800);
   };
 
   return (

@@ -42,7 +42,7 @@ export default function CallbackPage() {
         });
         router.push('/profile/setup');
       } else {
-        router.push('/map');
+        router.push('/passport');
       }
     };
 
