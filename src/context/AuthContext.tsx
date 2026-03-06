@@ -1,6 +1,4 @@
 // src/context/AuthContext.tsx
-// Wraps Web3Auth + Supabase into one unified auth context for Outbound
-
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -13,7 +11,6 @@ interface AuthUser {
   walletAddress: string;
   username?: string;
   avatarUrl?: string;
-  isNewUser?: boolean;
 }
 
 interface AuthContextValue {
@@ -27,7 +24,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
-  loading: true,
+  loading: false,
   login: async () => {},
   logout: async () => {},
 });
@@ -35,22 +32,20 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [loading, setLoading] = useState(false);
+  const supabase              = createClient();
 
-  // ── Restore existing session on mount ─────────────────────────────────────
   useEffect(() => {
     const init = async () => {
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      if (existingSession) {
-        setSession(existingSession);
-        await loadProfile(existingSession.user.id);
+      const { data: { session: existing } } = await supabase.auth.getSession();
+      if (existing) {
+        setSession(existing);
+        await loadProfile(existing.user.id);
       }
-      setLoading(false);
     };
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, sess) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, sess) => {
       setSession(sess);
       if (sess) await loadProfile(sess.user.id);
       else setUser(null);
@@ -77,69 +72,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ── Login via Web3Auth ─────────────────────────────────────────────────────
+  // Login — init Web3Auth and trigger redirect (no popup)
   const login = async () => {
     setLoading(true);
     try {
-      // Dynamically import Web3Auth (client-only)
-      const { getWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
-      const web3auth = await getWeb3Auth();
-
-      // Open Web3Auth modal
+      const { createWeb3Auth } = await import('@/lib/web3auth');
+      const web3auth = await createWeb3Auth();
+      // This redirects the entire page to Web3Auth's hosted login
+      // then comes back to /auth/callback when done
       await web3auth.connect();
-
-      // Get user info + wallet address
-      const [userInfo, walletAddress] = await Promise.all([
-        web3auth.getUserInfo(),
-        getWalletAddress(web3auth),
-        ]);
-        const idToken = (userInfo as any).idToken ?? '';
-
-      if (!walletAddress) throw new Error('Could not get wallet address');
-
-      // Bridge to Supabase
-      const res = await fetch('/api/auth/web3auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, walletAddress, userInfo }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Auth bridge failed');
-
-      // Exchange token hash for a real Supabase session
-      if (data.tokenHash) {
-        const { data: { session: newSession }, error } = await supabase.auth.verifyOtp({
-          token_hash: data.tokenHash,
-          type: 'magiclink',
-        });
-        if (error) throw error;
-        if (newSession) {
-          setSession(newSession);
-          await loadProfile(newSession.user.id);
-        }
-      }
-
-      // Redirect new users to onboarding
-      if (data.isNewUser) {
-        window.location.href = '/onboarding';
-      } else {
-        window.location.href = '/passport';
-      }
-
     } catch (err: any) {
-      console.error('[login]', err);
-      throw err;
-    } finally {
+      // REDIRECT_RESULT errors are expected on initial load, ignore them
+      if (!err?.message?.includes('redirect')) {
+        console.error('[login]', err);
+      }
       setLoading(false);
     }
   };
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = async () => {
     try {
-      const { getWeb3Auth } = await import('@/lib/web3auth');
-      const web3auth = await getWeb3Auth();
+      const { createWeb3Auth } = await import('@/lib/web3auth');
+      const web3auth = await createWeb3Auth();
       if (web3auth.connected) await web3auth.logout();
     } catch {}
     await supabase.auth.signOut();
