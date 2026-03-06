@@ -71,9 +71,18 @@ export default function OnboardingPage() {
     if (!username || username.length < 3) { setUsernameOk(null); return; }
     const timer = setTimeout(async () => {
       setChecking(true);
-      const { data } = await supabase
-        .from('profiles').select('id').eq('username', username.toLowerCase()).maybeSingle();
-      setUsernameOk(!data);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?username=eq.${username.toLowerCase()}&select=id`,
+          { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, Authorization: `Bearer ${token}` } }
+        );
+        const rows = await res.json();
+        setUsernameOk(Array.isArray(rows) && rows.length === 0);
+      } catch {
+        setUsernameOk(null);
+      }
       setChecking(false);
     }, 400);
     return () => clearTimeout(timer);
