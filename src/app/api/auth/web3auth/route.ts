@@ -8,6 +8,8 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://outbound.vercel.app';
+
 export async function POST(req: NextRequest) {
   try {
     const { idToken, walletAddress, userInfo } = await req.json();
@@ -78,10 +80,14 @@ export async function POST(req: NextRequest) {
       }, { onConflict: 'id' });
     }
 
-    // ── Generate magic link and return token hash ────────────────────────────
+    // ── Generate magic link — Supabase sets the session natively ─────────────
+    // redirect_to is where Supabase sends the user after verifying the token
+    const redirectTo = `${APP_URL}${isNewUser ? '/onboarding' : '/passport'}`;
+
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
       email,
+      options: { redirectTo },
     });
 
     if (linkError) throw linkError;
@@ -92,7 +98,8 @@ export async function POST(req: NextRequest) {
       userId: supabaseUserId,
       walletAddress,
       email,
-      tokenHash: linkData.properties?.hashed_token,
+      // Client redirects here — Supabase verifies token, sets session, redirects to app
+      actionLink: linkData.properties.action_link,
     });
 
   } catch (error: any) {

@@ -10,8 +10,6 @@ export default function AuthCallback() {
     const finish = async () => {
       try {
         const { createWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
-        const { createClient } = await import('@/lib/supabase');
-        const supabase = createClient();
 
         setStatus('Loading wallet...');
         const web3auth = await createWeb3Auth();
@@ -41,21 +39,13 @@ export default function AuthCallback() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Auth failed');
 
-        setStatus('Starting session...');
+        if (!data.actionLink) throw new Error('No action link returned');
 
-        if (!data.tokenHash) throw new Error('No token hash returned');
+        setStatus('Opening your passport...');
 
-        // Use type: 'email' — this is what works with hashed_token from generateLink
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          token_hash: data.tokenHash,
-          type: 'email',
-        });
-
-        if (otpError) throw new Error(`Session error: ${otpError.message}`);
-
-        setStatus('Welcome to Outbound!');
-        await new Promise(r => setTimeout(r, 300));
-        window.location.href = data.isNewUser ? '/onboarding' : '/passport';
+        // Redirect to Supabase magic link — it verifies the token,
+        // sets the session in browser storage, then redirects to /onboarding or /passport
+        window.location.href = data.actionLink;
 
       } catch (err: any) {
         console.error('[callback]', err);
