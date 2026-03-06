@@ -26,9 +26,9 @@ export default function OnboardingPage() {
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.push('/login'); return; }
+      if (!session) { router.push('/'); return; }
       const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-      setProfile(data);
+      setProfile(data || {});
 
       // Animate steps in
       setTimeout(() => setStep(0), 400);
