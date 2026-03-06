@@ -29,7 +29,7 @@ export async function getWeb3Auth(): Promise<Web3Auth> {
 
 web3authInstance = new Web3Auth({
   clientId: CLIENT_ID,
-  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
   privateKeyProvider: privateKeyProvider as any,
     uiConfig: {
       appName: 'Outbound',
