@@ -1,61 +1,90 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
 
-export default function CallbackPage() {
-  const [status, setStatus] = useState('signing you in...');
-  const router = useRouter();
+export default function AuthCallback() {
+  const [status, setStatus] = useState('Completing login...');
 
   useEffect(() => {
-    const handle = async () => {
-      const supabase = createClient();
+    const finish = async () => {
+      try {
+        const { createWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
+        const web3auth = await createWeb3Auth();
 
-      // Wait a tick for session to settle
-      await new Promise(r => setTimeout(r, 500));
+        // Web3Auth handles the redirect result automatically on init
+        if (!web3auth.connected) {
+          setStatus('Something went wrong. Redirecting...');
+          setTimeout(() => window.location.href = '/', 2000);
+          return;
+        }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      setStatus(`session: ${!!session}`);
+        const [userInfo, walletAddress] = await Promise.all([
+          web3auth.getUserInfo(),
+          getWalletAddress(web3auth),
+        ]);
 
-      if (!session) {
-        router.push('/');
-        return;
-      }
+        const idToken = (userInfo as any).idToken ?? '';
+        if (!walletAddress) throw new Error('No wallet address');
 
-      const user = session.user;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile) {
-        await supabase.from('profiles').insert({
-          id: user.id,
-          username: user.user_metadata?.user_name || user.email?.split('@')[0] || 'dev',
-          full_name: user.user_metadata?.full_name || null,
-          avatar_url: user.user_metadata?.avatar_url || null,
-          skills: [],
-          is_visible: true,
+        const res = await fetch('/api/auth/web3auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken, walletAddress, userInfo }),
         });
-        router.push('/profile/setup');
-      } else {
-        router.push('/passport');
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Auth failed');
+
+        // Exchange for Supabase session
+        if (data.tokenHash) {
+          const { createClient } = await import('@/lib/supabase');
+          const supabase = createClient();
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: data.tokenHash,
+            type: 'magiclink',
+          });
+          if (error) throw error;
+        }
+
+        window.location.href = data.isNewUser ? '/onboarding' : '/passport';
+
+      } catch (err: any) {
+        console.error('[callback]', err);
+        setStatus('Login failed. Redirecting...');
+        setTimeout(() => window.location.href = '/', 2000);
       }
     };
 
-    handle();
+    finish();
   }, []);
 
   return (
     <div style={{
-      height: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: '#0a0a0a', color: '#e8ff47',
-      fontFamily: 'DM Mono, monospace', fontSize: 13
+      height: '100vh',
+      background: '#080808',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 16,
     }}>
-      {status}
+      <div style={{
+        width: 32, height: 32,
+        border: '2px solid #1a1a1a',
+        borderTop: '2px solid #e8ff47',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <p style={{
+        fontFamily: 'DM Mono, monospace',
+        fontSize: 11,
+        color: '#333',
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+      }}>
+        {status}
+      </p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

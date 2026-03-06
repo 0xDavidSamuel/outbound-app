@@ -28,13 +28,14 @@ export async function createWeb3Auth() {
   });
 
   const openloginAdapter = new OpenloginAdapter({
-    adapterSettings: {
-    uxMode: UX_MODE.POPUP,
+  adapterSettings: {
+    uxMode: UX_MODE.REDIRECT,
+    redirectUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
     whiteLabel: {
       appName: 'Outbound',
       theme: { primary: '#e8ff47' },
-        },
     },
+  },
 });
 
 instance.configureAdapter(openloginAdapter);
