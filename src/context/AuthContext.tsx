@@ -62,31 +62,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async () => {
-    setLoading(true);
-    try {
-      const { createWeb3Auth } = await import('@/lib/web3auth');
-      const web3auth = await createWeb3Auth();
-
-      // If already connected, go straight to passport
-      if (web3auth.connected) {
-        const session = getSession();
-        if (session) {
-          window.location.href = '/passport';
-          return;
-        }
-      }
-
-      await web3auth.connect();
-      // connect() redirects — won't reach here
-    } catch (err: any) {
-      const msg = err?.message || '';
-      if (msg.includes('redirect') || msg.includes('user closed') || msg.includes('Modal is already open')) {
-        return;
-      }
-      console.error('[login error]', msg);
-      setLoading(false);
+  setLoading(true);
+  try {
+    const { createWeb3Auth } = await import('@/lib/web3auth');
+    const web3auth = await createWeb3Auth();
+    await web3auth.connect();
+  } catch (err: any) {
+    const msg = err?.message || '';
+    if (msg.includes('redirect') || msg.includes('user closed') || msg.includes('Modal is already open')) {
+      return;
     }
-  };
+    console.error('[login error]', msg);
+    setLoading(false);
+  }
+};
 
   const logout = () => {
     clearSession();

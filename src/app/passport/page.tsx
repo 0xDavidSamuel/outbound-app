@@ -120,12 +120,19 @@ export default function PassportPage() {
       setToken(session.access_token);
       setUserId(session.user.id);
 
-      const res  = await fetch(
-        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=*`,
-        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` } }
-      );
-      const rows = await res.json();
-      const data = rows?.[0] || null;
+      // Retry up to 3 times — profile may not be written yet if coming straight from onboarding
+      let data = null;
+      for (let i = 0; i < 3; i++) {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=*`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` } }
+        );
+        const rows = await res.json();
+        data = rows?.[0] || null;
+        if (data) break;
+        await new Promise(r => setTimeout(r, 800));
+      }
+
       if (!data) { router.push('/'); return; }
 
       setProfile(data);
