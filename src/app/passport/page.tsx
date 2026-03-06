@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/ui/NavBar';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 const TRAVELER_TYPES = [
   { id: 'nomad',    label: 'Digital Nomad',   code: 'NMD' },
@@ -105,58 +107,106 @@ export default function PassportPage() {
   const [addingCountry, setAddingCountry] = useState(false);
   const [search, setSearch]               = useState('');
   const [page, setPage]                   = useState(0);
-  const supabase = createClient();
-  const router   = useRouter();
+  const [token, setToken]                 = useState('');
+  const [userId, setUserId]               = useState('');
+  const router = useRouter();
 
   useEffect(() => {
-  (async () => {
-    // If tokens are in URL params, set the session first
-    const params = new URLSearchParams(window.location.search);
-    const at = params.get('at');
-    const rt = params.get('rt');
-    if (at && rt) {
-      await supabase.auth.setSession({
-        access_token: decodeURIComponent(at),
-        refresh_token: decodeURIComponent(rt),
-      });
-      window.history.replaceState(null, '', '/passport');
-    }
+    (async () => {
+      const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
 
-    // Retry once after 2s to allow session to propagate
-    let { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      await new Promise(r => setTimeout(r, 2000));
-      const retry = await supabase.auth.getSession();
-      session = retry.data.session;
-    }
-    if (!session) { router.push('/'); return; }
+      const params  = new URLSearchParams(window.location.search);
+      const atParam = params.get('at');
+      const rtParam = params.get('rt');
 
-    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-    setProfile(data);
-    setBioText(data?.bio || '');
-    setLoading(false);
+      let tok = '';
+      let uid = '';
+
+      if (atParam) {
+        tok = decodeURIComponent(atParam);
+        window.history.replaceState(null, '', '/passport');
+        try {
+          const payload = JSON.parse(atob(tok.split('.')[1]));
+          uid = payload.sub;
+          const sessionObj = {
+            access_token: tok,
+            refresh_token: rtParam ? decodeURIComponent(rtParam) : '',
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+            expires_in: 3600,
+            token_type: 'bearer',
+            user: {
+              id: uid,
+              email: payload.email,
+              role: 'authenticated',
+              aud: 'authenticated',
+              user_metadata: payload.user_metadata || {},
+              app_metadata: payload.app_metadata || {},
+            },
+          };
+          localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify(sessionObj));
+        } catch {}
+      } else {
+        const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            tok = parsed.access_token;
+            uid = parsed.user?.id;
+          } catch {}
+        }
+      }
+
+      if (!tok || !uid) { router.push('/'); return; }
+
+      setToken(tok);
+      setUserId(uid);
+
+      const res  = await fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=*`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${tok}` } }
+      );
+      const rows = await res.json();
+      const data = rows?.[0] || null;
+      if (!data) { router.push('/'); return; }
+
+      setProfile(data);
+      setBioText(data?.bio || '');
+      setLoading(false);
     })();
   }, []);
 
+  async function dbPatch(body: object) {
+    return fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
   const saveBio = async () => {
-    await supabase.from('profiles').update({ bio: bioText }).eq('id', profile.id);
+    await dbPatch({ bio: bioText });
     setProfile({ ...profile, bio: bioText });
     setEditingBio(false);
   };
 
   const setType = async (type: string) => {
-    await supabase.from('profiles').update({ traveler_type: type }).eq('id', profile.id);
+    await dbPatch({ traveler_type: type });
     setProfile({ ...profile, traveler_type: type });
   };
 
   const setVibe = async (vibe: string) => {
-    await supabase.from('profiles').update({ current_vibe: vibe }).eq('id', profile.id);
+    await dbPatch({ current_vibe: vibe });
     setProfile({ ...profile, current_vibe: vibe });
   };
 
   const addCountry = async (code: string) => {
     const updated = [...(profile.countries_visited || []), code];
-    await supabase.from('profiles').update({ countries_visited: updated }).eq('id', profile.id);
+    await dbPatch({ countries_visited: updated });
     setProfile({ ...profile, countries_visited: updated });
     setAddingCountry(false);
     setSearch('');
@@ -164,7 +214,7 @@ export default function PassportPage() {
 
   const removeCountry = async (code: string) => {
     const updated = (profile.countries_visited || []).filter((c: string) => c !== code);
-    await supabase.from('profiles').update({ countries_visited: updated }).eq('id', profile.id);
+    await dbPatch({ countries_visited: updated });
     setProfile({ ...profile, countries_visited: updated });
   };
 
@@ -285,17 +335,14 @@ export default function PassportPage() {
 
       <div className="pp-wrap">
         <div className="pp-book">
-
           <div className="pp-tabs">
             {PAGES.map((p, i) => (
               <button key={p} className={`pp-tab${page===i?' active':''}`} onClick={() => setPage(i)}>{p}</button>
             ))}
           </div>
-
           <div className="pp-page">
             <div className="pp-holes">{[0,1,2,3,4].map(i=><div key={i} className="pp-hole"/>)}</div>
             <div className="pp-watermark">OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND</div>
-
             <div className="pp-content">
               <div className="pp-authority">
                 <div className="pp-authority-sub">outbound network · traveler registry</div>
@@ -441,7 +488,6 @@ export default function PassportPage() {
             </div>
             <div className="pp-pagenum">page {['01','02','03','04'][page]} of 04</div>
           </div>
-
         </div>
       </div>
     </>
