@@ -85,15 +85,22 @@ export default function OnboardingPage() {
   }, [username, accessToken]);
 
   const handleFinish = async () => {
-    if (!usernameOk || !username || !userId || !accessToken) return;
-    setSaving(true);
-    await dbPatch(`profiles?id=eq.${userId}`, accessToken, {
-      username: username.toLowerCase(),
-      updated_at: new Date().toISOString(),
-    });
-    // Token is already in localStorage from the load() function — passport reads it from there
-    window.location.href = '/passport';
-  };
+  const session = getSession();
+  console.log('[handleFinish] session:', session);
+  console.log('[handleFinish] userId:', userId, 'accessToken:', accessToken?.slice(0,20));
+  console.log('[handleFinish] usernameOk:', usernameOk, 'username:', username);
+
+  if (!usernameOk || !username || !userId || !accessToken) {
+    alert(`Missing: ${!userId ? 'userId ' : ''}${!accessToken ? 'token ' : ''}${!usernameOk ? 'usernameOk' : ''}`);
+    return;
+  }
+  setSaving(true);
+  await dbPatch(`profiles?id=eq.${userId}`, accessToken, {
+    username: username.toLowerCase(),
+    updated_at: new Date().toISOString(),
+  });
+  window.location.href = '/passport';
+};
 
   const walletShort = profile?.wallet_address
     ? `${profile.wallet_address.slice(0,6)}...${profile.wallet_address.slice(-4)}`
