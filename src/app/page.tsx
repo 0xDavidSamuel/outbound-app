@@ -1,19 +1,20 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { createClient } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
 
-  const signInWithGitHub = async () => {
+  const handleJoin = async () => {
     setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+    try {
+      await login();
+    } catch {
+      setLoading(false);
+    }
   };
 
   return (
@@ -123,84 +124,40 @@ export default function HomePage() {
           letter-spacing: 0.45em; color: #222; text-transform: uppercase;
         }
 
-        /* S2 pillars */
         .pillars {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 28px 60px;
-          max-width: 560px;
+          display: grid; grid-template-columns: repeat(2, 1fr);
+          gap: 28px 60px; max-width: 560px;
         }
         .pillar { display: flex; flex-direction: column; gap: 5px; }
         .pillar-icon { font-size: 18px; margin-bottom: 4px; }
         .pillar-name { font-size: 13px; font-weight: 500; color: #fff; }
         .pillar-desc { font-size: 12px; color: #444; line-height: 1.6; font-weight: 300; }
 
-        /* S3 stats */
-        .stats-row {
-          display: flex; gap: 48px; margin-bottom: 48px; flex-wrap: wrap;
-        }
+        .stats-row { display: flex; gap: 48px; margin-bottom: 48px; flex-wrap: wrap; }
         .stat { display: flex; flex-direction: column; gap: 4px; }
-        .stat-num {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 52px; color: var(--accent); line-height: 1;
-        }
-        .stat-label {
-          font-family: 'DM Mono', monospace; font-size: 9px;
-          color: #333; letter-spacing: 0.2em; text-transform: uppercase;
-        }
+        .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--accent); line-height: 1; }
+        .stat-label { font-family: 'DM Mono', monospace; font-size: 9px; color: #333; letter-spacing: 0.2em; text-transform: uppercase; }
 
-        /* S4 use cases */
         .use-cases { display: flex; flex-direction: column; gap: 16px; max-width: 520px; }
         .use-case {
           display: flex; align-items: flex-start; gap: 16px;
           padding: 16px; background: rgba(255,255,255,0.02);
           border: 1px solid #111; border-radius: 10px;
         }
-        .use-case-num {
-          font-family: 'Bebas Neue', sans-serif; font-size: 32px;
-          color: rgba(232,255,71,0.2); line-height: 1; flex-shrink: 0; width: 32px;
-        }
+        .use-case-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: rgba(232,255,71,0.2); line-height: 1; flex-shrink: 0; width: 32px; }
         .use-case-text { font-size: 13px; color: #555; line-height: 1.7; font-weight: 300; }
         .use-case-text strong { color: #888; font-weight: 500; }
 
-        /* S5 final */
-        .final-title {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(72px, 11vw, 150px);
-          line-height: 0.88; color: var(--text); margin-bottom: 12px;
-        }
-        .final-sub {
-          font-size: 13px; color: #2a2a2a;
-          font-style: italic; font-weight: 300; margin-bottom: 40px;
-        }
+        .final-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 11vw, 150px); line-height: 0.88; color: var(--text); margin-bottom: 12px; }
+        .final-sub { font-size: 13px; color: #2a2a2a; font-style: italic; font-weight: 300; margin-bottom: 40px; }
 
-        .side-tagline {
-          position: absolute; right: 48px; bottom: 48px; text-align: right;
-        }
-        .side-tagline span {
-          display: block; font-family: 'DM Mono', monospace;
-          font-size: 9px; letter-spacing: 0.25em; color: #1e1e1e; text-transform: uppercase;
-        }
-        .side-tagline span + span {
-          font-family: 'DM Sans', sans-serif; letter-spacing: 0;
-          font-size: 11px; color: #1a1a1a; margin-top: 4px;
-        }
+        .side-tagline { position: absolute; right: 48px; bottom: 48px; text-align: right; }
+        .side-tagline span { display: block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.25em; color: #1e1e1e; text-transform: uppercase; }
+        .side-tagline span + span { font-family: 'DM Sans', sans-serif; letter-spacing: 0; font-size: 11px; color: #1a1a1a; margin-top: 4px; }
 
-        /* live ticker */
-        .ticker-wrap {
-          position: absolute; bottom: 0; left: 0; right: 0;
-          height: 36px; border-top: 1px solid #0e0e0e;
-          overflow: hidden; display: flex; align-items: center;
-        }
-        .ticker {
-          display: flex; gap: 0; white-space: nowrap;
-          animation: ticker 30s linear infinite;
-        }
-        .ticker-item {
-          font-family: 'DM Mono', monospace; font-size: 9px;
-          color: #1e1e1e; letter-spacing: 0.2em; text-transform: uppercase;
-          padding: 0 32px;
-        }
+        .ticker-wrap { position: absolute; bottom: 0; left: 0; right: 0; height: 36px; border-top: 1px solid #0e0e0e; overflow: hidden; display: flex; align-items: center; }
+        .ticker { display: flex; gap: 0; white-space: nowrap; animation: ticker 30s linear infinite; }
+        .ticker-item { font-family: 'DM Mono', monospace; font-size: 9px; color: #1e1e1e; letter-spacing: 0.2em; text-transform: uppercase; padding: 0 32px; }
         .ticker-dot { color: var(--accent); }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
@@ -234,9 +191,8 @@ export default function HomePage() {
               Outbound is a real-time network for people who live and work internationally. Find travelers in your city, get local intel, connect with people who've actually been there.
             </p>
             <div className="cta-group">
-              <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
-                <GHIcon />
-                {loading ? 'Loading...' : 'Join Outbound'}
+              <button className="btn-enter" onClick={handleJoin} disabled={loading}>
+                {loading ? 'Connecting...' : '→ Join Outbound'}
               </button>
               <a className="btn-ghost" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">
                 Shop
@@ -245,23 +201,20 @@ export default function HomePage() {
           </div>
           <div className="scroll-hint"><span className="scroll-line" />Scroll</div>
 
-          {/* Ticker */}
           <div className="ticker-wrap">
             <div className="ticker">
               {[
-                '🇯🇵 Tokyo', '🇵🇹 Lisbon', '🇹🇭 Chiang Mai', '🇨🇴 Medellín', '🇲🇽 Mexico City',
-                '🇮🇩 Bali', '🇪🇸 Barcelona', '🇩🇪 Berlin', '🇦🇪 Dubai', '🇰🇷 Seoul',
-                '🇧🇷 São Paulo', '🇰🇪 Nairobi', '🇦🇺 Melbourne', '🇺🇸 Miami', '🇨🇱 Santiago',
-                '🇹🇷 Istanbul', '🇵🇱 Warsaw', '🇳🇱 Amsterdam', '🇨🇿 Prague', '🇿🇦 Cape Town',
+                '🇯🇵 Tokyo','🇵🇹 Lisbon','🇹🇭 Chiang Mai','🇨🇴 Medellín','🇲🇽 Mexico City',
+                '🇮🇩 Bali','🇪🇸 Barcelona','🇩🇪 Berlin','🇦🇪 Dubai','🇰🇷 Seoul',
+                '🇧🇷 São Paulo','🇰🇪 Nairobi','🇦🇺 Melbourne','🇺🇸 Miami','🇨🇱 Santiago',
+                '🇹🇷 Istanbul','🇵🇱 Warsaw','🇳🇱 Amsterdam','🇨🇿 Prague','🇿🇦 Cape Town',
               ].concat([
-                '🇯🇵 Tokyo', '🇵🇹 Lisbon', '🇹🇭 Chiang Mai', '🇨🇴 Medellín', '🇲🇽 Mexico City',
-                '🇮🇩 Bali', '🇪🇸 Barcelona', '🇩🇪 Berlin', '🇦🇪 Dubai', '🇰🇷 Seoul',
-                '🇧🇷 São Paulo', '🇰🇪 Nairobi', '🇦🇺 Melbourne', '🇺🇸 Miami', '🇨🇱 Santiago',
-                '🇹🇷 Istanbul', '🇵🇱 Warsaw', '🇳🇱 Amsterdam', '🇨🇿 Prague', '🇿🇦 Cape Town',
+                '🇯🇵 Tokyo','🇵🇹 Lisbon','🇹🇭 Chiang Mai','🇨🇴 Medellín','🇲🇽 Mexico City',
+                '🇮🇩 Bali','🇪🇸 Barcelona','🇩🇪 Berlin','🇦🇪 Dubai','🇰🇷 Seoul',
+                '🇧🇷 São Paulo','🇰🇪 Nairobi','🇦🇺 Melbourne','🇺🇸 Miami','🇨🇱 Santiago',
+                '🇹🇷 Istanbul','🇵🇱 Warsaw','🇳🇱 Amsterdam','🇨🇿 Prague','🇿🇦 Cape Town',
               ]).map((city, i) => (
-                <span key={i} className="ticker-item">
-                  {city} <span className="ticker-dot">·</span>
-                </span>
+                <span key={i} className="ticker-item">{city} <span className="ticker-dot">·</span></span>
               ))}
             </div>
           </div>
@@ -277,12 +230,12 @@ export default function HomePage() {
             </h2>
             <div className="pillars">
               {[
-                { icon: '📍', name: 'Who\'s nearby', desc: 'See other travelers in your city right now. Meet people, share space, stop being alone.' },
-                { icon: '🏠', name: 'Places to stay', desc: 'Nomad-friendly rooms, apartments, colivings — listed by people who actually live there.' },
-                { icon: '🧠', name: 'Ground intelligence', desc: 'Real-time tips on WiFi, safety, neighbourhoods, hidden spots. No outdated blogs.' },
+                { icon: '📍', name: "Who's nearby",      desc: 'See other travelers in your city right now. Meet people, share space, stop being alone.' },
+                { icon: '🏠', name: 'Places to stay',    desc: 'Nomad-friendly rooms, apartments, colivings — listed by people who actually live there.' },
+                { icon: '🧠', name: 'Ground intelligence',desc: 'Real-time tips on WiFi, safety, neighbourhoods, hidden spots. No outdated blogs.' },
                 { icon: '🌍', name: 'Destination rooms', desc: 'Join Japan, Colombia, Portugal — connect with locals, expats, and fellow travelers.' },
-                { icon: '⚡', name: 'Events & meetups', desc: 'Find what\'s happening near you — co-working days, dinners, experiences.' },
-                { icon: '💼', name: 'Work while you roam', desc: 'Bounties, grants, remote contracts. Opportunities that move with you.' },
+                { icon: '⚡', name: 'Events & meetups',  desc: "Find what's happening near you — co-working days, dinners, experiences." },
+                { icon: '💼', name: 'Work while you roam',desc: 'Bounties, grants, remote contracts. Opportunities that move with you.' },
               ].map(f => (
                 <div className="pillar" key={f.name}>
                   <div className="pillar-icon">{f.icon}</div>
@@ -294,7 +247,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* S3 — The problem / market */}
+        {/* S3 — Market */}
         <section className="section">
           <span className="ghost" style={{ fontSize: '26vw', bottom: '-5vw', left: '-2vw' }}>MOVE</span>
           <span className="section-label">The Movement</span>
@@ -304,18 +257,9 @@ export default function HomePage() {
               The world is your<br /><em style={{ color: '#e8ff47', fontStyle: 'normal' }}>office.</em>
             </h2>
             <div className="stats-row">
-              <div className="stat">
-                <span className="stat-num">35M+</span>
-                <span className="stat-label">Digital nomads</span>
-              </div>
-              <div className="stat">
-                <span className="stat-num">195</span>
-                <span className="stat-label">Countries</span>
-              </div>
-              <div className="stat">
-                <span className="stat-num">0</span>
-                <span className="stat-label">Platforms built for them</span>
-              </div>
+              <div className="stat"><span className="stat-num">35M+</span><span className="stat-label">Digital nomads</span></div>
+              <div className="stat"><span className="stat-num">195</span><span className="stat-label">Countries</span></div>
+              <div className="stat"><span className="stat-num">0</span><span className="stat-label">Platforms built for them</span></div>
             </div>
             <p style={{ fontSize: 13, color: '#333', lineHeight: 1.9, fontWeight: 300, maxWidth: 420 }}>
               Right now travelers rely on scattered WhatsApp groups, outdated Reddit threads, and random blog posts written years ago. Outbound replaces all of that with a real-time, location-aware network built specifically for people on the move.
@@ -327,7 +271,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* S4 — Use cases / stories */}
+        {/* S4 — Use cases */}
         <section className="section">
           <span className="ghost" style={{ fontSize: '24vw', top: '-3vw', right: '-2vw' }}>HERE</span>
           <span className="section-label">Real Scenarios</span>
@@ -337,10 +281,10 @@ export default function HomePage() {
             </h2>
             <div className="use-cases">
               {[
-                { num: '01', text: 'You just landed in <strong>Tokyo</strong> for the first time. Open Outbound — see 4 people in Shinjuku right now. One\'s been here 6 months. You message them. Dinner sorted.' },
-                { num: '02', text: 'You\'re heading to <strong>Medellín</strong> next month. Join the Colombia community. Ask what neighbourhood. Get 12 real answers from people who live there.' },
-                { num: '03', text: 'You\'re in <strong>Bali</strong>, the power went out, WiFi is down across Canggu. Someone posts a safety update. You know before the travel blogs do.' },
-                { num: '04', text: 'You\'ve been <strong>alone on the road</strong> for 6 weeks. Outbound shows you 3 other nomads in your city this week. You\'re not alone anymore.' },
+                { num: '01', text: "You just landed in <strong>Tokyo</strong> for the first time. Open Outbound — see 4 people in Shinjuku right now. One's been here 6 months. You message them. Dinner sorted." },
+                { num: '02', text: "You're heading to <strong>Medellín</strong> next month. Join the Colombia community. Ask what neighbourhood. Get 12 real answers from people who live there." },
+                { num: '03', text: "You're in <strong>Bali</strong>, the power went out, WiFi is down across Canggu. Someone posts a safety update. You know before the travel blogs do." },
+                { num: '04', text: "You've been <strong>alone on the road</strong> for 6 weeks. Outbound shows you 3 other nomads in your city this week. You're not alone anymore." },
               ].map(uc => (
                 <div className="use-case" key={uc.num}>
                   <span className="use-case-num">{uc.num}</span>
@@ -363,9 +307,8 @@ export default function HomePage() {
             </h2>
             <p className="final-sub">Currently in beta. Free to join. Travelers worldwide.</p>
             <div className="cta-group">
-              <button className="btn-enter" onClick={signInWithGitHub} disabled={loading}>
-                <GHIcon />
-                {loading ? 'Loading...' : 'Join Now'}
+              <button className="btn-enter" onClick={handleJoin} disabled={loading}>
+                {loading ? 'Connecting...' : '→ Join Outbound'}
               </button>
               <a className="btn-ghost" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">
                 Shop Outbound
@@ -380,13 +323,5 @@ export default function HomePage() {
 
       </div>
     </>
-  );
-}
-
-function GHIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-    </svg>
   );
 }
