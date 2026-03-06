@@ -1,5 +1,4 @@
 // src/app/auth/session/page.tsx
-// Supabase redirects here after magic link verification with tokens in the URL hash
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,51 +11,42 @@ export default function SessionPage() {
     const handle = async () => {
       const supabase = createClient();
 
-      // Supabase puts tokens in the hash: #access_token=...&refresh_token=...
-      // getSession() will automatically exchange the hash for a session
-      // but we need to wait for onAuthStateChange to fire
-      const { data: { session } } = await supabase.auth.getSession();
+      // Parse tokens from URL hash: #access_token=...&refresh_token=...
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken  = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
 
-      if (session) {
-        // Session already set — check if new user
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single();
-
-        const isNewUser = !profile?.username;
-        setStatus('Welcome!');
-        window.location.href = isNewUser ? '/onboarding' : '/passport';
+      if (!accessToken || !refreshToken) {
+        setStatus('No tokens found — returning home...');
+        setTimeout(() => window.location.href = '/', 2000);
         return;
       }
 
-      // Wait for Supabase to process the hash fragment
       setStatus('Verifying...');
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        subscription.unsubscribe();
-        if (session) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('id', session.user.id)
-            .single();
 
-          const isNewUser = !profile?.username;
-          setStatus('Welcome!');
-          window.location.href = isNewUser ? '/onboarding' : '/passport';
-        } else {
-          setStatus('Session failed — returning home...');
-          setTimeout(() => window.location.href = '/', 2000);
-        }
+      const { data: { session }, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
       });
 
-      // Timeout fallback
-      setTimeout(() => {
-        subscription.unsubscribe();
-        setStatus('Timed out — returning home...');
-        setTimeout(() => window.location.href = '/', 1500);
-      }, 8000);
+      if (error || !session) {
+        setStatus(`Failed: ${error?.message || 'no session'} — returning home...`);
+        setTimeout(() => window.location.href = '/', 2000);
+        return;
+      }
+
+      setStatus('Welcome!');
+
+      // Check if new user (no username set yet)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', session.user.id)
+        .single();
+
+      const isNewUser = !profile?.username;
+      window.location.href = isNewUser ? '/onboarding' : '/passport';
     };
 
     handle();
