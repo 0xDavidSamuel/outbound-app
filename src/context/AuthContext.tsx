@@ -2,8 +2,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { createClient } from '@/lib/supabase';
-import type { Session } from '@supabase/supabase-js';
+import { getSession, clearSession } from '@/lib/session';
 
 interface AuthUser {
   id: string;
@@ -15,52 +14,41 @@ interface AuthUser {
 
 interface AuthContextValue {
   user: AuthUser | null;
-  session: Session | null;
   loading: boolean;
   login: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
-  session: null,
   loading: false,
   login: async () => {},
-  logout: async () => {},
+  logout: () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
-  const supabase              = createClient();
+  const [booting, setBooting] = useState(true);
 
   useEffect(() => {
-    const init = async () => {
-      const { data: { session: existing } } = await supabase.auth.getSession();
-      if (existing) {
-        setSession(existing);
-        await loadProfile(existing.user.id);
-      }
-    };
-    init();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, sess) => {
-      setSession(sess);
-      if (sess) await loadProfile(sess.user.id);
-      else setUser(null);
-    });
-
-    return () => subscription.unsubscribe();
+    // On load, check for existing session and load profile
+    const session = getSession();
+    if (session) {
+      loadProfile(session.access_token, session.user.id).finally(() => setBooting(false));
+    } else {
+      setBooting(false);
+    }
   }, []);
 
-  const loadProfile = async (userId: string) => {
+  const loadProfile = async (token: string, uid: string) => {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url, wallet_address')
-        .eq('id', userId)
-        .maybeSingle();
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=id,username,avatar_url,wallet_address`,
+        { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, Authorization: `Bearer ${token}` } }
+      );
+      const rows = await res.json();
+      const profile = rows?.[0];
       if (profile) {
         setUser({
           id: profile.id,
@@ -78,37 +66,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { createWeb3Auth } = await import('@/lib/web3auth');
       const web3auth = await createWeb3Auth();
-      // connect() triggers a full page redirect — it won't return normally
+
+      // If already connected, go straight to passport
+      if (web3auth.connected) {
+        const session = getSession();
+        if (session) {
+          window.location.href = '/passport';
+          return;
+        }
+      }
+
       await web3auth.connect();
+      // connect() redirects — won't reach here
     } catch (err: any) {
       const msg = err?.message || '';
-      // These are expected during/after redirect — not real errors
-      if (
-        msg.includes('redirect') ||
-        msg.includes('user closed') ||
-        msg.includes('Modal is already open')
-      ) {
-        return; // stay loading — redirect is in progress
+      if (msg.includes('redirect') || msg.includes('user closed') || msg.includes('Modal is already open')) {
+        return;
       }
       console.error('[login error]', msg);
       setLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      const { createWeb3Auth } = await import('@/lib/web3auth');
-      const web3auth = await createWeb3Auth();
-      if (web3auth.connected) await web3auth.logout();
-    } catch {}
-    await supabase.auth.signOut();
+  const logout = () => {
+    clearSession();
     setUser(null);
-    setSession(null);
+    // Also disconnect Web3Auth if connected
+    import('@/lib/web3auth').then(({ createWeb3Auth }) => {
+      createWeb3Auth().then(w => { if (w.connected) w.logout(); }).catch(() => {});
+    });
     window.location.href = '/';
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading: loading || booting, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

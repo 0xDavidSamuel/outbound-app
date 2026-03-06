@@ -2,12 +2,16 @@
 
 import { useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { getSession } from '@/lib/session';
 
 export default function HomePage() {
   const { login, loading } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleJoin = () => { login(); };
+  const handleJoin = () => {
+  if (getSession()) { window.location.href = '/passport'; return; }
+  login();
+};
 
   return (
     <>

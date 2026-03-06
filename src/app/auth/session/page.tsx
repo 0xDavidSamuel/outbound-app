@@ -2,50 +2,47 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { saveSession } from '@/lib/session';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export default function SessionPage() {
   const [status, setStatus] = useState('Setting up your session...');
 
   useEffect(() => {
     const handle = async () => {
-      const hash = window.location.hash.substring(1);
+      const hash   = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
-      const accessToken  = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      const expiresAt    = params.get('expires_at');
+      const at     = params.get('access_token');
+      const rt     = params.get('refresh_token');
 
-      if (!accessToken || !refreshToken) {
+      if (!at || !rt) {
         setStatus('No tokens found — returning home...');
         setTimeout(() => window.location.href = '/', 2000);
         return;
       }
 
-      try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        const userId = payload.sub;
-
-        // Check if new user via raw fetch — no Supabase client, no lock
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-        const profileRes = await fetch(
-          `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=username`,
-          { headers: { apikey: supabaseKey, Authorization: `Bearer ${accessToken}` } }
-        );
-        const profiles = await profileRes.json();
-        const isNewUser = !profiles?.[0]?.username;
-
-        setStatus('Welcome!');
-
-        // Forward tokens to destination page via query params
-        // The destination calls setSession immediately on load
-        const dest = isNewUser ? '/onboarding' : '/passport';
-        window.location.href = `${dest}?at=${encodeURIComponent(accessToken)}&rt=${encodeURIComponent(refreshToken)}&exp=${expiresAt || ''}`;
-
-      } catch (err: any) {
-        setStatus(`Error: ${err.message}`);
+      // Save to our custom key — Supabase client can never clear this
+      const session = saveSession(at, rt);
+      if (!session) {
+        setStatus('Invalid token — returning home...');
         setTimeout(() => window.location.href = '/', 2000);
+        return;
       }
+
+      window.history.replaceState(null, '', '/auth/session');
+      setStatus('Welcome to Outbound!');
+
+      // Check if new user (no username yet)
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=username`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${at}` } }
+      );
+      const rows = await res.json();
+      const isNewUser = !rows?.[0]?.username;
+
+      window.location.href = isNewUser ? '/onboarding' : '/passport';
     };
 
     handle();

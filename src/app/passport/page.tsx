@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getSession } from '@/lib/session';
 import NavBar from '@/components/ui/NavBar';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -113,28 +114,15 @@ export default function PassportPage() {
 
   useEffect(() => {
     (async () => {
-      const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
+      const session = getSession();
+      if (!session) { router.push('/'); return; }
 
-      let tok = '';
-      let uid = '';
-
-      const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          tok = parsed.access_token;
-          uid = parsed.user?.id;
-        } catch {}
-      }
-
-      if (!tok || !uid) { router.push('/'); return; }
-
-      setToken(tok);
-      setUserId(uid);
+      setToken(session.access_token);
+      setUserId(session.user.id);
 
       const res  = await fetch(
-        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=*`,
-        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${tok}` } }
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=*`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` } }
       );
       const rows = await res.json();
       const data = rows?.[0] || null;

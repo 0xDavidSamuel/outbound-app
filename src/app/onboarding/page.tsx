@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getSession } from '@/lib/session';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -51,56 +52,14 @@ export default function OnboardingPage() {
     setTimeout(() => setStep(3), 3400);
 
     const load = async () => {
-      // Get tokens from URL params
-      const params = new URLSearchParams(window.location.search);
-      const at = params.get('at');
-      const rt = params.get('rt');
+      const session = getSession();
+      if (!session) return; // steps still animate, form just won't save
 
-      let token = '';
-      let uid   = '';
-
-      if (at) {
-        token = decodeURIComponent(at);
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          uid = payload.sub;
-
-          // Write session to localStorage so rest of app works
-          const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
-          const existing = localStorage.getItem(`sb-${projectRef}-auth-token`);
-          if (!existing) {
-            const sessionObj = {
-              access_token: token,
-              refresh_token: rt ? decodeURIComponent(rt) : '',
-              expires_at: Math.floor(Date.now() / 1000) + 3600,
-              expires_in: 3600,
-              token_type: 'bearer',
-              user: { id: uid, email: payload.email, role: 'authenticated', aud: 'authenticated', user_metadata: payload.user_metadata || {}, app_metadata: payload.app_metadata || {} },
-            };
-            localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify(sessionObj));
-          }
-        } catch {}
-        window.history.replaceState(null, '', '/onboarding');
-      } else {
-        // Read from localStorage if no URL params
-        const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
-        const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            token = parsed.access_token;
-            uid   = parsed.user?.id;
-          } catch {}
-        }
-      }
-
-      if (!token || !uid) return;
-
-      setAccessToken(token);
-      setUserId(uid);
+      setAccessToken(session.access_token);
+      setUserId(session.user.id);
 
       // Load profile
-      const rows = await dbGet(`profiles?id=eq.${uid}&select=*`, token);
+      const rows = await dbGet(`profiles?id=eq.${session.user.id}&select=*`, session.access_token);
       if (rows?.[0]) setProfile(rows[0]);
     };
 
