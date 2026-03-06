@@ -1,9 +1,8 @@
 // src/lib/web3auth.ts
-// No singleton — fresh instance each time to avoid stale init state
-
-import { Web3Auth } from '@web3auth/modal';
-import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
+import { Web3AuthNoModal } from '@web3auth/no-modal';
+import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK, UX_MODE } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
+import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!;
 
@@ -22,24 +21,36 @@ export async function createWeb3Auth() {
     config: { chainConfig },
   });
 
-  const instance = new Web3Auth({
+  const instance = new Web3AuthNoModal({
     clientId: CLIENT_ID,
     web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
     privateKeyProvider: privateKeyProvider as any,
-    uiConfig: {
-      appName: 'Outbound',
-      theme: { primary: '#e8ff47', onPrimary: '#080808' },
-      mode: 'dark',
-      defaultLanguage: 'en',
-      loginMethodsOrder: ['google', 'email_passwordless', 'apple', 'twitter'],
-    },
   });
 
+  const openloginAdapter = new OpenloginAdapter({
+    adapterSettings: {
+    uxMode: UX_MODE.POPUP,
+    whiteLabel: {
+      appName: 'Outbound',
+      theme: { primary: '#e8ff47' },
+        },
+    },
+});
+
+instance.configureAdapter(openloginAdapter);
   await instance.init();
   return instance;
 }
 
-export async function getWalletAddress(web3auth: Web3Auth): Promise<string | null> {
+export async function loginWithGoogle(web3auth: Web3AuthNoModal) {
+  return web3auth.connectTo('auth', { loginProvider: 'google' });
+}
+
+export async function loginWithEmail(web3auth: Web3AuthNoModal, email: string) {
+  return web3auth.connectTo('auth', { loginProvider: 'email_passwordless', login_hint: email });
+}
+
+export async function getWalletAddress(web3auth: Web3AuthNoModal): Promise<string | null> {
   try {
     if (!web3auth.provider) return null;
     const { ethers } = await import('ethers');

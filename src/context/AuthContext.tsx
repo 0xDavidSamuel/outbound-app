@@ -17,7 +17,8 @@ interface AuthContextValue {
   user: AuthUser | null;
   session: Session | null;
   loading: boolean;
-  login: () => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -25,7 +26,8 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
   loading: false,
-  login: async () => {},
+  loginWithGoogle: async () => {},
+  loginWithEmail: async () => {},
   logout: async () => {},
 });
 
@@ -35,7 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const supabase              = createClient();
 
-  // ── Restore Supabase session ───────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       const { data: { session: existing } } = await supabase.auth.getSession();
@@ -73,30 +74,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ── Login — init Web3Auth fresh on every click ─────────────────────────────
-  const login = async () => {
+  const handleAuth = async (provider: 'google' | 'email', email?: string) => {
     setLoading(true);
     try {
-      // Dynamically import so it never runs on the server
-      const { createWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
+      const { createWeb3Auth, loginWithGoogle, loginWithEmail, getWalletAddress } =
+        await import('@/lib/web3auth');
 
-      // Fresh init every time — avoids stale/broken singleton
       const web3auth = await createWeb3Auth();
 
-      // Open modal
-      await web3auth.connect();
+      if (provider === 'google') {
+        await loginWithGoogle(web3auth);
+      } else if (provider === 'email' && email) {
+        await loginWithEmail(web3auth, email);
+      }
 
-      // Get user info + wallet
       const [userInfo, walletAddress] = await Promise.all([
         web3auth.getUserInfo(),
         getWalletAddress(web3auth),
       ]);
 
       const idToken = (userInfo as any).idToken ?? '';
-
       if (!walletAddress) throw new Error('Could not get wallet address');
 
-      // Bridge to Supabase
       const res = await fetch('/api/auth/web3auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -106,7 +105,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Auth bridge failed');
 
-      // Exchange token for Supabase session
       if (data.tokenHash) {
         const { data: { session: newSession }, error } = await supabase.auth.verifyOtp({
           token_hash: data.tokenHash,
@@ -129,7 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
+  const loginWithGoogleFn = () => handleAuth('google');
+  const loginWithEmailFn  = (email: string) => handleAuth('email', email);
+
   const logout = async () => {
     try {
       const { createWeb3Auth } = await import('@/lib/web3auth');
@@ -143,7 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, login, logout }}>
+    <AuthContext.Provider value={{
+      user, session, loading,
+      loginWithGoogle: loginWithGoogleFn,
+      loginWithEmail: loginWithEmailFn,
+      logout,
+    }}>
       {children}
     </AuthContext.Provider>
   );

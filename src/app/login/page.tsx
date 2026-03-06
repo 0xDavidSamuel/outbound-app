@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { loginWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
 
@@ -15,7 +15,7 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      await login();
+      await loginWithGoogle();
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Try again.');
       setLoading(false);
