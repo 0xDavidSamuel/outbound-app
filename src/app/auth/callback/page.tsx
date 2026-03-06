@@ -50,8 +50,8 @@ export default function AuthCallback() {
 
       } catch (err: any) {
         console.error('[callback]', err);
-        setStatus('Login failed. Redirecting...');
-        setTimeout(() => window.location.href = '/', 2000);
+        setStatus(`Failed: ${err.message}`);
+        setTimeout(() => window.location.href = '/', 4000);
       }
     };
 
