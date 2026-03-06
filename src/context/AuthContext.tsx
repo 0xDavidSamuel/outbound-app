@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 'use client';
 
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
@@ -17,7 +17,6 @@ interface AuthContextValue {
   user: AuthUser | null;
   session: Session | null;
   loading: boolean;
-  ready: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -25,8 +24,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
-  loading: true,
-  ready: false,
+  loading: false,
   login: async () => {},
   logout: async () => {},
 });
@@ -35,11 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
-  const [ready, setReady]     = useState(false);
-  const web3authRef           = useRef<any>(null);
   const supabase              = createClient();
 
-  // ── Restore Supabase session on mount ─────────────────────────────────────
+  // ── Restore Supabase session ───────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       const { data: { session: existing } } = await supabase.auth.getSession();
@@ -57,21 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  // ── Initialize Web3Auth eagerly so it's ready before user clicks ──────────
-  useEffect(() => {
-    const initWeb3Auth = async () => {
-      try {
-        const { getWeb3Auth } = await import('@/lib/web3auth');
-        const instance = await getWeb3Auth();
-        web3authRef.current = instance;
-        setReady(true);
-      } catch (err) {
-        console.error('[web3auth init]', err);
-      }
-    };
-    initWeb3Auth();
   }, []);
 
   const loadProfile = async (userId: string) => {
@@ -92,18 +73,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ── Login ──────────────────────────────────────────────────────────────────
+  // ── Login — init Web3Auth fresh on every click ─────────────────────────────
   const login = async () => {
-    if (!web3authRef.current || !ready) {
-      throw new Error('Web3Auth not ready yet — please try again in a moment');
-    }
-
     setLoading(true);
     try {
-      const { getWalletAddress } = await import('@/lib/web3auth');
-      const web3auth = web3authRef.current;
+      // Dynamically import so it never runs on the server
+      const { createWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
 
-      // Open Web3Auth modal
+      // Fresh init every time — avoids stale/broken singleton
+      const web3auth = await createWeb3Auth();
+
+      // Open modal
       await web3auth.connect();
 
       // Get user info + wallet
@@ -152,9 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = async () => {
     try {
-      if (web3authRef.current?.connected) {
-        await web3authRef.current.logout();
-      }
+      const { createWeb3Auth } = await import('@/lib/web3auth');
+      const web3auth = await createWeb3Auth();
+      if (web3auth.connected) await web3auth.logout();
     } catch {}
     await supabase.auth.signOut();
     setUser(null);
@@ -163,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, ready, login, logout }}>
+    <AuthContext.Provider value={{ user, session, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
