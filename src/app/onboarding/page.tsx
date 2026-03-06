@@ -2,14 +2,36 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 const STEPS = [
   { id: 'wallet',   label: 'Wallet Created',  sub: 'Your Base wallet is live'      },
   { id: 'passport', label: 'Passport Issued', sub: 'Your travel identity is ready' },
   { id: 'network',  label: 'Network Joined',  sub: 'Welcome to 60+ city chapters'  },
 ];
+
+async function dbGet(path: string, token: string) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+async function dbPatch(path: string, token: string, body: object) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify(body),
+  });
+  return res;
+}
 
 export default function OnboardingPage() {
   const [profile, setProfile]       = useState<any>({});
@@ -18,50 +40,68 @@ export default function OnboardingPage() {
   const [checking, setChecking]     = useState(false);
   const [usernameOk, setUsernameOk] = useState<boolean | null>(null);
   const [saving, setSaving]         = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
-  const supabase = createClient();
-  const router   = useRouter();
+  const [accessToken, setAccessToken] = useState('');
+  const [userId, setUserId]           = useState('');
 
   useEffect(() => {
-    const load = async () => {
-      // Start animating steps immediately — don't wait for session
-      setTimeout(() => setStep(0), 400);
-      setTimeout(() => setStep(1), 1400);
-      setTimeout(() => setStep(2), 2400);
-      setTimeout(() => setStep(3), 3400);
+    // Animate steps immediately — no waiting
+    setTimeout(() => setStep(0), 400);
+    setTimeout(() => setStep(1), 1400);
+    setTimeout(() => setStep(2), 2400);
+    setTimeout(() => setStep(3), 3400);
 
-      // Handle tokens from URL params
+    const load = async () => {
+      // Get tokens from URL params
       const params = new URLSearchParams(window.location.search);
       const at = params.get('at');
       const rt = params.get('rt');
 
-      if (at && rt) {
-        await supabase.auth.setSession({
-          access_token: decodeURIComponent(at),
-          refresh_token: decodeURIComponent(rt),
-        });
+      let token = '';
+      let uid   = '';
+
+      if (at) {
+        token = decodeURIComponent(at);
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          uid = payload.sub;
+
+          // Write session to localStorage so rest of app works
+          const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
+          const existing = localStorage.getItem(`sb-${projectRef}-auth-token`);
+          if (!existing) {
+            const sessionObj = {
+              access_token: token,
+              refresh_token: rt ? decodeURIComponent(rt) : '',
+              expires_at: Math.floor(Date.now() / 1000) + 3600,
+              expires_in: 3600,
+              token_type: 'bearer',
+              user: { id: uid, email: payload.email, role: 'authenticated', aud: 'authenticated', user_metadata: payload.user_metadata || {}, app_metadata: payload.app_metadata || {} },
+            };
+            localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify(sessionObj));
+          }
+        } catch {}
         window.history.replaceState(null, '', '/onboarding');
-        // Give the session a moment to settle
-        await new Promise(r => setTimeout(r, 500));
+      } else {
+        // Read from localStorage if no URL params
+        const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
+        const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            token = parsed.access_token;
+            uid   = parsed.user?.id;
+          } catch {}
+        }
       }
 
-      let { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        await new Promise(r => setTimeout(r, 1500));
-        const retry = await supabase.auth.getSession();
-        session = retry.data.session;
-      }
+      if (!token || !uid) return;
 
-      if (!session) {
-        // Don't redirect — steps are already animating, just mark session as missing
-        setSessionReady(false);
-        return;
-      }
+      setAccessToken(token);
+      setUserId(uid);
 
-      setSessionReady(true);
-      const { data } = await supabase
-        .from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-      setProfile(data || {});
+      // Load profile
+      const rows = await dbGet(`profiles?id=eq.${uid}&select=*`, token);
+      if (rows?.[0]) setProfile(rows[0]);
     };
 
     load();
@@ -72,32 +112,27 @@ export default function OnboardingPage() {
     const timer = setTimeout(async () => {
       setChecking(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?username=eq.${username.toLowerCase()}&select=id`,
-          { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, Authorization: `Bearer ${token}` } }
+        const rows = await dbGet(
+          `profiles?username=eq.${encodeURIComponent(username.toLowerCase())}&select=id`,
+          accessToken || SUPABASE_KEY
         );
-        const rows = await res.json();
         setUsernameOk(Array.isArray(rows) && rows.length === 0);
       } catch {
         setUsernameOk(null);
       }
       setChecking(false);
-    }, 400);
+    }, 500);
     return () => clearTimeout(timer);
-  }, [username]);
+  }, [username, accessToken]);
 
   const handleFinish = async () => {
-    if (!usernameOk || !username) return;
+    if (!usernameOk || !username || !userId || !accessToken) return;
     setSaving(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push('/'); return; }
-    await supabase.from('profiles').update({
+    await dbPatch(`profiles?id=eq.${userId}`, accessToken, {
       username: username.toLowerCase(),
       updated_at: new Date().toISOString(),
-    }).eq('id', session.user.id);
-    router.push('/passport');
+    });
+    window.location.href = '/passport';
   };
 
   const walletShort = profile?.wallet_address
