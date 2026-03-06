@@ -8,7 +8,6 @@ export default function SessionPage() {
 
   useEffect(() => {
     const handle = async () => {
-      // Parse tokens from URL hash
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const accessToken  = params.get('access_token');
@@ -23,10 +22,10 @@ export default function SessionPage() {
       }
 
       try {
-        // Decode the JWT to get user info without any Supabase client
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        const now = new Date().toISOString();
 
-        // Build the session object Supabase expects in localStorage
+        // Full user object matching what Supabase expects
         const sessionObj = {
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -35,29 +34,47 @@ export default function SessionPage() {
           token_type: 'bearer',
           user: {
             id: payload.sub,
-            email: payload.email,
-            role: payload.role,
-            aud: payload.aud,
+            aud: payload.aud || 'authenticated',
+            role: payload.role || 'authenticated',
+            email: payload.email || '',
+            email_confirmed_at: now,
+            phone: payload.phone || '',
+            confirmed_at: now,
+            last_sign_in_at: now,
+            created_at: now,
+            updated_at: now,
+            is_anonymous: false,
+            app_metadata: payload.app_metadata || { provider: 'email', providers: ['email'] },
             user_metadata: payload.user_metadata || {},
-            app_metadata: payload.app_metadata || {},
+            identities: [],
+            factors: [],
           },
         };
 
-        // Extract project ref from SUPABASE_URL env var
-        // e.g. https://dgxrlqmfunbjsosllrwg.supabase.co → dgxrlqmfunbjsosllrwg
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const projectRef = supabaseUrl.replace('https://', '').split('.')[0];
-        const storageKey = `sb-${projectRef}-auth-token`;
+        const projectRef  = supabaseUrl.replace('https://', '').split('.')[0];
+        const storageKey  = `sb-${projectRef}-auth-token`;
 
         localStorage.setItem(storageKey, JSON.stringify(sessionObj));
-
-        // Clear hash from URL
         window.history.replaceState(null, '', window.location.pathname);
 
         setStatus('Welcome!');
 
-        // Check username to determine new vs returning user
-        const isNewUser = !payload.user_metadata?.username;
+        // Check profiles table to determine new vs returning
+        // Use fetch directly — no Supabase client, avoids lock conflicts
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+        const profileRes = await fetch(
+          `${supabaseUrl}/rest/v1/profiles?id=eq.${payload.sub}&select=username`,
+          {
+            headers: {
+              'apikey': supabaseAnonKey,
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          }
+        );
+        const profiles = await profileRes.json();
+        const isNewUser = !profiles?.[0]?.username;
+
         window.location.href = isNewUser ? '/onboarding' : '/passport';
 
       } catch (err: any) {
