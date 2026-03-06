@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     // ── Generate magic link — Supabase sets the session natively ─────────────
     // redirect_to is where Supabase sends the user after verifying the token
-    const redirectTo = `${APP_URL}${isNewUser ? '/onboarding' : '/passport'}`;
+    const redirectTo = `${APP_URL}/auth/session`;
 
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
