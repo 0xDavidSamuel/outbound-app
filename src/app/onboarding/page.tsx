@@ -12,49 +12,58 @@ const STEPS = [
 ];
 
 export default function OnboardingPage() {
-  const [profile, setProfile]       = useState<any>(null);
+  const [profile, setProfile]       = useState<any>({});
   const [step, setStep]             = useState(-1);
   const [username, setUsername]     = useState('');
   const [checking, setChecking]     = useState(false);
   const [usernameOk, setUsernameOk] = useState<boolean | null>(null);
   const [saving, setSaving]         = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const supabase = createClient();
   const router   = useRouter();
 
   useEffect(() => {
     const load = async () => {
-      // If tokens are in URL params, set the session first
+      // Start animating steps immediately — don't wait for session
+      setTimeout(() => setStep(0), 400);
+      setTimeout(() => setStep(1), 1400);
+      setTimeout(() => setStep(2), 2400);
+      setTimeout(() => setStep(3), 3400);
+
+      // Handle tokens from URL params
       const params = new URLSearchParams(window.location.search);
-      const at  = params.get('at');
-      const rt  = params.get('rt');
+      const at = params.get('at');
+      const rt = params.get('rt');
 
       if (at && rt) {
         await supabase.auth.setSession({
           access_token: decodeURIComponent(at),
           refresh_token: decodeURIComponent(rt),
         });
-        // Clean tokens from URL
         window.history.replaceState(null, '', '/onboarding');
+        // Give the session a moment to settle
+        await new Promise(r => setTimeout(r, 500));
       }
 
-      // Now get the session
       let { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         await new Promise(r => setTimeout(r, 1500));
         const retry = await supabase.auth.getSession();
         session = retry.data.session;
       }
-      if (!session) { router.push('/'); return; }
 
+      if (!session) {
+        // Don't redirect — steps are already animating, just mark session as missing
+        setSessionReady(false);
+        return;
+      }
+
+      setSessionReady(true);
       const { data } = await supabase
         .from('profiles').select('*').eq('id', session.user.id).maybeSingle();
       setProfile(data || {});
-
-      setTimeout(() => setStep(0), 400);
-      setTimeout(() => setStep(1), 1400);
-      setTimeout(() => setStep(2), 2400);
-      setTimeout(() => setStep(3), 3400);
     };
+
     load();
   }, []);
 
@@ -138,7 +147,6 @@ export default function OnboardingPage() {
       <div className="ob-wrap">
         <div className="ob-card">
           <div className="ob-wordmark">outbound network · traveler registry</div>
-
           <div className="ob-passport">
             <div className="ob-passport-header">
               <div className="ob-passport-sub">Outbound Network · Traveler Registry</div>
@@ -162,7 +170,6 @@ export default function OnboardingPage() {
               <div className={`ob-wallet-addr${step >= 1 ? ' show' : ''}`}>{walletShort}</div>
             </div>
           </div>
-
           <div className={`ob-form${step >= 3 ? ' visible' : ''}`}>
             <div className="ob-form-title">One Last Thing</div>
             <p className="ob-form-sub">
