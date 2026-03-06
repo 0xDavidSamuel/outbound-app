@@ -1,14 +1,16 @@
 // src/lib/web3auth.ts
-import { Web3AuthNoModal } from '@web3auth/no-modal';
-import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK, UX_MODE } from '@web3auth/base';
+// Web3Auth client for Outbound — social login + Base wallet creation
+
+import { Web3Auth } from '@web3auth/modal';
+import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
-import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!;
 
+// Base mainnet — switch to base-sepolia for dev
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
-  chainId: '0x2105',
+  chainId: '0x2105',                             // Base mainnet
   rpcTarget: 'https://mainnet.base.org',
   displayName: 'Base',
   blockExplorerUrl: 'https://basescan.org',
@@ -16,42 +18,38 @@ const chainConfig = {
   tickerName: 'Ethereum',
 };
 
-export async function createWeb3Auth() {
+let web3authInstance: Web3Auth | null = null;
+
+export async function getWeb3Auth(): Promise<Web3Auth> {
+  if (web3authInstance) return web3authInstance;
+
   const privateKeyProvider = new EthereumPrivateKeyProvider({
-    config: { chainConfig },
-  });
-
-  const instance = new Web3AuthNoModal({
-    clientId: CLIENT_ID,
-    web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-    privateKeyProvider: privateKeyProvider as any,
-  });
-
-  const openloginAdapter = new OpenloginAdapter({
-  adapterSettings: {
-    uxMode: UX_MODE.REDIRECT,
-    redirectUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
-    whiteLabel: {
-      appName: 'Outbound',
-      theme: { primary: '#e8ff47' },
-    },
-  },
+  config: { chainConfig },
 });
 
-instance.configureAdapter(openloginAdapter);
-  await instance.init();
-  return instance;
+web3authInstance = new Web3Auth({
+  clientId: CLIENT_ID,
+  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+  privateKeyProvider: privateKeyProvider as any,
+    uiConfig: {
+      appName: 'Outbound',
+      appUrl: 'https://outbound.app',
+      theme: {
+        primary: '#e8ff47',
+        onPrimary: '#080808',
+      },
+      mode: 'dark',
+      defaultLanguage: 'en',
+      loginMethodsOrder: ['google', 'email_passwordless', 'apple', 'twitter'],
+      loginGridCol: 2,
+    },
+  });
+
+  await web3authInstance.init();
+  return web3authInstance;
 }
 
-export async function loginWithGoogle(web3auth: Web3AuthNoModal) {
-  return web3auth.connectTo('openlogin', { loginProvider: 'google' });
-}
-
-export async function loginWithEmail(web3auth: Web3AuthNoModal, email: string) {
-  return web3auth.connectTo('openlogin', { loginProvider: 'email_passwordless', login_hint: email });
-}
-
-export async function getWalletAddress(web3auth: Web3AuthNoModal): Promise<string | null> {
+export async function getWalletAddress(web3auth: Web3Auth): Promise<string | null> {
   try {
     if (!web3auth.provider) return null;
     const { ethers } = await import('ethers');

@@ -1,4 +1,6 @@
 // src/context/AuthContext.tsx
+// Wraps Web3Auth + Supabase into one unified auth context for Outbound
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -11,43 +13,44 @@ interface AuthUser {
   walletAddress: string;
   username?: string;
   avatarUrl?: string;
+  isNewUser?: boolean;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   session: Session | null;
   loading: boolean;
-  loginWithGoogle: () => Promise<void>;
-  loginWithEmail: (email: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
-  loading: false,
-  loginWithGoogle: async () => {},
-  loginWithEmail: async () => {},
+  loading: true,
+  login: async () => {},
   logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(false);
-  const supabase              = createClient();
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
+  // ── Restore existing session on mount ─────────────────────────────────────
   useEffect(() => {
     const init = async () => {
-      const { data: { session: existing } } = await supabase.auth.getSession();
-      if (existing) {
-        setSession(existing);
-        await loadProfile(existing.user.id);
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        setSession(existingSession);
+        await loadProfile(existingSession.user.id);
       }
+      setLoading(false);
     };
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, sess) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, sess) => {
       setSession(sess);
       if (sess) await loadProfile(sess.user.id);
       else setUser(null);
@@ -74,28 +77,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleAuth = async (provider: 'google' | 'email', email?: string) => {
+  // ── Login via Web3Auth ─────────────────────────────────────────────────────
+  const login = async () => {
     setLoading(true);
     try {
-      const { createWeb3Auth, loginWithGoogle, loginWithEmail, getWalletAddress } =
-        await import('@/lib/web3auth');
+      // Dynamically import Web3Auth (client-only)
+      const { getWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
+      const web3auth = await getWeb3Auth();
 
-      const web3auth = await createWeb3Auth();
+      // Open Web3Auth modal
+      await web3auth.connect();
 
-      if (provider === 'google') {
-        await loginWithGoogle(web3auth);
-      } else if (provider === 'email' && email) {
-        await loginWithEmail(web3auth, email);
-      }
-
+      // Get user info + wallet address
       const [userInfo, walletAddress] = await Promise.all([
         web3auth.getUserInfo(),
         getWalletAddress(web3auth),
-      ]);
+        ]);
+        const idToken = (userInfo as any).idToken ?? '';
 
-      const idToken = (userInfo as any).idToken ?? '';
       if (!walletAddress) throw new Error('Could not get wallet address');
 
+      // Bridge to Supabase
       const res = await fetch('/api/auth/web3auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Auth bridge failed');
 
+      // Exchange token hash for a real Supabase session
       if (data.tokenHash) {
         const { data: { session: newSession }, error } = await supabase.auth.verifyOtp({
           token_hash: data.tokenHash,
@@ -117,7 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      window.location.href = data.isNewUser ? '/onboarding' : '/passport';
+      // Redirect new users to onboarding
+      if (data.isNewUser) {
+        window.location.href = '/onboarding';
+      } else {
+        window.location.href = '/passport';
+      }
 
     } catch (err: any) {
       console.error('[login]', err);
@@ -127,13 +135,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithGoogleFn = () => handleAuth('google');
-  const loginWithEmailFn  = (email: string) => handleAuth('email', email);
-
+  // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = async () => {
     try {
-      const { createWeb3Auth } = await import('@/lib/web3auth');
-      const web3auth = await createWeb3Auth();
+      const { getWeb3Auth } = await import('@/lib/web3auth');
+      const web3auth = await getWeb3Auth();
       if (web3auth.connected) await web3auth.logout();
     } catch {}
     await supabase.auth.signOut();
@@ -143,12 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{
-      user, session, loading,
-      loginWithGoogle: loginWithGoogleFn,
-      loginWithEmail: loginWithEmailFn,
-      logout,
-    }}>
+    <AuthContext.Provider value={{ user, session, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

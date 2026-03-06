@@ -24,15 +24,10 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Verify Web3Auth JWT ──────────────────────────────────────────────────
-    //const JWKS = jose.createRemoteJWKSet(new URL(WEB3AUTH_JWKS_URL));
-    //const { payload } = await jose.jwtVerify(idToken, JWKS, {
-      //algorithms: ['ES256'],
-    //});
-    // Skip JWT verification on devnet — just decode
-    const parts = idToken.split('.');
-    const payload = parts.length === 3
-  ? JSON.parse(Buffer.from(parts[1], 'base64').toString())
-  : {};
+    const JWKS = jose.createRemoteJWKSet(new URL(WEB3AUTH_JWKS_URL));
+    const { payload } = await jose.jwtVerify(idToken, JWKS, {
+      algorithms: ['ES256'],
+    });
 
     // sub from the JWT is the Web3Auth user identifier (stable across logins)
     const web3authSub = payload.sub as string;
