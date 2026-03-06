@@ -43,11 +43,11 @@ instance.configureAdapter(openloginAdapter);
 }
 
 export async function loginWithGoogle(web3auth: Web3AuthNoModal) {
-  return web3auth.connectTo('auth', { loginProvider: 'google' });
+  return web3auth.connectTo('openlogin', { loginProvider: 'google' });
 }
 
 export async function loginWithEmail(web3auth: Web3AuthNoModal, email: string) {
-  return web3auth.connectTo('auth', { loginProvider: 'email_passwordless', login_hint: email });
+  return web3auth.connectTo('openlogin', { loginProvider: 'email_passwordless', login_hint: email });
 }
 
 export async function getWalletAddress(web3auth: Web3AuthNoModal): Promise<string | null> {
