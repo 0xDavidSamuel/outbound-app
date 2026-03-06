@@ -132,7 +132,10 @@ export default function OnboardingPage() {
       username: username.toLowerCase(),
       updated_at: new Date().toISOString(),
     });
-    window.location.href = '/passport';
+    const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
+    const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
+    const rt = stored ? JSON.parse(stored).refresh_token : '';
+    window.location.href = `/passport?at=${encodeURIComponent(accessToken)}&rt=${encodeURIComponent(rt)}`;
   };
 
   const walletShort = profile?.wallet_address
