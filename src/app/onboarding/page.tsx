@@ -6,33 +6,48 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
 const STEPS = [
-  { id: 'wallet',   label: 'Wallet Created',  sub: 'Your Base wallet is live'        },
-  { id: 'passport', label: 'Passport Issued', sub: 'Your travel identity is ready'   },
-  { id: 'network',  label: 'Network Joined',  sub: 'Welcome to 60+ city chapters'    },
+  { id: 'wallet',   label: 'Wallet Created',  sub: 'Your Base wallet is live'      },
+  { id: 'passport', label: 'Passport Issued', sub: 'Your travel identity is ready' },
+  { id: 'network',  label: 'Network Joined',  sub: 'Welcome to 60+ city chapters'  },
 ];
 
 export default function OnboardingPage() {
-  const [profile, setProfile]           = useState<any>(null);
-  const [step, setStep]                 = useState(-1);
-  const [username, setUsername]         = useState('');
-  const [checking, setChecking]         = useState(false);
-  const [usernameOk, setUsernameOk]     = useState<boolean | null>(null);
-  const [saving, setSaving]             = useState(false);
+  const [profile, setProfile]       = useState<any>(null);
+  const [step, setStep]             = useState(-1);
+  const [username, setUsername]     = useState('');
+  const [checking, setChecking]     = useState(false);
+  const [usernameOk, setUsernameOk] = useState<boolean | null>(null);
+  const [saving, setSaving]         = useState(false);
   const supabase = createClient();
   const router   = useRouter();
 
   useEffect(() => {
     const load = async () => {
-      // Try to get session — retry once after 2s to allow OTP exchange to propagate
+      // If tokens are in URL params, set the session first
+      const params = new URLSearchParams(window.location.search);
+      const at  = params.get('at');
+      const rt  = params.get('rt');
+
+      if (at && rt) {
+        await supabase.auth.setSession({
+          access_token: decodeURIComponent(at),
+          refresh_token: decodeURIComponent(rt),
+        });
+        // Clean tokens from URL
+        window.history.replaceState(null, '', '/onboarding');
+      }
+
+      // Now get the session
       let { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 1500));
         const retry = await supabase.auth.getSession();
         session = retry.data.session;
       }
       if (!session) { router.push('/'); return; }
 
-      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      const { data } = await supabase
+        .from('profiles').select('*').eq('id', session.user.id).maybeSingle();
       setProfile(data || {});
 
       setTimeout(() => setStep(0), 400);
@@ -48,10 +63,7 @@ export default function OnboardingPage() {
     const timer = setTimeout(async () => {
       setChecking(true);
       const { data } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', username.toLowerCase())
-        .single();
+        .from('profiles').select('id').eq('username', username.toLowerCase()).maybeSingle();
       setUsernameOk(!data);
       setChecking(false);
     }, 400);
@@ -61,10 +73,12 @@ export default function OnboardingPage() {
   const handleFinish = async () => {
     if (!usernameOk || !username) return;
     setSaving(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { router.push('/'); return; }
     await supabase.from('profiles').update({
       username: username.toLowerCase(),
       updated_at: new Date().toISOString(),
-    }).eq('id', profile.id);
+    }).eq('id', session.user.id);
     router.push('/passport');
   };
 

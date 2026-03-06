@@ -109,20 +109,32 @@ export default function PassportPage() {
   const router   = useRouter();
 
   useEffect(() => {
-    (async () => {
-      // Retry once after 2s to allow OTP session to propagate after redirect
-      let { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        await new Promise(r => setTimeout(r, 2000));
-        const retry = await supabase.auth.getSession();
-        session = retry.data.session;
-      }
-      if (!session) { router.push('/'); return; }
+  (async () => {
+    // If tokens are in URL params, set the session first
+    const params = new URLSearchParams(window.location.search);
+    const at = params.get('at');
+    const rt = params.get('rt');
+    if (at && rt) {
+      await supabase.auth.setSession({
+        access_token: decodeURIComponent(at),
+        refresh_token: decodeURIComponent(rt),
+      });
+      window.history.replaceState(null, '', '/passport');
+    }
 
-      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-      setProfile(data);
-      setBioText(data?.bio || '');
-      setLoading(false);
+    // Retry once after 2s to allow session to propagate
+    let { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      await new Promise(r => setTimeout(r, 2000));
+      const retry = await supabase.auth.getSession();
+      session = retry.data.session;
+    }
+    if (!session) { router.push('/'); return; }
+
+    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    setProfile(data);
+    setBioText(data?.bio || '');
+    setLoading(false);
     })();
   }, []);
 
