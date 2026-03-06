@@ -13,6 +13,8 @@ export default function SessionPage() {
       const params = new URLSearchParams(hash);
       const accessToken  = params.get('access_token');
       const refreshToken = params.get('refresh_token');
+      const expiresAt    = params.get('expires_at');
+      const expiresIn    = params.get('expires_in');
 
       if (!accessToken || !refreshToken) {
         setStatus('No tokens found — returning home...');
@@ -20,40 +22,48 @@ export default function SessionPage() {
         return;
       }
 
-      setStatus('Verifying...');
+      try {
+        // Decode the JWT to get user info without any Supabase client
+        const payload = JSON.parse(atob(accessToken.split('.')[1]));
 
-      // Dynamically import to avoid multiple instances from SSR
-      const { createBrowserClient } = await import('@supabase/ssr');
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+        // Build the session object Supabase expects in localStorage
+        const sessionObj = {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          expires_at: expiresAt ? parseInt(expiresAt) : Math.floor(Date.now() / 1000) + 3600,
+          expires_in: expiresIn ? parseInt(expiresIn) : 3600,
+          token_type: 'bearer',
+          user: {
+            id: payload.sub,
+            email: payload.email,
+            role: payload.role,
+            aud: payload.aud,
+            user_metadata: payload.user_metadata || {},
+            app_metadata: payload.app_metadata || {},
+          },
+        };
 
-      const { data: { session }, error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
+        // Extract project ref from SUPABASE_URL env var
+        // e.g. https://dgxrlqmfunbjsosllrwg.supabase.co → dgxrlqmfunbjsosllrwg
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const projectRef = supabaseUrl.replace('https://', '').split('.')[0];
+        const storageKey = `sb-${projectRef}-auth-token`;
 
-      if (error || !session) {
-        setStatus(`Failed: ${error?.message || 'no session'}`);
+        localStorage.setItem(storageKey, JSON.stringify(sessionObj));
+
+        // Clear hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
+
+        setStatus('Welcome!');
+
+        // Check username to determine new vs returning user
+        const isNewUser = !payload.user_metadata?.username;
+        window.location.href = isNewUser ? '/onboarding' : '/passport';
+
+      } catch (err: any) {
+        setStatus(`Error: ${err.message}`);
         setTimeout(() => window.location.href = '/', 2000);
-        return;
       }
-
-      setStatus('Welcome!');
-
-      // Use maybeSingle to avoid 406 when profile row doesn't exist yet
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      // Clear the hash before navigating so tokens don't linger in history
-      window.history.replaceState(null, '', window.location.pathname);
-
-      const isNewUser = !profile?.username;
-      window.location.href = isNewUser ? '/onboarding' : '/passport';
     };
 
     handle();
