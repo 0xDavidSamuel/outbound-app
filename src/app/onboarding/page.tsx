@@ -132,10 +132,8 @@ export default function OnboardingPage() {
       username: username.toLowerCase(),
       updated_at: new Date().toISOString(),
     });
-    const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
-    const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
-    const rt = stored ? JSON.parse(stored).refresh_token : '';
-    window.location.href = `/passport?at=${encodeURIComponent(accessToken)}&rt=${encodeURIComponent(rt)}`;
+    // Token is already in localStorage from the load() function — passport reads it from there
+    window.location.href = '/passport';
   };
 
   const walletShort = profile?.wallet_address

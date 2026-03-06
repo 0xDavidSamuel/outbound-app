@@ -115,45 +115,16 @@ export default function PassportPage() {
     (async () => {
       const projectRef = SUPABASE_URL.replace('https://', '').split('.')[0];
 
-      const params  = new URLSearchParams(window.location.search);
-      const atParam = params.get('at');
-      const rtParam = params.get('rt');
-
       let tok = '';
       let uid = '';
 
-      if (atParam) {
-        tok = decodeURIComponent(atParam);
-        window.history.replaceState(null, '', '/passport');
+      const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
+      if (stored) {
         try {
-          const payload = JSON.parse(atob(tok.split('.')[1]));
-          uid = payload.sub;
-          const sessionObj = {
-            access_token: tok,
-            refresh_token: rtParam ? decodeURIComponent(rtParam) : '',
-            expires_at: Math.floor(Date.now() / 1000) + 3600,
-            expires_in: 3600,
-            token_type: 'bearer',
-            user: {
-              id: uid,
-              email: payload.email,
-              role: 'authenticated',
-              aud: 'authenticated',
-              user_metadata: payload.user_metadata || {},
-              app_metadata: payload.app_metadata || {},
-            },
-          };
-          localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify(sessionObj));
+          const parsed = JSON.parse(stored);
+          tok = parsed.access_token;
+          uid = parsed.user?.id;
         } catch {}
-      } else {
-        const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            tok = parsed.access_token;
-            uid = parsed.user?.id;
-          } catch {}
-        }
       }
 
       if (!tok || !uid) { router.push('/'); return; }
