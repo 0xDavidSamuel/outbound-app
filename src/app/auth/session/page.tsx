@@ -2,16 +2,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase';
 
 export default function SessionPage() {
   const [status, setStatus] = useState('Setting up your session...');
 
   useEffect(() => {
     const handle = async () => {
-      const supabase = createClient();
-
-      // Parse tokens from URL hash: #access_token=...&refresh_token=...
+      // Parse tokens from URL hash
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const accessToken  = params.get('access_token');
@@ -25,25 +22,35 @@ export default function SessionPage() {
 
       setStatus('Verifying...');
 
+      // Dynamically import to avoid multiple instances from SSR
+      const { createBrowserClient } = await import('@supabase/ssr');
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
       const { data: { session }, error } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
       });
 
       if (error || !session) {
-        setStatus(`Failed: ${error?.message || 'no session'} — returning home...`);
+        setStatus(`Failed: ${error?.message || 'no session'}`);
         setTimeout(() => window.location.href = '/', 2000);
         return;
       }
 
       setStatus('Welcome!');
 
-      // Check if new user (no username set yet)
+      // Use maybeSingle to avoid 406 when profile row doesn't exist yet
       const { data: profile } = await supabase
         .from('profiles')
         .select('username')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
+
+      // Clear the hash before navigating so tokens don't linger in history
+      window.history.replaceState(null, '', window.location.pathname);
 
       const isNewUser = !profile?.username;
       window.location.href = isNewUser ? '/onboarding' : '/passport';
