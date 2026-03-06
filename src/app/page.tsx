@@ -1,21 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
-  const { login } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { login, loading } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleJoin = async () => {
-    setLoading(true);
-    try {
-      await login();
-    } catch {
-      setLoading(false);
-    }
-  };
+  const handleJoin = () => { login(); };
 
   return (
     <>

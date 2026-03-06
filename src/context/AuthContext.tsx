@@ -55,37 +55,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadProfile = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, username, avatar_url, wallet_address')
-      .eq('id', userId)
-      .single();
-
-    if (profile) {
-      setUser({
-        id: profile.id,
-        email: '',
-        walletAddress: profile.wallet_address || '',
-        username: profile.username,
-        avatarUrl: profile.avatar_url,
-      });
-    }
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, wallet_address')
+        .eq('id', userId)
+        .maybeSingle();
+      if (profile) {
+        setUser({
+          id: profile.id,
+          email: '',
+          walletAddress: profile.wallet_address || '',
+          username: profile.username,
+          avatarUrl: profile.avatar_url,
+        });
+      }
+    } catch {}
   };
 
-  // Login — init Web3Auth and trigger redirect (no popup)
   const login = async () => {
     setLoading(true);
     try {
       const { createWeb3Auth } = await import('@/lib/web3auth');
       const web3auth = await createWeb3Auth();
-      // This redirects the entire page to Web3Auth's hosted login
-      // then comes back to /auth/callback when done
+      // connect() triggers a full page redirect — it won't return normally
       await web3auth.connect();
     } catch (err: any) {
-      // REDIRECT_RESULT errors are expected on initial load, ignore them
-      if (!err?.message?.includes('redirect')) {
-        console.error('[login]', err);
+      const msg = err?.message || '';
+      // These are expected during/after redirect — not real errors
+      if (
+        msg.includes('redirect') ||
+        msg.includes('user closed') ||
+        msg.includes('Modal is already open')
+      ) {
+        return; // stay loading — redirect is in progress
       }
+      console.error('[login error]', msg);
       setLoading(false);
     }
   };
