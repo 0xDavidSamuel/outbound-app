@@ -1,5 +1,4 @@
 // src/app/auth/callback/page.tsx
-// Web3Auth redirects back here after Google login completes
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,12 +10,14 @@ export default function AuthCallback() {
     const finish = async () => {
       try {
         const { createWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
+        const { createClient } = await import('@/lib/supabase');
+        const supabase = createClient();
 
-        // Re-init Web3Auth — it automatically picks up the redirect result
+        setStatus('Loading wallet...');
         const web3auth = await createWeb3Auth();
 
         if (!web3auth.connected) {
-          setStatus('Not connected — redirecting...');
+          setStatus('Not connected — returning home...');
           setTimeout(() => window.location.href = '/', 2000);
           return;
         }
@@ -40,23 +41,25 @@ export default function AuthCallback() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Auth failed');
 
-        // Exchange for Supabase session
-        if (data.tokenHash) {
-          const { createClient } = await import('@/lib/supabase');
-          const supabase = createClient();
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: data.tokenHash,
-            type: 'magiclink',
-          });
-          if (error) throw error;
-        }
+        setStatus('Starting session...');
+
+        if (!data.tokenHash) throw new Error('No token hash returned');
+
+        // Use type: 'email' — this is what works with hashed_token from generateLink
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          token_hash: data.tokenHash,
+          type: 'email',
+        });
+
+        if (otpError) throw new Error(`Session error: ${otpError.message}`);
 
         setStatus('Welcome to Outbound!');
+        await new Promise(r => setTimeout(r, 300));
         window.location.href = data.isNewUser ? '/onboarding' : '/passport';
 
       } catch (err: any) {
         console.error('[callback]', err);
-        setStatus(`Error: ${err.message} — redirecting...`);
+        setStatus(`Error: ${err.message}`);
         setTimeout(() => window.location.href = '/', 3000);
       }
     };
@@ -87,8 +90,9 @@ export default function AuthCallback() {
         color: '#333',
         letterSpacing: '0.2em',
         textTransform: 'uppercase',
-        maxWidth: 320,
+        maxWidth: 340,
         textAlign: 'center',
+        lineHeight: 1.8,
       }}>
         {status}
       </p>

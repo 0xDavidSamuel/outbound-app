@@ -16,9 +16,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing walletAddress' }, { status: 400 });
     }
 
-    // ── Decode token (no strict verification on devnet) ───────────────────────
-    let web3authSub: string = walletAddress; // fallback
-
+    // ── Decode token ─────────────────────────────────────────────────────────
+    let web3authSub: string = walletAddress;
     if (idToken && idToken.split('.').length === 3) {
       try {
         const payload = JSON.parse(
@@ -26,15 +25,14 @@ export async function POST(req: NextRequest) {
         );
         web3authSub = payload.sub || payload.email || payload.verifierId || walletAddress;
       } catch {
-        // malformed token — use wallet address
         web3authSub = walletAddress;
       }
     }
 
     // ── Find or create Supabase user ─────────────────────────────────────────
-    const email = userInfo?.email || `${web3authSub.slice(0, 16)}@outbound.wallet`;
+    const email = userInfo?.email ||
+      `${web3authSub.replace(/[^a-z0-9]/gi, '').slice(0, 16)}@outbound.wallet`;
 
-    // Check if profile already exists for this wallet
     const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
       .select('id')
@@ -47,7 +45,6 @@ export async function POST(req: NextRequest) {
     if (existingProfile) {
       supabaseUserId = existingProfile.id;
     } else {
-      // Try to create new Supabase auth user
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         email_confirm: true,
@@ -61,7 +58,6 @@ export async function POST(req: NextRequest) {
       });
 
       if (createError) {
-        // User exists with this email — find by email
         const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
         const existing = users.find(u => u.email === email);
         if (!existing) throw createError;
@@ -71,7 +67,6 @@ export async function POST(req: NextRequest) {
         isNewUser = true;
       }
 
-      // Upsert profile
       await supabaseAdmin.from('profiles').upsert({
         id: supabaseUserId,
         wallet_address: walletAddress,
@@ -83,13 +78,10 @@ export async function POST(req: NextRequest) {
       }, { onConflict: 'id' });
     }
 
-    // ── Generate magic link token for Supabase session ───────────────────────
+    // ── Generate magic link and return token hash ────────────────────────────
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
       email,
-      options: {
-        data: { wallet_address: walletAddress },
-      },
     });
 
     if (linkError) throw linkError;
@@ -99,8 +91,8 @@ export async function POST(req: NextRequest) {
       isNewUser,
       userId: supabaseUserId,
       walletAddress,
-      tokenHash: linkData.properties?.hashed_token,
       email,
+      tokenHash: linkData.properties?.hashed_token,
     });
 
   } catch (error: any) {
