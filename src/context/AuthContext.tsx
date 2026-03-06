@@ -1,9 +1,7 @@
 // src/context/AuthContext.tsx
-// Wraps Web3Auth + Supabase into one unified auth context for Outbound
-
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
@@ -13,13 +11,13 @@ interface AuthUser {
   walletAddress: string;
   username?: string;
   avatarUrl?: string;
-  isNewUser?: boolean;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   session: Session | null;
   loading: boolean;
+  ready: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -28,6 +26,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   session: null,
   loading: true,
+  ready: false,
   login: async () => {},
   logout: async () => {},
 });
@@ -35,28 +34,44 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [loading, setLoading] = useState(false);
+  const [ready, setReady]     = useState(false);
+  const web3authRef           = useRef<any>(null);
+  const supabase              = createClient();
 
-  // ── Restore existing session on mount ─────────────────────────────────────
+  // ── Restore Supabase session on mount ─────────────────────────────────────
   useEffect(() => {
     const init = async () => {
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      if (existingSession) {
-        setSession(existingSession);
-        await loadProfile(existingSession.user.id);
+      const { data: { session: existing } } = await supabase.auth.getSession();
+      if (existing) {
+        setSession(existing);
+        await loadProfile(existing.user.id);
       }
-      setLoading(false);
     };
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, sess) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, sess) => {
       setSession(sess);
       if (sess) await loadProfile(sess.user.id);
       else setUser(null);
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // ── Initialize Web3Auth eagerly so it's ready before user clicks ──────────
+  useEffect(() => {
+    const initWeb3Auth = async () => {
+      try {
+        const { getWeb3Auth } = await import('@/lib/web3auth');
+        const instance = await getWeb3Auth();
+        web3authRef.current = instance;
+        setReady(true);
+      } catch (err) {
+        console.error('[web3auth init]', err);
+      }
+    };
+    initWeb3Auth();
   }, []);
 
   const loadProfile = async (userId: string) => {
@@ -77,23 +92,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ── Login via Web3Auth ─────────────────────────────────────────────────────
+  // ── Login ──────────────────────────────────────────────────────────────────
   const login = async () => {
+    if (!web3authRef.current || !ready) {
+      throw new Error('Web3Auth not ready yet — please try again in a moment');
+    }
+
     setLoading(true);
     try {
-      // Dynamically import Web3Auth (client-only)
-      const { getWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
-      const web3auth = await getWeb3Auth();
+      const { getWalletAddress } = await import('@/lib/web3auth');
+      const web3auth = web3authRef.current;
 
       // Open Web3Auth modal
       await web3auth.connect();
 
-      // Get user info + wallet address
+      // Get user info + wallet
       const [userInfo, walletAddress] = await Promise.all([
         web3auth.getUserInfo(),
         getWalletAddress(web3auth),
-        ]);
-        const idToken = (userInfo as any).idToken ?? '';
+      ]);
+
+      const idToken = (userInfo as any).idToken ?? '';
 
       if (!walletAddress) throw new Error('Could not get wallet address');
 
@@ -107,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Auth bridge failed');
 
-      // Exchange token hash for a real Supabase session
+      // Exchange token for Supabase session
       if (data.tokenHash) {
         const { data: { session: newSession }, error } = await supabase.auth.verifyOtp({
           token_hash: data.tokenHash,
@@ -120,12 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Redirect new users to onboarding
-      if (data.isNewUser) {
-        window.location.href = '/onboarding';
-      } else {
-        window.location.href = '/passport';
-      }
+      window.location.href = data.isNewUser ? '/onboarding' : '/passport';
 
     } catch (err: any) {
       console.error('[login]', err);
@@ -138,9 +152,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = async () => {
     try {
-      const { getWeb3Auth } = await import('@/lib/web3auth');
-      const web3auth = await getWeb3Auth();
-      if (web3auth.connected) await web3auth.logout();
+      if (web3authRef.current?.connected) {
+        await web3authRef.current.logout();
+      }
     } catch {}
     await supabase.auth.signOut();
     setUser(null);
@@ -149,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, session, loading, ready, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
