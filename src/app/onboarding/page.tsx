@@ -34,17 +34,24 @@ async function dbPatch(path: string, token: string, body: object) {
 }
 
 export default function OnboardingPage() {
-  const [profile, setProfile]           = useState<any>({});
-  const [step, setStep]                 = useState(-1);
-  const [username, setUsername]         = useState('');
-  const [checking, setChecking]         = useState(false);
-  const [usernameOk, setUsernameOk]     = useState<boolean | null>(null);
-  const [saving, setSaving]             = useState(false);
-  const [accessToken, setAccessToken]   = useState('');
-  const [userId, setUserId]             = useState('');
+  const [profile, setProfile]         = useState<any>({});
+  const [step, setStep]               = useState(-1);
+  const [username, setUsername]       = useState('');
+  const [checking, setChecking]       = useState(false);
+  const [usernameOk, setUsernameOk]   = useState<boolean | null>(null);
+  const [saving, setSaving]           = useState(false);
+  const [accessToken, setAccessToken] = useState('');
+  const [userId, setUserId]           = useState('');
+
+  // Location
+  const [city, setCity]         = useState('');
+  const [country, setCountry]   = useState('');
+  const [lat, setLat]           = useState<number | null>(null);
+  const [lng, setLng]           = useState<number | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locMsg, setLocMsg]     = useState('');
 
   useEffect(() => {
-    // Animate steps immediately
     setTimeout(() => setStep(0), 400);
     setTimeout(() => setStep(1), 1400);
     setTimeout(() => setStep(2), 2400);
@@ -53,10 +60,8 @@ export default function OnboardingPage() {
     (async () => {
       const session = await getSession();
       if (!session) return;
-
       setAccessToken(session.access_token);
       setUserId(session.user.id);
-
       const rows = await dbGet(`profiles?id=eq.${session.user.id}&select=*`, session.access_token);
       if (rows?.[0]) setProfile(rows[0]);
     })();
@@ -72,20 +77,47 @@ export default function OnboardingPage() {
           accessToken || SUPABASE_KEY
         );
         setUsernameOk(Array.isArray(rows) && rows.length === 0);
-      } catch {
-        setUsernameOk(null);
-      }
+      } catch { setUsernameOk(null); }
       setChecking(false);
     }, 500);
     return () => clearTimeout(timer);
   }, [username, accessToken]);
 
+  const detectLocation = () => {
+    if (!navigator.geolocation) { setLocMsg('Geolocation not supported'); return; }
+    setLocating(true);
+    setLocMsg('Detecting...');
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const { latitude, longitude } = pos.coords;
+        setLat(latitude);
+        setLng(longitude);
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await res.json();
+          setCity(data.address?.city || data.address?.town || data.address?.village || '');
+          setCountry(data.address?.country || '');
+          setLocMsg('📍 Location detected');
+        } catch {
+          setLocMsg('📍 Coordinates saved');
+        }
+        setLocating(false);
+      },
+      () => { setLocMsg('Location denied — enter manually'); setLocating(false); }
+    );
+  };
+
   const handleFinish = async () => {
     if (!usernameOk || !username || !userId || !accessToken) return;
     setSaving(true);
-    await dbPatch(`profiles?id=eq.${userId}`, accessToken, {
-      username: username.toLowerCase(),
-    });
+    const patch: any = { username: username.toLowerCase() };
+    if (city)    patch.city    = city;
+    if (country) patch.country = country;
+    if (lat !== null) patch.lat = lat;
+    if (lng !== null) patch.lng = lng;
+    await dbPatch(`profiles?id=eq.${userId}`, accessToken, patch);
     window.location.href = '/passport';
   };
 
@@ -137,7 +169,17 @@ export default function OnboardingPage() {
         .ob-input-status.ok    { color: #e8ff47; }
         .ob-input-status.taken { color: #ff5050; }
         .ob-input-status.checking { color: #333; }
-        .ob-finish-btn { width: 100%; padding: 16px; background: #e8ff47; color: #080808; border: none; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+        .ob-divider { height: 1px; background: #141414; margin: 20px 0; }
+        .ob-loc-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: #333; margin-bottom: 12px; }
+        .ob-loc-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; border-radius: 4px; padding: 12px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #444; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+        .ob-loc-btn:hover { border-color: rgba(232,255,71,0.3); color: #e8ff47; }
+        .ob-loc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .ob-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .ob-loc-input { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 4px; padding: 11px 14px; font-family: 'DM Mono', monospace; font-size: 12px; color: #fff; outline: none; width: 100%; transition: border-color 0.2s; }
+        .ob-loc-input:focus { border-color: #2a2a2a; }
+        .ob-loc-input::placeholder { color: #2a2a2a; }
+        .ob-loc-msg { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; color: #e8ff47; margin-bottom: 16px; height: 14px; }
+        .ob-finish-btn { width: 100%; padding: 16px; background: #e8ff47; color: #080808; border: none; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
         .ob-finish-btn:hover:not(:disabled) { background: #f0ff6a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,255,71,0.2); }
         .ob-finish-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
       `}</style>
@@ -168,11 +210,14 @@ export default function OnboardingPage() {
               <div className={`ob-wallet-addr${step >= 1 ? ' show' : ''}`}>{walletShort}</div>
             </div>
           </div>
+
           <div className={`ob-form${step >= 3 ? ' visible' : ''}`}>
             <div className="ob-form-title">One Last Thing</div>
             <p className="ob-form-sub">
               Choose your handle — this is how other nomads will find you and send you value.
             </p>
+
+            {/* Handle */}
             <div className="ob-input-wrap">
               <span className="ob-at">@</span>
               <input
@@ -186,6 +231,19 @@ export default function OnboardingPage() {
             <div className={`ob-input-status${checking ? ' checking' : usernameOk === true ? ' ok' : usernameOk === false ? ' taken' : ''}`}>
               {checking ? 'checking...' : usernameOk === true ? '✓ available' : usernameOk === false ? '✕ taken — try another' : ''}
             </div>
+
+            {/* Location */}
+            <div className="ob-divider" />
+            <div className="ob-loc-label">📍 Where are you based?</div>
+            <button className="ob-loc-btn" onClick={detectLocation} disabled={locating}>
+              {locating ? 'Detecting location...' : '◎ Use my current location'}
+            </button>
+            <div className="ob-loc-row">
+              <input className="ob-loc-input" placeholder="City" value={city} onChange={e => setCity(e.target.value)} />
+              <input className="ob-loc-input" placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} />
+            </div>
+            <div className="ob-loc-msg">{locMsg}</div>
+
             <button className="ob-finish-btn" disabled={!usernameOk || saving} onClick={handleFinish}>
               {saving ? 'Saving...' : 'Open My Passport →'}
             </button>
