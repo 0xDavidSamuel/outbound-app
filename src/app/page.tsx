@@ -1,11 +1,18 @@
 'use client';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getSession } from '@/lib/session';
 
 export default function HomePage() {
   const { login, loading } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      const session = await getSession();
+      if (session) window.location.href = '/passport';
+    })();
+  }, []);
 
   const handleJoin = async () => {
     const session = await getSession();
