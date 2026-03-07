@@ -87,7 +87,6 @@ export async function POST(req: NextRequest) {
         avatar_url: userInfo?.profileImage || null,
         login_provider: userInfo?.typeOfLogin || 'web3auth',
         web3auth_sub: web3authSub,
-        updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
 
       if (upsertError) {

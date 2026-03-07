@@ -21,7 +21,7 @@ async function dbGet(path: string, token: string) {
 }
 
 async function dbPatch(path: string, token: string, body: object) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     method: 'PATCH',
     headers: {
       apikey: SUPABASE_KEY,
@@ -31,39 +31,35 @@ async function dbPatch(path: string, token: string, body: object) {
     },
     body: JSON.stringify(body),
   });
-  return res;
 }
 
 export default function OnboardingPage() {
-  const [profile, setProfile]       = useState<any>({});
-  const [step, setStep]             = useState(-1);
-  const [username, setUsername]     = useState('');
-  const [checking, setChecking]     = useState(false);
-  const [usernameOk, setUsernameOk] = useState<boolean | null>(null);
-  const [saving, setSaving]         = useState(false);
-  const [accessToken, setAccessToken] = useState('');
-  const [userId, setUserId]           = useState('');
+  const [profile, setProfile]           = useState<any>({});
+  const [step, setStep]                 = useState(-1);
+  const [username, setUsername]         = useState('');
+  const [checking, setChecking]         = useState(false);
+  const [usernameOk, setUsernameOk]     = useState<boolean | null>(null);
+  const [saving, setSaving]             = useState(false);
+  const [accessToken, setAccessToken]   = useState('');
+  const [userId, setUserId]             = useState('');
 
   useEffect(() => {
-    // Animate steps immediately — no waiting
+    // Animate steps immediately
     setTimeout(() => setStep(0), 400);
     setTimeout(() => setStep(1), 1400);
     setTimeout(() => setStep(2), 2400);
     setTimeout(() => setStep(3), 3400);
 
-    const load = async () => {
+    (async () => {
       const session = await getSession();
-      if (!session) return; // steps still animate, form just won't save
+      if (!session) return;
 
       setAccessToken(session.access_token);
       setUserId(session.user.id);
 
-      // Load profile
       const rows = await dbGet(`profiles?id=eq.${session.user.id}&select=*`, session.access_token);
       if (rows?.[0]) setProfile(rows[0]);
-    };
-
-    load();
+    })();
   }, []);
 
   useEffect(() => {
@@ -85,22 +81,13 @@ export default function OnboardingPage() {
   }, [username, accessToken]);
 
   const handleFinish = async () => {
-  const session = getSession();
-  console.log('[handleFinish] session:', session);
-  console.log('[handleFinish] userId:', userId, 'accessToken:', accessToken?.slice(0,20));
-  console.log('[handleFinish] usernameOk:', usernameOk, 'username:', username);
-
-  if (!usernameOk || !username || !userId || !accessToken) {
-    alert(`Missing: ${!userId ? 'userId ' : ''}${!accessToken ? 'token ' : ''}${!usernameOk ? 'usernameOk' : ''}`);
-    return;
-  }
-  setSaving(true);
-  await dbPatch(`profiles?id=eq.${userId}`, accessToken, {
-    username: username.toLowerCase(),
-    updated_at: new Date().toISOString(),
-  });
-  window.location.href = '/passport';
-};
+    if (!usernameOk || !username || !userId || !accessToken) return;
+    setSaving(true);
+    await dbPatch(`profiles?id=eq.${userId}`, accessToken, {
+      username: username.toLowerCase(),
+    });
+    window.location.href = '/passport';
+  };
 
   const walletShort = profile?.wallet_address
     ? `${profile.wallet_address.slice(0,6)}...${profile.wallet_address.slice(-4)}`
