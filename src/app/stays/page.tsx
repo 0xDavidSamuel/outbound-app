@@ -451,8 +451,6 @@ export default function StaysPage() {
         </div>
       )}
 
-      {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
-
       <div className="stays-page">
         <div className="stays-header">
           <p className="stays-eyebrow">Monthly · Weekly · Nightly</p>

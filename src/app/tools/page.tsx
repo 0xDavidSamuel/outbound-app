@@ -205,8 +205,6 @@ export default function ToolsPage() {
         }
       `}</style>
 
-      {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
-
       <div className="tools-page">
         <p className="tools-eyebrow">Travel Utilities</p>
         <h1 className="tools-title">Travel<br /><em>tools.</em></h1>

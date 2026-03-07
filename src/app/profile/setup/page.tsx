@@ -93,8 +93,7 @@ export default function ProfileSetupPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#0a0a0a' }}>
-      <NavBar user={{ avatar_url: profile?.avatar_url ?? undefined, username: profile?.username ?? undefined }} />
-
+     
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '40px 24px' }}>
         <div className="fade-up">
           <h1 style={{ fontSize: 24, fontWeight: 600, color: '#fff', marginBottom: 6 }}>Your Profile</h1>

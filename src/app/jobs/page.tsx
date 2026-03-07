@@ -377,9 +377,7 @@ export default function JobsPage() {
           .ethos-strip { grid-template-columns: 1fr; }
         }
       `}</style>
-
-      {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
-
+      
       <div className="jobs-page">
         <div className="jobs-header">
           <p className="jobs-eyebrow">Open Source · Web3 · Remote</p>

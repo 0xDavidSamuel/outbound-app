@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession } from '@/lib/session';
-import NavBar from '@/components/ui/NavBar';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -321,8 +320,7 @@ export default function PassportPage() {
         }
       `}</style>
 
-      <NavBar user={{ avatar_url: profile?.avatar_url ?? undefined, username: profile?.username ?? undefined }} />
-
+      
       <div className="pp-wrap">
         <div className="pp-book">
           <div className="pp-tabs">

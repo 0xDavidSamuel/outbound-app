@@ -100,7 +100,7 @@ export default function MapPage() {
 
   return (
     <div className="h-screen flex flex-col" style={{ background: '#0a0a0a' }}>
-      <NavBar user={{ avatar_url: currentUser?.avatar_url ?? undefined, username: currentUser?.username ?? undefined }} />
+      
       <div className="flex-1 relative">
         <MapView
           developers={developers}

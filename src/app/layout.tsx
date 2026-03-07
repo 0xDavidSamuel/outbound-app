@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import NavBar from '@/components/ui/NavBar';
 
 export const metadata: Metadata = {
   title: 'Outbound — Never travel alone again.',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AuthProvider>
           {children}
+          <NavBar />
         </AuthProvider>
       </body>
     </html>

@@ -260,9 +260,7 @@ export default function EventsPage() {
           .events-grid { grid-template-columns: 1fr; }
         }
       `}</style>
-
-      {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
-
+      
       <div className="events-page">
         <div className="events-header">
           <p className="events-eyebrow">Upcoming — Global</p>

@@ -370,8 +370,6 @@ export default function CommunityPage() {
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
           body { background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; }
         `}</style>
-        {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
-        <CommunityRoom community={activeRoom} user={user} onBack={() => setActiveRoom(null)} />
       </>
     );
   }
@@ -423,8 +421,6 @@ export default function CommunityPage() {
           .comm-grid { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
-
-      {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
 
       <div className="comm-page">
         <p className="comm-eyebrow">Locals · Expats · Nomads</p>

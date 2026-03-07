@@ -250,8 +250,6 @@ export default function FeedPage() {
         }
       `}</style>
 
-      {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
-
       <div className="feed-page">
         <div className="feed-header">
           <p className="feed-eyebrow">Live · Share · Connect</p>

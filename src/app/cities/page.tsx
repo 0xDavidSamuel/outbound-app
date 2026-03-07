@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import NavBar from '@/components/ui/NavBar';
 import { createClient } from '@/lib/supabase';
 
 interface City {
@@ -559,8 +558,6 @@ export default function CitiesPage() {
       {ratingModal && (
         <RateModal city={ratingModal} onClose={() => setRatingModal(null)} onSave={saveRating} />
       )}
-
-      {user && <NavBar user={{ avatar_url: user.avatar_url ?? undefined, username: user.username ?? undefined }} />}
 
       <div className="cities-page">
         <div className="cities-header">
