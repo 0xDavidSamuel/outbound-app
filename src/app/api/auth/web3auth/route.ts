@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Upsert profile for new or previously auth-only users
-      await supabaseAdmin.from('profiles').upsert({
+      const { error: upsertError } = await supabaseAdmin.from('profiles').upsert({
         id: supabaseUserId,
         wallet_address: walletAddress,
         full_name: userInfo?.name || null,
@@ -89,6 +89,11 @@ export async function POST(req: NextRequest) {
         web3auth_sub: web3authSub,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
+
+      if (upsertError) {
+        console.error('[web3auth bridge] profile upsert error:', upsertError);
+        return NextResponse.json({ error: `Profile upsert failed: ${upsertError.message}` }, { status: 500 });
+      }
     }
 
     // ── Generate magic link ───────────────────────────────────────────────
