@@ -52,7 +52,7 @@ export default function SessionPage() {
     }}>
       <div style={{
         width: 36, height: 36,
-        border: '2px solid #1a1a1a', borderTop: '2px solid #e8ff47',
+        border: '2px solid #1a1a1a', borderTop: '2px solid #e8553a',
         borderRadius: '50%', animation: 'spin 0.8s linear infinite',
       }} />
       <p style={{

@@ -66,7 +66,7 @@ const ALL_BADGES = [
   { id:'storyteller',     label:'STORYTELLER',       desc:'10+ posts in Feed',         code:'ST-010' },
 ];
 
-const STAMP_COLORS = ['#e8ff47','#4fc3f7','#81c784','#ce93d8','#ffb74d','#4dd0e1','#ef9a9a','#fff176'];
+const STAMP_COLORS = ['#e8553a','#4fc3f7','#81c784','#ce93d8','#ffb74d','#4dd0e1','#ef9a9a','#fff176'];
 
 function getEarnedBadges(profile: any): string[] {
   const earned = ['founding_member','early_bird'];
@@ -277,7 +277,7 @@ export default function PassportPage() {
 
   if (loading) return (
     <div style={{ height:'100vh', background:'#080808', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
-      <div style={{ width:32, height:32, border:'2px solid #1a1a1a', borderTop:'2px solid #e8ff47', borderRadius:'50%', animation:'spin 0.8s linear infinite' }}/>
+      <div style={{ width:32, height:32, border:'2px solid #1a1a1a', borderTop:'2px solid #e8553a', borderRadius:'50%', animation:'spin 0.8s linear infinite' }}/>
       <p style={{ fontFamily:'DM Mono, monospace', fontSize:11, color:'#333', letterSpacing:'0.2em', textTransform:'uppercase' }}>loading passport...</p>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -286,7 +286,7 @@ export default function PassportPage() {
   if (loadError) return (
     <div style={{ height:'100vh', background:'#080808', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16, padding:32 }}>
       <p style={{ fontFamily:'DM Mono, monospace', fontSize:11, color:'#ff5050', letterSpacing:'0.1em', textAlign:'center' }}>{loadError}</p>
-      <button onClick={() => router.push('/')} style={{ fontFamily:'DM Mono, monospace', fontSize:10, color:'#e8ff47', background:'transparent', border:'1px solid rgba(232,255,71,0.3)', padding:'8px 20px', borderRadius:3, cursor:'pointer', letterSpacing:'0.15em', textTransform:'uppercase' }}>← Back Home</button>
+      <button onClick={() => router.push('/')} style={{ fontFamily:'DM Mono, monospace', fontSize:10, color:'#e8553a', background:'transparent', border:'1px solid rgba(232,85,58,0.3)', padding:'8px 20px', borderRadius:3, cursor:'pointer', letterSpacing:'0.15em', textTransform:'uppercase' }}>← Back Home</button>
     </div>
   );
 
@@ -309,33 +309,33 @@ export default function PassportPage() {
         .pp-tabs { display: flex; gap: 0; padding-left: 20px; margin-bottom: -1px; position: relative; z-index: 2; }
         .pp-tab { padding: 7px 18px 10px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #2a2a2a; background: #080808; border: 1px solid #161616; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; transition: color 0.15s; }
         .pp-tab:hover:not(.active) { color: #555; }
-        .pp-tab.active { color: #e8ff47; border-color: #222; background: #0d0d0d; z-index: 3; }
+        .pp-tab.active { color: #e8553a; border-color: #222; background: #0d0d0d; z-index: 3; }
         .pp-page { background: #0d0d0d; border: 1px solid #222; border-radius: 0 10px 4px 4px; position: relative; overflow: hidden; min-height: 520px; box-shadow: 0 24px 80px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.03); z-index: 1; }
-        .pp-page::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(90deg, rgba(232,255,71,0.05) 0%, transparent 100%); border-right: 1px dashed rgba(232,255,71,0.08); z-index: 2; }
-        .pp-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.8em; color: rgba(232,255,71,0.025); white-space: nowrap; pointer-events: none; z-index: 0; width: 200%; text-align: center; line-height: 3.2; }
+        .pp-page::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(90deg, rgba(232,85,58,0.05) 0%, transparent 100%); border-right: 1px dashed rgba(232,85,58,0.08); z-index: 2; }
+        .pp-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.8em; color: rgba(232,85,58,0.025); white-space: nowrap; pointer-events: none; z-index: 0; width: 200%; text-align: center; line-height: 3.2; }
         .pp-holes { position: absolute; left: 6px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-evenly; z-index: 3; pointer-events: none; }
-        .pp-hole { width: 9px; height: 9px; border-radius: 50%; background: #080808; border: 1px solid rgba(232,255,71,0.08); box-shadow: inset 0 1px 3px rgba(0,0,0,0.8); }
+        .pp-hole { width: 9px; height: 9px; border-radius: 50%; background: #080808; border: 1px solid rgba(232,85,58,0.08); box-shadow: inset 0 1px 3px rgba(0,0,0,0.8); }
         .pp-content { position: relative; z-index: 1; padding: 28px 28px 44px 34px; }
         .pp-authority { text-align: center; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid #1a1a1a; position: relative; }
         .pp-authority-sub { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.5em; color: #333; text-transform: uppercase; margin-bottom: 4px; }
         .pp-authority-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: #fff; letter-spacing: 0.08em; }
-        .pp-seal { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; border: 2px solid #1e1e1e; display: flex; align-items: center; justify-content: center; font-size: 18px; color: rgba(232,255,71,0.15); }
+        .pp-seal { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; border: 2px solid #1e1e1e; display: flex; align-items: center; justify-content: center; font-size: 18px; color: rgba(232,85,58,0.15); }
         .pp-id-grid { display: grid; grid-template-columns: 108px 1fr; gap: 20px; margin-bottom: 20px; }
-        .pp-photo { width: 108px; height: 138px; border: 1px solid #222; border-radius: 3px; background: #111; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: #e8ff47; position: relative; flex-shrink: 0; }
+        .pp-photo { width: 108px; height: 138px; border: 1px solid #222; border-radius: 3px; background: #111; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: #e8553a; position: relative; flex-shrink: 0; }
         .pp-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .pp-corner { position: absolute; width: 10px; height: 10px; border-color: rgba(232,255,71,0.35); border-style: solid; }
+        .pp-corner { position: absolute; width: 10px; height: 10px; border-color: rgba(232,85,58,0.35); border-style: solid; }
         .pp-corner.tl { top: 4px; left: 4px; border-width: 1px 0 0 1px; }
         .pp-corner.br { bottom: 4px; right: 4px; border-width: 0 1px 1px 0; }
         .pp-fields { display: flex; flex-direction: column; gap: 13px; }
         .pp-label { font-family: 'DM Mono', monospace; font-size: 7.5px; letter-spacing: 0.35em; color: #333; text-transform: uppercase; margin-bottom: 3px; }
         .pp-value { font-family: 'DM Mono', monospace; font-size: 13px; color: #ccc; line-height: 1.3; }
         .pp-value.edit { cursor: pointer; border-bottom: 1px dashed #1e1e1e; padding-bottom: 2px; transition: border-color 0.2s; display: inline-block; }
-        .pp-value.edit:hover { border-color: rgba(232,255,71,0.3); }
+        .pp-value.edit:hover { border-color: rgba(232,85,58,0.3); }
         .pp-value.muted { color: #2a2a2a; font-style: italic; }
-        .pp-value.accent { color: #e8ff47; }
-        .pp-bio-input { font-family: 'DM Mono', monospace; font-size: 12px; color: #ccc; background: transparent; border: none; border-bottom: 1px solid rgba(232,255,71,0.3); outline: none; width: 100%; padding: 2px 0; }
+        .pp-value.accent { color: #e8553a; }
+        .pp-bio-input { font-family: 'DM Mono', monospace; font-size: 12px; color: #ccc; background: transparent; border: none; border-bottom: 1px solid rgba(232,85,58,0.3); outline: none; width: 100%; padding: 2px 0; }
         .pp-row-btns { display: flex; gap: 6px; margin-top: 6px; }
-        .pp-btn-y { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; background: #e8ff47; color: #080808; border: none; border-radius: 2px; padding: 5px 12px; cursor: pointer; transition: opacity 0.2s; }
+        .pp-btn-y { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; background: #e8553a; color: #080808; border: none; border-radius: 2px; padding: 5px 12px; cursor: pointer; transition: opacity 0.2s; }
         .pp-btn-y:hover { opacity: 0.8; }
         .pp-btn-y:disabled { opacity: 0.4; cursor: not-allowed; }
         .pp-btn-ghost { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; background: transparent; color: #444; border: 1px solid #1e1e1e; border-radius: 2px; padding: 5px 12px; cursor: pointer; transition: border-color 0.2s; }
@@ -343,7 +343,7 @@ export default function PassportPage() {
         .pp-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 16px; }
         .pp-chip { font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 9px; border: 1px solid #1a1a1a; border-radius: 2px; color: #333; background: transparent; cursor: pointer; transition: all 0.14s; }
         .pp-chip:hover { border-color: #333; color: #888; }
-        .pp-chip.on { background: #e8ff47; color: #080808; border-color: #e8ff47; }
+        .pp-chip.on { background: #e8553a; color: #080808; border-color: #e8553a; }
         .pp-mrz { margin-top: 22px; padding-top: 14px; border-top: 1px solid #161616; }
         .pp-mrz-lbl { font-family: 'DM Mono', monospace; font-size: 7px; letter-spacing: 0.3em; color: #1e1e1e; text-transform: uppercase; margin-bottom: 5px; }
         .pp-mrz-line { font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #1c1c1c; line-height: 1.9; word-break: break-all; }
@@ -357,32 +357,32 @@ export default function PassportPage() {
         .pp-stamp-del { position: absolute; top: 0; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: #111; border: 1px solid #1e1e1e; color: #444; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; padding: 0; line-height: 1; }
         .pp-stamp-cell:hover .pp-stamp-del { opacity: 1; }
         .pp-stamps-empty { grid-column: 1/-1; text-align: center; padding: 56px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: #1e1e1e; letter-spacing: 0.2em; border: 1px dashed #141414; border-radius: 4px; }
-        .pp-add-btn { margin-top: 18px; font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #e8ff47; background: rgba(232,255,71,0.05); border: 1px solid rgba(232,255,71,0.15); border-radius: 2px; padding: 8px 18px; cursor: pointer; transition: all 0.2s; display: inline-block; }
-        .pp-add-btn:hover { background: rgba(232,255,71,0.1); border-color: rgba(232,255,71,0.35); }
+        .pp-add-btn { margin-top: 18px; font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #e8553a; background: rgba(232,85,58,0.05); border: 1px solid rgba(232,85,58,0.15); border-radius: 2px; padding: 8px 18px; cursor: pointer; transition: all 0.2s; display: inline-block; }
+        .pp-add-btn:hover { background: rgba(232,85,58,0.1); border-color: rgba(232,85,58,0.35); }
         .pp-search { background: #111; border: 1px solid #1e1e1e; border-radius: 3px; padding: 8px 12px; font-family: 'DM Mono', monospace; font-size: 11px; color: #ccc; outline: none; width: 100%; margin-top: 12px; margin-bottom: 8px; transition: border-color 0.2s; }
         .pp-search:focus { border-color: #333; }
         .pp-search::placeholder { color: #222; }
         .pp-results { display: flex; flex-wrap: wrap; gap: 5px; max-height: 150px; overflow-y: auto; }
         .pp-opt { display: flex; align-items: center; gap: 4px; background: #111; border: 1px solid #1a1a1a; border-radius: 2px; padding: 4px 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 9.5px; color: #555; transition: all 0.12s; }
-        .pp-opt:hover { border-color: rgba(232,255,71,0.3); color: #ccc; }
+        .pp-opt:hover { border-color: rgba(232,85,58,0.3); color: #ccc; }
         .pp-badge-list { display: flex; flex-direction: column; gap: 8px; }
         .pp-badge-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #141414; border-radius: 3px; background: rgba(255,255,255,0.01); transition: border-color 0.15s; }
-        .pp-badge-row.earned { border-color: rgba(232,255,71,0.15); background: rgba(232,255,71,0.03); }
+        .pp-badge-row.earned { border-color: rgba(232,85,58,0.15); background: rgba(232,85,58,0.03); }
         .pp-badge-row.locked { opacity: 0.3; }
         .pp-badge-seal { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #1e1e1e; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 6.5px; letter-spacing: 0.04em; color: #333; flex-shrink: 0; text-align: center; line-height: 1.2; padding: 3px; }
-        .pp-badge-row.earned .pp-badge-seal { border-color: rgba(232,255,71,0.3); color: #e8ff47; }
+        .pp-badge-row.earned .pp-badge-seal { border-color: rgba(232,85,58,0.3); color: #e8553a; }
         .pp-badge-info { flex: 1; min-width: 0; }
         .pp-badge-title { font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #888; margin-bottom: 2px; }
         .pp-badge-row.earned .pp-badge-title { color: #ccc; }
         .pp-badge-desc { font-family: 'DM Mono', monospace; font-size: 10px; color: #333; }
         .pp-badge-status { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; }
-        .pp-badge-status.issued { color: #e8ff47; }
+        .pp-badge-status.issued { color: #e8553a; }
         .pp-badge-status.pending { color: #1e1e1e; }
         .pp-section-head { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.4em; text-transform: uppercase; color: #333; margin-bottom: 11px; padding-bottom: 6px; border-bottom: 1px solid #141414; }
         .pp-vibe-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px; }
         .pp-vibe-btn { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid #1a1a1a; border-radius: 2px; font-family: 'DM Mono', monospace; font-size: 11px; color: #444; background: transparent; cursor: pointer; transition: all 0.15s; }
         .pp-vibe-btn:hover { border-color: #333; color: #888; }
-        .pp-vibe-btn.on { border-color: rgba(232,255,71,0.3); color: #e8ff47; background: rgba(232,255,71,0.05); }
+        .pp-vibe-btn.on { border-color: rgba(232,85,58,0.3); color: #e8553a; background: rgba(232,85,58,0.05); }
         .pp-stats-tbl { width: 100%; border-collapse: collapse; }
         .pp-stats-tbl td { padding: 9px 0; border-bottom: 1px solid #111; font-family: 'DM Mono', monospace; }
         .pp-stats-tbl td:first-child { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: #333; width: 55%; }
@@ -392,16 +392,16 @@ export default function PassportPage() {
         .pp-loc-text { font-family: 'DM Mono', monospace; font-size: 13px; color: #ccc; }
         .pp-loc-text.muted { color: #2a2a2a; font-style: italic; }
         .pp-loc-edit-btn { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: #333; background: transparent; border: 1px solid #1e1e1e; border-radius: 2px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
-        .pp-loc-edit-btn:hover { color: #e8ff47; border-color: rgba(232,255,71,0.3); }
+        .pp-loc-edit-btn:hover { color: #e8553a; border-color: rgba(232,85,58,0.3); }
         .pp-loc-form { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
         .pp-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .pp-loc-input { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 3px; padding: 9px 12px; font-family: 'DM Mono', monospace; font-size: 12px; color: #ccc; outline: none; width: 100%; transition: border-color 0.2s; }
         .pp-loc-input:focus { border-color: #2a2a2a; }
         .pp-loc-input::placeholder { color: #2a2a2a; }
         .pp-loc-detect { width: 100%; background: transparent; border: 1px dashed #1a1a1a; border-radius: 3px; padding: 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: #333; cursor: pointer; transition: all 0.2s; }
-        .pp-loc-detect:hover { border-color: rgba(232,255,71,0.2); color: #888; }
+        .pp-loc-detect:hover { border-color: rgba(232,85,58,0.2); color: #888; }
         .pp-loc-detect:disabled { opacity: 0.4; cursor: not-allowed; }
-        .pp-loc-msg { font-family: 'DM Mono', monospace; font-size: 9px; color: #e8ff47; letter-spacing: 0.1em; min-height: 14px; }
+        .pp-loc-msg { font-family: 'DM Mono', monospace; font-size: 9px; color: #e8553a; letter-spacing: 0.1em; min-height: 14px; }
         .pp-pagenum { position: absolute; bottom: 12px; right: 22px; font-family: 'DM Mono', monospace; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #1a1a1a; }
         .pp-torn { height: 16px; position: relative; z-index: 4; margin-top: -2px; }
         .pp-torn svg { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
@@ -584,7 +584,7 @@ export default function PassportPage() {
                           onChange={e => { setCityInput(e.target.value); setLocResolved(null); setLocLat(null); setLocLng(null); }} />
                         {locMsg && <div className="pp-loc-msg">{locMsg}</div>}
                         {locResolved && (
-                          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8ff47', background: 'rgba(232,255,71,0.05)', border: '1px solid rgba(232,255,71,0.15)', borderRadius: 3, padding: '6px 10px', marginBottom: 8 }}>
+                          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8553a', background: 'rgba(232,85,58,0.05)', border: '1px solid rgba(232,85,58,0.15)', borderRadius: 3, padding: '6px 10px', marginBottom: 8 }}>
                             ✓ Resolved: {locResolved}
                           </div>
                         )}

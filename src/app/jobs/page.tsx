@@ -54,12 +54,12 @@ export default function JobsPage() {
         .jobs-header { margin-bottom: 40px; }
         .jobs-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; color: #333; text-transform: uppercase; margin-bottom: 12px; }
         .jobs-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 7vw, 80px); line-height: 0.9; color: #fff; margin-bottom: 8px; }
-        .jobs-title em { color: #e8ff47; font-style: normal; }
+        .jobs-title em { color: #e8553a; font-style: normal; }
         .jobs-subtitle { font-size: 13px; color: #333; font-weight: 300; line-height: 1.7; max-width: 480px; margin-bottom: 28px; }
         .category-pills { display: flex; gap: 8px; flex-wrap: wrap; }
         .category-pill { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; border-radius: 20px; border: 1px solid #1a1a1a; color: #444; cursor: pointer; transition: all 0.2s; background: transparent; }
         .category-pill:hover { color: #888; border-color: #333; }
-        .category-pill.active { background: #e8ff47; color: #080808; border-color: #e8ff47; }
+        .category-pill.active { background: #e8553a; color: #080808; border-color: #e8553a; }
         .sources-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 32px; }
         .source-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; transition: border-color 0.2s, transform 0.15s; }
         .source-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
@@ -70,7 +70,7 @@ export default function JobsPage() {
         .source-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
         .source-tag { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.1em; color: #333; background: #111; border: 1px solid #1a1a1a; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; }
         .source-arrow { font-family: 'DM Mono', monospace; font-size: 9px; color: #2a2a2a; letter-spacing: 0.1em; margin-top: 4px; transition: color 0.2s; }
-        .source-card:hover .source-arrow { color: #e8ff47; }
+        .source-card:hover .source-arrow { color: #e8553a; }
         .section-divider { margin: 48px 0 32px; display: flex; align-items: center; gap: 16px; }
         .section-divider-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.4em; color: #222; text-transform: uppercase; white-space: nowrap; }
         .section-divider-line { flex: 1; height: 1px; background: #111; }

@@ -36,8 +36,8 @@ const AMENITIES_LIST = ['WiFi', 'Desk', 'AC', 'Kitchen', 'Washer', 'Pool', 'Gym'
 const inputStyle: React.CSSProperties = { width: '100%', background: '#111', border: '1px solid #1a1a1a', borderRadius: 8, padding: '10px 14px', color: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: 13, outline: 'none' };
 const labelStyle: React.CSSProperties = { fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: '#444', textTransform: 'uppercase', marginBottom: 8 };
 const pillStyle: React.CSSProperties = { fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: 20, border: '1px solid #1a1a1a', color: '#444', cursor: 'pointer', background: 'transparent', transition: 'all 0.15s' };
-const pillActiveStyle: React.CSSProperties = { background: '#e8ff47', color: '#080808', border: '1px solid #e8ff47' };
-const primaryBtnStyle: React.CSSProperties = { width: '100%', background: '#e8ff47', color: '#080808', border: 'none', borderRadius: 8, padding: '13px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500 };
+const pillActiveStyle: React.CSSProperties = { background: '#e8553a', color: '#080808', border: '1px solid #e8553a' };
+const primaryBtnStyle: React.CSSProperties = { width: '100%', background: '#e8553a', color: '#080808', border: 'none', borderRadius: 8, padding: '13px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500 };
 const countBtnStyle: React.CSSProperties = { width: 28, height: 28, borderRadius: 6, background: '#111', border: '1px solid #1a1a1a', color: '#fff', cursor: 'pointer', fontFamily: 'DM Mono, monospace', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
 function ListStayModal({ onClose, onSave, userId }: { onClose: () => void; onSave: (stay: any) => void; userId: string }) {
@@ -52,7 +52,7 @@ function ListStayModal({ onClose, onSave, userId }: { onClose: () => void; onSav
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
             <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.4em', color: '#333', textTransform: 'uppercase', marginBottom: 4 }}>Step {step} of 2</div>
-            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 28, color: '#e8ff47', lineHeight: 1 }}>{step === 1 ? 'List your stay.' : 'Pricing & amenities.'}</div>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 28, color: '#e8553a', lineHeight: 1 }}>{step === 1 ? 'List your stay.' : 'Pricing & amenities.'}</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', fontSize: 20 }}>×</button>
         </div>
@@ -125,7 +125,7 @@ function ListStayModal({ onClose, onSave, userId }: { onClose: () => void; onSav
                 <div style={{ fontSize: 13, color: '#fff', fontWeight: 500 }}>Nomad friendly</div>
                 <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#444', letterSpacing: '0.1em', marginTop: 2 }}>Monthly stays, flexible checkout</div>
               </div>
-              <button onClick={() => set('is_nomad_friendly', !form.is_nomad_friendly)} style={{ width: 40, height: 22, borderRadius: 11, background: form.is_nomad_friendly ? '#e8ff47' : '#1a1a1a', border: 'none', cursor: 'pointer', transition: 'background 0.2s', position: 'relative' }}>
+              <button onClick={() => set('is_nomad_friendly', !form.is_nomad_friendly)} style={{ width: 40, height: 22, borderRadius: 11, background: form.is_nomad_friendly ? '#e8553a' : '#1a1a1a', border: 'none', cursor: 'pointer', transition: 'background 0.2s', position: 'relative' }}>
                 <div style={{ width: 16, height: 16, borderRadius: '50%', background: form.is_nomad_friendly ? '#080808' : '#444', position: 'absolute', top: 3, left: form.is_nomad_friendly ? 21 : 3, transition: 'left 0.2s' }} />
               </button>
             </div>
@@ -203,33 +203,33 @@ export default function StaysPage() {
         .stays-header { margin-bottom: 32px; }
         .stays-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; color: #333; text-transform: uppercase; margin-bottom: 12px; }
         .stays-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 7vw, 80px); line-height: 0.9; color: #fff; margin-bottom: 24px; }
-        .stays-title em { color: #e8ff47; font-style: normal; }
+        .stays-title em { color: #e8553a; font-style: normal; }
         .stays-controls { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
         .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .filter-pill { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; border-radius: 20px; border: 1px solid #1a1a1a; color: #444; cursor: pointer; transition: all 0.2s; background: transparent; }
         .filter-pill:hover { color: #888; border-color: #333; }
-        .filter-pill.active { background: #e8ff47; color: #080808; border-color: #e8ff47; }
-        .filter-pill.nomad-active { background: rgba(232,255,71,0.1); color: #e8ff47; border-color: rgba(232,255,71,0.3); }
+        .filter-pill.active { background: #e8553a; color: #080808; border-color: #e8553a; }
+        .filter-pill.nomad-active { background: rgba(232,85,58,0.1); color: #e8553a; border-color: rgba(232,85,58,0.3); }
         .search-input { flex: 1; min-width: 160px; background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 9px 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: #fff; outline: none; }
         .search-input::placeholder { color: #333; }
         .price-range { display: flex; align-items: center; gap: 10px; }
         .price-label { font-family: 'DM Mono', monospace; font-size: 9px; color: #444; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
-        .price-slider { flex: 1; accent-color: #e8ff47; }
-        .price-val { font-family: 'DM Mono', monospace; font-size: 10px; color: #e8ff47; white-space: nowrap; }
-        .btn-list { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 9px 18px; border-radius: 8px; background: #e8ff47; color: #080808; border: none; cursor: pointer; font-weight: 500; white-space: nowrap; }
+        .price-slider { flex: 1; accent-color: #e8553a; }
+        .price-val { font-family: 'DM Mono', monospace; font-size: 10px; color: #e8553a; white-space: nowrap; }
+        .btn-list { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 9px 18px; border-radius: 8px; background: #e8553a; color: #080808; border: none; cursor: pointer; font-weight: 500; white-space: nowrap; }
         .section-divider { display: flex; align-items: center; gap: 16px; margin: 8px 0 20px; }
         .section-divider-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.4em; color: #222; text-transform: uppercase; white-space: nowrap; }
         .section-divider-line { flex: 1; height: 1px; background: #111; }
         .stays-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         .stay-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 14px; overflow: hidden; transition: border-color 0.2s, transform 0.15s; cursor: pointer; }
         .stay-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
-        .stay-card.featured { border-color: rgba(232,255,71,0.2); }
+        .stay-card.featured { border-color: rgba(232,85,58,0.2); }
         .stay-image { position: relative; height: 180px; overflow: hidden; background: #111; }
         .stay-image img { width: 100%; height: 100%; object-fit: cover; }
         .stay-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; opacity: 0.3; background: linear-gradient(135deg, #0e0e0e, #111); }
-        .stay-badge { position: absolute; top: 10px; left: 10px; background: rgba(8,8,8,0.85); border-radius: 6px; padding: 4px 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: #e8ff47; text-transform: uppercase; }
-        .stay-featured-badge { position: absolute; top: 10px; right: 10px; background: #e8ff47; color: #080808; border-radius: 6px; padding: 4px 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; }
-        .stay-nomad-badge { position: absolute; bottom: 10px; left: 10px; background: rgba(232,255,71,0.15); border: 1px solid rgba(232,255,71,0.3); color: #e8ff47; border-radius: 6px; padding: 3px 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.1em; }
+        .stay-badge { position: absolute; top: 10px; left: 10px; background: rgba(8,8,8,0.85); border-radius: 6px; padding: 4px 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: #e8553a; text-transform: uppercase; }
+        .stay-featured-badge { position: absolute; top: 10px; right: 10px; background: #e8553a; color: #080808; border-radius: 6px; padding: 4px 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; }
+        .stay-nomad-badge { position: absolute; bottom: 10px; left: 10px; background: rgba(232,85,58,0.15); border: 1px solid rgba(232,85,58,0.3); color: #e8553a; border-radius: 6px; padding: 3px 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.1em; }
         .stay-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
         .stay-location { font-family: 'DM Mono', monospace; font-size: 9px; color: #444; letter-spacing: 0.15em; text-transform: uppercase; }
         .stay-title-text { font-size: 14px; font-weight: 500; color: #fff; line-height: 1.4; }
@@ -243,9 +243,9 @@ export default function StaysPage() {
         .stay-host-name { font-family: 'DM Mono', monospace; font-size: 9px; color: #333; letter-spacing: 0.08em; }
         .empty-state { text-align: center; padding: 80px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: #222; letter-spacing: 0.2em; }
         .empty-cta { margin-top: 16px; background: none; border: 1px solid #1a1a1a; color: #444; padding: 10px 20px; border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-        .empty-cta:hover { border-color: #e8ff47; color: #e8ff47; }
+        .empty-cta:hover { border-color: #e8553a; color: #e8553a; }
         .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #333; letter-spacing: 0.2em; }
-        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8ff47; animation: pulse 1.2s ease-in-out infinite; }
+        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
         .detail-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 900; display: flex; align-items: flex-start; justify-content: center; padding: 40px 24px; overflow-y: auto; }
         .detail-modal { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 16px; width: 100%; max-width: 600px; overflow: hidden; }
@@ -254,14 +254,14 @@ export default function StaysPage() {
         .detail-close { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: 50%; background: rgba(8,8,8,0.8); border: none; color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
         .detail-body { padding: 24px; }
         .detail-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: #fff; line-height: 1.1; margin-bottom: 6px; }
-        .detail-location { font-family: 'DM Mono', monospace; font-size: 10px; color: #e8ff47; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px; }
+        .detail-location { font-family: 'DM Mono', monospace; font-size: 10px; color: #e8553a; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px; }
         .detail-desc { font-size: 13px; color: #555; line-height: 1.7; margin-bottom: 20px; font-weight: 300; }
         .detail-prices { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
         .detail-price-item { background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 12px 16px; }
         .detail-price-period { font-family: 'DM Mono', monospace; font-size: 8px; color: #444; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 2px; }
         .detail-amenities-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
         .detail-amenity { font-family: 'DM Mono', monospace; font-size: 9px; color: #444; background: #111; border: 1px solid #1a1a1a; padding: 5px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
-        .btn-contact { width: 100%; background: #e8ff47; color: #080808; border: none; border-radius: 10px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; font-weight: 500; }
+        .btn-contact { width: 100%; background: #e8553a; color: #080808; border: none; border-radius: 10px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; font-weight: 500; }
         @media (max-width: 600px) { .stays-page { padding: 64px 16px 140px; } .stays-grid { grid-template-columns: 1fr; } }
       `}</style>
 

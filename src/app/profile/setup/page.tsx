@@ -129,9 +129,9 @@ export default function ProfileSetupPage() {
                     key={skill}
                     onClick={() => toggleSkill(skill)}
                     style={{
-                      background: profile.skills?.includes(skill) ? 'rgba(232,255,71,0.15)' : '#111',
-                      border: `1px solid ${profile.skills?.includes(skill) ? '#e8ff47' : '#2a2a2a'}`,
-                      color: profile.skills?.includes(skill) ? '#e8ff47' : '#888',
+                      background: profile.skills?.includes(skill) ? 'rgba(232,85,58,0.15)' : '#111',
+                      border: `1px solid ${profile.skills?.includes(skill) ? '#e8553a' : '#2a2a2a'}`,
+                      color: profile.skills?.includes(skill) ? '#e8553a' : '#888',
                       fontSize: 12, padding: '5px 10px', borderRadius: 7,
                       cursor: 'pointer', fontFamily: 'DM Mono, monospace',
                       transition: 'all 0.15s',
@@ -196,7 +196,7 @@ export default function ProfileSetupPage() {
                 id="visible"
                 checked={profile.is_visible}
                 onChange={e => setProfile(p => ({ ...p, is_visible: e.target.checked }))}
-                style={{ accentColor: '#e8ff47', width: 15, height: 15 }}
+                style={{ accentColor: '#e8553a', width: 15, height: 15 }}
               />
               <label htmlFor="visible" style={{ color: '#ccc', fontSize: 13, cursor: 'pointer' }}>
                 Show me on the map
@@ -207,9 +207,9 @@ export default function ProfileSetupPage() {
               onClick={save}
               disabled={loading || saved}
               style={{
-                background: saved ? '#1a2a00' : '#e8ff47',
-                color: saved ? '#e8ff47' : '#0a0a0a',
-                border: saved ? '1px solid #e8ff47' : 'none',
+                background: saved ? '#1a2a00' : '#e8553a',
+                color: saved ? '#e8553a' : '#0a0a0a',
+                border: saved ? '1px solid #e8553a' : 'none',
                 padding: '12px 24px', borderRadius: 10,
                 fontWeight: 600, fontSize: 14, cursor: 'pointer',
                 transition: 'all 0.2s', marginTop: 8,

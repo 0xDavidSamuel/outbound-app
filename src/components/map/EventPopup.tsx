@@ -16,7 +16,7 @@ export default function EventPopup({ event, onClose }: Props) {
     <div style={{ width: 280, padding: 16, fontFamily: 'DM Sans, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
         <div style={{
-          background: '#e8ff47', color: '#0a0a0a', fontSize: 10,
+          background: '#e8553a', color: '#0a0a0a', fontSize: 10,
           fontWeight: 600, padding: '3px 8px', borderRadius: 5,
           letterSpacing: '0.1em', textTransform: 'uppercase',
           fontFamily: 'DM Mono, monospace',
@@ -40,16 +40,16 @@ export default function EventPopup({ event, onClose }: Props) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#888', fontSize: 12 }}>
-          <Calendar size={12} style={{ color: '#e8ff47' }} />
+          <Calendar size={12} style={{ color: '#e8553a' }} />
           {formatted}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#888', fontSize: 12 }}>
-          <MapPin size={12} style={{ color: '#e8ff47' }} />
+          <MapPin size={12} style={{ color: '#e8553a' }} />
           {event.location_name}
         </div>
         {event.attendee_count > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#888', fontSize: 12 }}>
-            <Users size={12} style={{ color: '#e8ff47' }} />
+            <Users size={12} style={{ color: '#e8553a' }} />
             {event.attendee_count} attending
           </div>
         )}

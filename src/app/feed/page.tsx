@@ -50,8 +50,8 @@ function timeAgo(date: string) {
 }
 
 function typeColor(type: string) {
-  const map: Record<string, string> = { moment: '#e8ff47', tip: '#47d4ff', question: '#ff8c47', looking: '#c847ff' };
-  return map[type] || '#e8ff47';
+  const map: Record<string, string> = { moment: '#e8553a', tip: '#47d4ff', question: '#ff8c47', looking: '#c847ff' };
+  return map[type] || '#e8553a';
 }
 
 function typeLabel(type: string) {
@@ -203,7 +203,7 @@ export default function FeedPage() {
         .feed-header { margin-bottom: 28px; }
         .feed-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; color: #333; text-transform: uppercase; margin-bottom: 10px; }
         .feed-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(42px, 7vw, 72px); line-height: 0.9; color: #fff; margin-bottom: 20px; }
-        .feed-title em { color: #e8ff47; font-style: normal; }
+        .feed-title em { color: #e8553a; font-style: normal; }
         .compose-trigger { display: flex; align-items: center; gap: 12px; background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 14px; padding: 14px 16px; cursor: pointer; margin-bottom: 20px; transition: border-color 0.2s; }
         .compose-trigger:hover { border-color: #2a2a2a; }
         .compose-avatar { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #222; background: #111; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #444; }
@@ -222,12 +222,12 @@ export default function FeedPage() {
         .compose-image-input::placeholder { color: #333; }
         .compose-actions { display: flex; justify-content: flex-end; gap: 8px; }
         .btn-cancel { background: none; border: 1px solid #1a1a1a; color: #444; border-radius: 8px; padding: 8px 16px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; }
-        .btn-post { background: #e8ff47; color: #080808; border: none; border-radius: 8px; padding: 8px 20px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+        .btn-post { background: #e8553a; color: #080808; border: none; border-radius: 8px; padding: 8px 20px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
         .btn-post:disabled { opacity: 0.4; cursor: not-allowed; }
         .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
         .filter-pill { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; border: 1px solid #1a1a1a; color: #444; cursor: pointer; background: transparent; transition: all 0.2s; }
         .filter-pill:hover { color: #888; border-color: #333; }
-        .filter-pill.active { background: #e8ff47; color: #080808; border-color: #e8ff47; }
+        .filter-pill.active { background: #e8553a; color: #080808; border-color: #e8553a; }
         .posts-list { display: flex; flex-direction: column; gap: 16px; }
         .post-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 14px; overflow: hidden; transition: border-color 0.2s; }
         .post-card:hover { border-color: #1e1e1e; }
@@ -237,7 +237,7 @@ export default function FeedPage() {
         .post-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .post-username { font-size: 13px; font-weight: 500; color: #fff; }
         .post-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-        .post-location { font-family: 'DM Mono', monospace; font-size: 9px; color: #e8ff47; letter-spacing: 0.1em; }
+        .post-location { font-family: 'DM Mono', monospace; font-size: 9px; color: #e8553a; letter-spacing: 0.1em; }
         .post-time { font-family: 'DM Mono', monospace; font-size: 9px; color: #2a2a2a; }
         .post-type-badge { font-family: 'DM Mono', monospace; font-size: 8px; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.1em; }
         .post-content { padding: 12px 16px; font-size: 14px; color: #aaa; line-height: 1.7; font-weight: 300; white-space: pre-wrap; }
@@ -245,7 +245,7 @@ export default function FeedPage() {
         .post-actions { display: flex; align-items: center; gap: 4px; padding: 10px 16px 12px; border-top: 1px solid #111; }
         .action-btn { display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px 10px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; color: #333; transition: all 0.15s; letter-spacing: 0.05em; }
         .action-btn:hover { background: rgba(255,255,255,0.03); color: #666; }
-        .action-btn.liked { color: #e8ff47; }
+        .action-btn.liked { color: #e8553a; }
         .action-btn-icon { font-size: 14px; }
         .comments-section { border-top: 1px solid #111; padding: 12px 16px; }
         .comment-item { display: flex; gap: 8px; margin-bottom: 10px; }
@@ -257,10 +257,10 @@ export default function FeedPage() {
         .comment-input-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
         .comment-input { flex: 1; background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 8px 12px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 12px; outline: none; }
         .comment-input::placeholder { color: #333; }
-        .comment-submit { background: rgba(232,255,71,0.1); border: 1px solid rgba(232,255,71,0.2); color: #e8ff47; border-radius: 6px; padding: 7px 12px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
-        .comment-submit:hover { background: rgba(232,255,71,0.18); }
+        .comment-submit { background: rgba(232,85,58,0.1); border: 1px solid rgba(232,85,58,0.2); color: #e8553a; border-radius: 6px; padding: 7px 12px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+        .comment-submit:hover { background: rgba(232,85,58,0.18); }
         .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; gap: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #333; letter-spacing: 0.2em; }
-        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8ff47; animation: pulse 1.2s ease-in-out infinite; }
+        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
         .empty-state { text-align: center; padding: 60px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: #222; letter-spacing: 0.2em; line-height: 2; }
         @media (max-width: 600px) { .feed-page { padding: 64px 16px 140px; } }

@@ -61,7 +61,7 @@ export default function LoginPage() {
           font-family: 'Bebas Neue', sans-serif;
           font-size: 14px;
           letter-spacing: 0.8em;
-          color: rgba(232,255,71,0.025);
+          color: rgba(232,85,58,0.025);
           white-space: pre-wrap;
           width: 200%;
           line-height: 3.5;
@@ -73,7 +73,7 @@ export default function LoginPage() {
           font-family: 'Bebas Neue', sans-serif;
           font-size: 22px;
           letter-spacing: 0.15em;
-          color: #e8ff47;
+          color: #e8553a;
           position: relative;
           z-index: 1;
         }
@@ -89,7 +89,7 @@ export default function LoginPage() {
           letter-spacing: 0.02em;
         }
 
-        .login-headline span { color: #e8ff47; }
+        .login-headline span { color: #e8553a; }
 
         .login-sub {
           font-family: 'DM Mono', monospace;
@@ -110,7 +110,7 @@ export default function LoginPage() {
         .login-stat-num {
           font-family: 'Bebas Neue', sans-serif;
           font-size: 28px;
-          color: #e8ff47;
+          color: #e8553a;
           line-height: 1;
           margin-bottom: 4px;
         }
@@ -163,7 +163,7 @@ export default function LoginPage() {
         .login-btn {
           width: 100%;
           padding: 18px;
-          background: #e8ff47;
+          background: #e8553a;
           color: #080808;
           border: none;
           border-radius: 4px;
@@ -186,7 +186,7 @@ export default function LoginPage() {
         .login-btn:hover:not(:disabled) {
           background: #f0ff6a;
           transform: translateY(-1px);
-          box-shadow: 0 8px 24px rgba(232,255,71,0.2);
+          box-shadow: 0 8px 24px rgba(232,85,58,0.2);
         }
 
         .login-btn:disabled {
@@ -256,7 +256,7 @@ export default function LoginPage() {
         .login-perk-dot {
           width: 6px; height: 6px;
           border-radius: 50%;
-          background: #e8ff47;
+          background: #e8553a;
           flex-shrink: 0;
           margin-top: 6px;
         }

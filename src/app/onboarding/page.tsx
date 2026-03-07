@@ -183,7 +183,7 @@ export default function OnboardingPage() {
         .ob-card { width: 100%; max-width: 480px; }
         .ob-wordmark { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; text-transform: uppercase; color: #222; margin-bottom: 48px; text-align: center; }
         .ob-passport { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 8px; padding: 28px; margin-bottom: 40px; position: relative; overflow: hidden; }
-        .ob-passport::before { content: 'OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 0.6em; color: rgba(232,255,71,0.025); white-space: nowrap; pointer-events: none; width: 200%; text-align: center; line-height: 3; }
+        .ob-passport::before { content: 'OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 0.6em; color: rgba(232,85,58,0.025); white-space: nowrap; pointer-events: none; width: 200%; text-align: center; line-height: 3; }
         .ob-passport-header { text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #141414; }
         .ob-passport-sub { font-family: 'DM Mono', monospace; font-size: 7.5px; letter-spacing: 0.5em; text-transform: uppercase; color: #2a2a2a; margin-bottom: 4px; }
         .ob-passport-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: #fff; letter-spacing: 0.05em; }
@@ -191,7 +191,7 @@ export default function OnboardingPage() {
         .ob-step { display: flex; align-items: center; gap: 14px; opacity: 0; transform: translateX(-12px); transition: opacity 0.5s ease, transform 0.5s ease; }
         .ob-step.visible { opacity: 1; transform: translateX(0); }
         .ob-step-icon { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #1a1a1a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.4s ease; }
-        .ob-step.visible .ob-step-icon { border-color: rgba(232,255,71,0.3); background: rgba(232,255,71,0.05); }
+        .ob-step.visible .ob-step-icon { border-color: rgba(232,85,58,0.3); background: rgba(232,85,58,0.05); }
         .ob-step-check { font-size: 14px; opacity: 0; transition: opacity 0.3s ease 0.2s; }
         .ob-step.visible .ob-step-check { opacity: 1; }
         .ob-step-info { flex: 1; }
@@ -201,7 +201,7 @@ export default function OnboardingPage() {
         .ob-step.visible .ob-step-sub { color: #555; }
         .ob-wallet-line { margin-top: 20px; padding-top: 14px; border-top: 1px solid #111; display: flex; align-items: center; justify-content: space-between; }
         .ob-wallet-lbl { font-family: 'DM Mono', monospace; font-size: 7.5px; letter-spacing: 0.3em; text-transform: uppercase; color: #222; }
-        .ob-wallet-addr { font-family: 'DM Mono', monospace; font-size: 11px; color: #e8ff47; letter-spacing: 0.08em; opacity: 0; transition: opacity 0.5s ease 3s; }
+        .ob-wallet-addr { font-family: 'DM Mono', monospace; font-size: 11px; color: #e8553a; letter-spacing: 0.08em; opacity: 0; transition: opacity 0.5s ease 3s; }
         .ob-wallet-addr.show { opacity: 1; }
         .ob-form { opacity: 0; transform: translateY(8px); transition: opacity 0.5s ease, transform 0.5s ease; }
         .ob-form.visible { opacity: 1; transform: translateY(0); }
@@ -211,25 +211,25 @@ export default function OnboardingPage() {
         .ob-at { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-family: 'DM Mono', monospace; font-size: 13px; color: #333; }
         .ob-input { width: 100%; background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 4px; padding: 14px 14px 14px 28px; font-family: 'DM Mono', monospace; font-size: 14px; color: #fff; outline: none; transition: border-color 0.2s; letter-spacing: 0.05em; }
         .ob-input:focus { border-color: #2a2a2a; }
-        .ob-input.ok    { border-color: rgba(232,255,71,0.4); }
+        .ob-input.ok    { border-color: rgba(232,85,58,0.4); }
         .ob-input.taken { border-color: rgba(255,80,80,0.4); }
         .ob-input-status { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; height: 16px; margin-bottom: 20px; }
-        .ob-input-status.ok    { color: #e8ff47; }
+        .ob-input-status.ok    { color: #e8553a; }
         .ob-input-status.taken { color: #ff5050; }
         .ob-input-status.checking { color: #333; }
         .ob-divider { height: 1px; background: #141414; margin: 20px 0; }
         .ob-loc-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: #333; margin-bottom: 12px; }
         .ob-loc-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; border-radius: 4px; padding: 12px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #444; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
-        .ob-loc-btn:hover { border-color: rgba(232,255,71,0.3); color: #e8ff47; }
+        .ob-loc-btn:hover { border-color: rgba(232,85,58,0.3); color: #e8553a; }
         .ob-loc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .ob-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .ob-loc-input { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 4px; padding: 11px 14px; font-family: 'DM Mono', monospace; font-size: 12px; color: #fff; outline: none; width: 100%; transition: border-color 0.2s; }
         .ob-loc-input:focus { border-color: #2a2a2a; }
         .ob-loc-input::placeholder { color: #2a2a2a; }
         .ob-loc-msg { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; color: #555; margin-bottom: 8px; min-height: 14px; }
-        .ob-resolved { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: #e8ff47; background: rgba(232,255,71,0.05); border: 1px solid rgba(232,255,71,0.15); border-radius: 3px; padding: 7px 12px; margin-bottom: 16px; }
-        .ob-finish-btn { width: 100%; padding: 16px; background: #e8ff47; color: #080808; border: none; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
-        .ob-finish-btn:hover:not(:disabled) { background: #f0ff6a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,255,71,0.2); }
+        .ob-resolved { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: #e8553a; background: rgba(232,85,58,0.05); border: 1px solid rgba(232,85,58,0.15); border-radius: 3px; padding: 7px 12px; margin-bottom: 16px; }
+        .ob-finish-btn { width: 100%; padding: 16px; background: #e8553a; color: #080808; border: none; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+        .ob-finish-btn:hover:not(:disabled) { background: #f0ff6a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,85,58,0.2); }
         .ob-finish-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
         .ob-skip { text-align: center; margin-top: 12px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #222; text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
         .ob-skip:hover { color: #444; }

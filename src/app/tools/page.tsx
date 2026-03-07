@@ -72,11 +72,11 @@ export default function ToolsPage() {
         .tools-page { min-height: 100vh; padding: 72px 24px 140px; max-width: 680px; margin: 0 auto; }
         .tools-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; color: #333; text-transform: uppercase; margin-bottom: 12px; }
         .tools-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 7vw, 80px); line-height: 0.9; color: #fff; margin-bottom: 28px; }
-        .tools-title em { color: #e8ff47; font-style: normal; }
+        .tools-title em { color: #e8553a; font-style: normal; }
         .tab-row { display: flex; gap: 6px; margin-bottom: 28px; }
         .tab-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 10px 20px; border-radius: 10px; border: 1px solid #1a1a1a; color: #444; cursor: pointer; background: transparent; transition: all 0.2s; }
         .tab-btn:hover { color: #888; border-color: #333; }
-        .tab-btn.active { background: #e8ff47; color: #080808; border-color: #e8ff47; font-weight: 500; }
+        .tab-btn.active { background: #e8553a; color: #080808; border-color: #e8553a; font-weight: 500; }
         .tool-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 16px; padding: 28px; }
         .tool-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.3em; color: #333; text-transform: uppercase; margin-bottom: 10px; }
         .currency-row { display: flex; align-items: stretch; gap: 10px; margin-bottom: 16px; }
@@ -84,27 +84,27 @@ export default function ToolsPage() {
         .amount-input:focus { border-color: #333; }
         .amount-input::placeholder { color: #222; }
         .currency-select { background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 0 14px; color: #fff; font-family: 'DM Mono', monospace; font-size: 13px; outline: none; cursor: pointer; min-width: 90px; appearance: none; -webkit-appearance: none; }
-        .swap-btn { background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 0 14px; color: #e8ff47; font-size: 18px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .swap-btn { background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 0 14px; color: #e8553a; font-size: 18px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .swap-btn:hover { background: #161616; }
-        .convert-btn { width: 100%; background: #e8ff47; color: #080808; border: none; border-radius: 10px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.2s; margin-bottom: 20px; }
+        .convert-btn { width: 100%; background: #e8553a; color: #080808; border: none; border-radius: 10px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.2s; margin-bottom: 20px; }
         .convert-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .result-box { background: #111; border: 1px solid #1a1a1a; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 6px; }
-        .result-amount { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: #e8ff47; line-height: 1; }
+        .result-amount { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: #e8553a; line-height: 1; }
         .result-currency { font-family: 'DM Mono', monospace; font-size: 11px; color: #444; letter-spacing: 0.2em; text-transform: uppercase; }
         .result-rate { font-family: 'DM Mono', monospace; font-size: 10px; color: #2a2a2a; margin-top: 4px; }
         .quick-amounts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px; }
         .quick-btn { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; padding: 5px 12px; border-radius: 6px; border: 1px solid #1a1a1a; color: #444; cursor: pointer; background: transparent; transition: all 0.15s; }
-        .quick-btn:hover { color: #e8ff47; border-color: rgba(232,255,71,0.3); }
+        .quick-btn:hover { color: #e8553a; border-color: rgba(232,85,58,0.3); }
         .lang-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
         .lang-select { flex: 1; background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 12px 14px; color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; }
         .text-area { width: 100%; background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 16px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.6; outline: none; resize: none; min-height: 120px; transition: border-color 0.2s; margin-bottom: 12px; }
         .text-area:focus { border-color: #333; }
         .text-area::placeholder { color: #2a2a2a; }
         .text-area.output { color: #aaa; cursor: default; background: #0d0d0d; }
-        .translate-btn { width: 100%; background: #e8ff47; color: #080808; border: none; border-radius: 10px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.2s; margin-bottom: 14px; }
+        .translate-btn { width: 100%; background: #e8553a; color: #080808; border: none; border-radius: 10px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.2s; margin-bottom: 14px; }
         .translate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .copy-btn { background: none; border: 1px solid #1a1a1a; color: #444; border-radius: 6px; padding: 5px 12px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
-        .copy-btn:hover { color: #e8ff47; border-color: rgba(232,255,71,0.3); }
+        .copy-btn:hover { color: #e8553a; border-color: rgba(232,85,58,0.3); }
         .error-msg { font-family: 'DM Mono', monospace; font-size: 10px; color: #ff6b6b; letter-spacing: 0.1em; margin-top: 8px; }
         .other-tools { margin-top: 28px; }
         .other-tools-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.4em; color: #222; text-transform: uppercase; margin-bottom: 16px; }
@@ -114,7 +114,7 @@ export default function ToolsPage() {
         .tool-link-icon { font-size: 20px; }
         .tool-link-desc { font-size: 11px; color: #444; line-height: 1.5; font-weight: 300; }
         .tool-link-arrow { font-family: 'DM Mono', monospace; font-size: 9px; color: #2a2a2a; transition: color 0.2s; }
-        .tool-link:hover .tool-link-arrow { color: #e8ff47; }
+        .tool-link:hover .tool-link-arrow { color: #e8553a; }
         @media (max-width: 600px) { .tools-page { padding: 64px 16px 140px; } .currency-row { flex-wrap: wrap; } }
       `}</style>
 

@@ -13,7 +13,7 @@ interface CommunityPost { id: string; user_id: string; community_slug: string; c
 const POST_TYPES = [
   { key: 'tip', label: '💡 Tip', color: '#47d4ff' },
   { key: 'question', label: '🙋 Question', color: '#ff8c47' },
-  { key: 'moment', label: '📸 Moment', color: '#e8ff47' },
+  { key: 'moment', label: '📸 Moment', color: '#e8553a' },
   { key: 'warning', label: '⚠️ Heads Up', color: '#ff4747' },
   { key: 'recommend', label: '⭐ Recommend', color: '#47ff8c' },
 ];
@@ -123,16 +123,16 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
           <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6, fontWeight: 300, maxWidth: 400 }}>{community.description}</p>
           <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#333', letterSpacing: '0.2em', textTransform: 'uppercase' }}>{members.length} members</span>
-            {hereNow.length > 0 && <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8ff47', letterSpacing: '0.2em', textTransform: 'uppercase' }}>● {hereNow.length} here now</span>}
+            {hereNow.length > 0 && <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8553a', letterSpacing: '0.2em', textTransform: 'uppercase' }}>● {hereNow.length} here now</span>}
           </div>
         </div>
         {userId && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <button onClick={toggleJoin} style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 500, background: isMember ? 'transparent' : '#e8ff47', color: isMember ? '#444' : '#080808', border: isMember ? '1px solid #222' : '1px solid #e8ff47' }}>
+            <button onClick={toggleJoin} style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 500, background: isMember ? 'transparent' : '#e8553a', color: isMember ? '#444' : '#080808', border: isMember ? '1px solid #222' : '1px solid #e8553a' }}>
               {isMember ? 'Joined ✓' : '+ Join'}
             </button>
             {isMember && (
-              <button onClick={toggleHereNow} style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', background: isHereNow ? 'rgba(232,255,71,0.1)' : 'transparent', color: isHereNow ? '#e8ff47' : '#333', border: isHereNow ? '1px solid rgba(232,255,71,0.3)' : '1px solid #1a1a1a' }}>
+              <button onClick={toggleHereNow} style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', background: isHereNow ? 'rgba(232,85,58,0.1)' : 'transparent', color: isHereNow ? '#e8553a' : '#333', border: isHereNow ? '1px solid rgba(232,85,58,0.3)' : '1px solid #1a1a1a' }}>
                 {isHereNow ? '● Here now' : "○ I'm here"}
               </button>
             )}
@@ -141,12 +141,12 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
       </div>
 
       {hereNow.length > 0 && (
-        <div style={{ background: 'rgba(232,255,71,0.04)', border: '1px solid rgba(232,255,71,0.1)', borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.3em', color: '#e8ff47', textTransform: 'uppercase', marginBottom: 10 }}>● Currently in {community.name}</div>
+        <div style={{ background: 'rgba(232,85,58,0.04)', border: '1px solid rgba(232,85,58,0.1)', borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.3em', color: '#e8553a', textTransform: 'uppercase', marginBottom: 10 }}>● Currently in {community.name}</div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {hereNow.map(m => (
               <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid rgba(232,255,71,0.4)', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
+                <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid rgba(232,85,58,0.4)', overflow: 'hidden', background: '#111', flexShrink: 0 }}>
                   {m.profile?.avatar_url ? <img src={m.profile.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#444' }}>✈</div>}
                 </div>
                 <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#888' }}>@{m.profile?.username}</span>
@@ -192,7 +192,7 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
           <input placeholder="📷 Image URL (optional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} style={{ width: '100%', background: '#111', border: '1px solid #1a1a1a', borderRadius: 8, padding: '8px 12px', color: '#fff', fontFamily: 'DM Mono, monospace', fontSize: 10, outline: 'none', marginBottom: 12 }} />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <button onClick={() => setComposing(false)} style={{ background: 'none', border: '1px solid #1a1a1a', color: '#444', borderRadius: 8, padding: '8px 16px', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>
-            <button onClick={submitPost} disabled={!content.trim() || posting} style={{ background: '#e8ff47', color: '#080808', border: 'none', borderRadius: 8, padding: '8px 20px', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500, opacity: !content.trim() || posting ? 0.4 : 1 }}>
+            <button onClick={submitPost} disabled={!content.trim() || posting} style={{ background: '#e8553a', color: '#080808', border: 'none', borderRadius: 8, padding: '8px 20px', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500, opacity: !content.trim() || posting ? 0.4 : 1 }}>
               {posting ? 'Posting...' : 'Post →'}
             </button>
           </div>
@@ -209,7 +209,7 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
             const t = typeInfo(post.type);
             const liked = !!userId && post.likes.includes(userId);
             return (
-              <div key={post.id} style={{ background: '#0d0d0d', border: `1px solid ${post.is_pinned ? 'rgba(232,255,71,0.15)' : '#1a1a1a'}`, borderRadius: 14, overflow: 'hidden' }}>
+              <div key={post.id} style={{ background: '#0d0d0d', border: `1px solid ${post.is_pinned ? 'rgba(232,85,58,0.15)' : '#1a1a1a'}`, borderRadius: 14, overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '14px 16px 0', gap: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #222', background: '#111', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#444' }}>
@@ -221,14 +221,14 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {post.is_pinned && <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, color: '#e8ff47', letterSpacing: '0.2em', textTransform: 'uppercase' }}>📌 Pinned</span>}
+                    {post.is_pinned && <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, color: '#e8553a', letterSpacing: '0.2em', textTransform: 'uppercase' }}>📌 Pinned</span>}
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: `${t.color}15`, color: t.color, border: `1px solid ${t.color}30`, letterSpacing: '0.1em' }}>{t.label}</span>
                   </div>
                 </div>
                 <div style={{ padding: '10px 16px', fontSize: 14, color: '#999', lineHeight: 1.7, fontWeight: 300, whiteSpace: 'pre-wrap' }}>{post.content}</div>
                 {post.image_url && <img src={post.image_url} style={{ width: '100%', maxHeight: 400, objectFit: 'cover', display: 'block' }} alt="" />}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '10px 16px 12px', borderTop: '1px solid #111' }}>
-                  <button onClick={() => toggleLike(post)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', borderRadius: 6, fontFamily: 'DM Mono, monospace', fontSize: 10, color: liked ? '#e8ff47' : '#333' }}>
+                  <button onClick={() => toggleLike(post)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px', borderRadius: 6, fontFamily: 'DM Mono, monospace', fontSize: 10, color: liked ? '#e8553a' : '#333' }}>
                     {liked ? '♥' : '♡'} {post.likes.length > 0 ? post.likes.length : ''}
                   </button>
                 </div>
@@ -296,7 +296,7 @@ export default function CommunityPage() {
         .comm-page { min-height: 100vh; padding: 72px 24px 140px; max-width: 900px; margin: 0 auto; }
         .comm-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; color: #333; text-transform: uppercase; margin-bottom: 12px; }
         .comm-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 7vw, 80px); line-height: 0.9; color: #fff; margin-bottom: 10px; }
-        .comm-title em { color: #e8ff47; font-style: normal; }
+        .comm-title em { color: #e8553a; font-style: normal; }
         .comm-subtitle { font-size: 14px; color: #333; font-weight: 300; line-height: 1.7; max-width: 520px; margin-bottom: 28px; }
         .search-box { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
         .search-input { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; }
@@ -306,15 +306,15 @@ export default function CommunityPage() {
         .comm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 36px; }
         .comm-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 14px; padding: 20px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; display: flex; flex-direction: column; gap: 10px; }
         .comm-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
-        .comm-card.is-joined { border-color: rgba(232,255,71,0.15); }
+        .comm-card.is-joined { border-color: rgba(232,85,58,0.15); }
         .comm-flag { font-size: 32px; line-height: 1; }
         .comm-name { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: #fff; line-height: 1; }
         .comm-desc { font-size: 12px; color: #444; line-height: 1.6; font-weight: 300; }
         .comm-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
         .comm-members { font-family: 'DM Mono', monospace; font-size: 9px; color: #2a2a2a; letter-spacing: 0.1em; }
         .comm-arrow { font-family: 'DM Mono', monospace; font-size: 9px; color: #2a2a2a; transition: color 0.2s; }
-        .comm-card:hover .comm-arrow { color: #e8ff47; }
-        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8ff47; animation: pulse 1.2s ease-in-out infinite; }
+        .comm-card:hover .comm-arrow { color: #e8553a; }
+        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
         @media (max-width: 600px) { .comm-page { padding: 64px 16px 140px; } .comm-grid { grid-template-columns: 1fr 1fr; } }
       `}</style>
@@ -339,7 +339,7 @@ export default function CommunityPage() {
                 <div key={c.slug} className="comm-card is-joined" onClick={() => setActiveRoom(c)}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <span className="comm-flag">{c.emoji}</span>
-                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.15em', color: '#e8ff47', background: 'rgba(232,255,71,0.08)', border: '1px solid rgba(232,255,71,0.2)', padding: '3px 8px', borderRadius: 4, textTransform: 'uppercase' }}>Joined</span>
+                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.15em', color: '#e8553a', background: 'rgba(232,85,58,0.08)', border: '1px solid rgba(232,85,58,0.2)', padding: '3px 8px', borderRadius: 4, textTransform: 'uppercase' }}>Joined</span>
                   </div>
                   <div className="comm-name">{c.name}</div>
                   <div className="comm-desc">{c.description}</div>

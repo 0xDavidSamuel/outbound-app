@@ -135,10 +135,10 @@ function DevMarker({ avatar, isCurrentUser }: { avatar: string | null; isCurrent
         width: 40,
         height: 40,
         borderRadius: '50%',
-        border: `2.5px solid ${isCurrentUser ? '#e8ff47' : '#fff'}`,
+        border: `2.5px solid ${isCurrentUser ? '#e8553a' : '#fff'}`,
         overflow: 'hidden',
         boxShadow: isCurrentUser
-          ? '0 0 0 3px rgba(232,255,71,0.25), 0 4px 16px rgba(0,0,0,0.5)'
+          ? '0 0 0 3px rgba(232,85,58,0.25), 0 4px 16px rgba(0,0,0,0.5)'
           : '0 4px 16px rgba(0,0,0,0.5)',
         background: '#1e1e1e',
       }}
@@ -163,11 +163,11 @@ function EventMarker({ type }: { type: 'local' | 'external' }) {
         width: isExternal ? 32 : 36,
         height: isExternal ? 32 : 36,
         borderRadius: isExternal ? '50%' : 10,
-        background: isExternal ? '#080808' : '#e8ff47',
-        border: isExternal ? '2px solid #e8ff47' : 'none',
+        background: isExternal ? '#080808' : '#e8553a',
+        border: isExternal ? '2px solid #e8553a' : 'none',
         boxShadow: isExternal
-          ? '0 0 0 2px rgba(232,255,71,0.15), 0 4px 16px rgba(0,0,0,0.5)'
-          : '0 0 0 3px rgba(232,255,71,0.2), 0 4px 16px rgba(0,0,0,0.5)',
+          ? '0 0 0 2px rgba(232,85,58,0.15), 0 4px 16px rgba(0,0,0,0.5)'
+          : '0 0 0 3px rgba(232,85,58,0.2), 0 4px 16px rgba(0,0,0,0.5)',
         fontSize: isExternal ? 14 : 16,
       }}
     >
@@ -197,7 +197,7 @@ function ExternalEventPopup({ event, onClose }: { event: ExternalEvent; onClose:
           fontFamily: 'DM Mono, monospace',
           fontSize: 8,
           letterSpacing: '0.3em',
-          color: '#e8ff47',
+          color: '#e8553a',
           textTransform: 'uppercase',
         }}>
           {formatDate(event.startDate)}
@@ -245,7 +245,7 @@ function ExternalEventPopup({ event, onClose }: { event: ExternalEvent; onClose:
           fontFamily: 'DM Mono, monospace',
           fontSize: 9,
           letterSpacing: '0.15em',
-          color: '#e8ff47',
+          color: '#e8553a',
           textTransform: 'uppercase',
           textDecoration: 'none',
         }}

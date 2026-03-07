@@ -26,11 +26,11 @@ export default function HomePage() {
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; overflow: hidden; background: #080808; }
-        :root { --bg: #080808; --accent: #e8ff47; --text: #fff; --dim: #444; --border: #111; }
+        :root { --bg: #080808; --accent: #e8553a; --text: #fff; --dim: #444; --border: #111; }
         .grain { position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.35; }
         .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 52px; display: flex; align-items: center; padding: 0 48px; z-index: 100; }
         .wordmark { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.35em; color: var(--accent); text-transform: uppercase; }
-        .beta-pill { position: fixed; bottom: 28px; left: 48px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.2em; color: var(--accent); background: rgba(232,255,71,0.07); border: 1px solid rgba(232,255,71,0.18); padding: 5px 10px; border-radius: 4px; z-index: 100; text-transform: uppercase; }
+        .beta-pill { position: fixed; bottom: 28px; left: 48px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.2em; color: var(--accent); background: rgba(232,85,58,0.07); border: 1px solid rgba(232,85,58,0.18); padding: 5px 10px; border-radius: 4px; z-index: 100; text-transform: uppercase; }
         .scroll-area { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .scroll-area::-webkit-scrollbar { display: none; }
         .section { height: 100vh; scroll-snap-align: start; display: flex; align-items: center; padding: 0 48px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
@@ -59,7 +59,7 @@ export default function HomePage() {
         .stat-label { font-family: 'DM Mono', monospace; font-size: 9px; color: #333; letter-spacing: 0.2em; text-transform: uppercase; }
         .use-cases { display: flex; flex-direction: column; gap: 16px; max-width: 520px; }
         .use-case { display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid #111; border-radius: 10px; }
-        .use-case-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: rgba(232,255,71,0.2); line-height: 1; flex-shrink: 0; width: 32px; }
+        .use-case-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: rgba(232,85,58,0.2); line-height: 1; flex-shrink: 0; width: 32px; }
         .use-case-text { font-size: 13px; color: #555; line-height: 1.7; font-weight: 300; }
         .use-case-text strong { color: #888; font-weight: 500; }
         .final-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 11vw, 150px); line-height: 0.88; color: var(--text); margin-bottom: 12px; }
@@ -139,7 +139,7 @@ export default function HomePage() {
           <span className="section-label">The Movement</span>
           <div style={{ maxWidth: 560 }}>
             <p className="eyebrow">35M+ digital nomads. Zero platform built for them.</p>
-            <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(52px, 8vw, 106px)', lineHeight: 0.9, color: '#fff', marginBottom: 40 }}>The world is your<br /><em style={{ color: '#e8ff47', fontStyle: 'normal' }}>office.</em></h2>
+            <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(52px, 8vw, 106px)', lineHeight: 0.9, color: '#fff', marginBottom: 40 }}>The world is your<br /><em style={{ color: '#e8553a', fontStyle: 'normal' }}>office.</em></h2>
             <div className="stats-row">
               <div className="stat"><span className="stat-num">35M+</span><span className="stat-label">Digital nomads</span></div>
               <div className="stat"><span className="stat-num">195</span><span className="stat-label">Countries</span></div>
@@ -154,7 +154,7 @@ export default function HomePage() {
           <span className="ghost" style={{ fontSize: '24vw', top: '-3vw', right: '-2vw' }}>HERE</span>
           <span className="section-label">Real Scenarios</span>
           <div>
-            <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(48px, 6vw, 88px)', lineHeight: 0.9, color: '#fff', marginBottom: 32 }}>Built for moments<br /><em style={{ color: '#e8ff47', fontStyle: 'normal' }}>like these.</em></h2>
+            <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(48px, 6vw, 88px)', lineHeight: 0.9, color: '#fff', marginBottom: 32 }}>Built for moments<br /><em style={{ color: '#e8553a', fontStyle: 'normal' }}>like these.</em></h2>
             <div className="use-cases">
               {[
                 { num: '01', text: "You just landed in <strong>Tokyo</strong> for the first time. Open Outbound — see 4 people in Shinjuku right now. One's been here 6 months. You message them. Dinner sorted." },

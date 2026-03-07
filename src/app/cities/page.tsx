@@ -30,7 +30,7 @@ const FILTERS = [
 ];
 
 function scoreColor(score: number) {
-  if (score >= 7) return '#e8ff47';
+  if (score >= 7) return '#e8553a';
   if (score >= 5) return '#888';
   return '#444';
 }
@@ -49,7 +49,7 @@ function RateModal({ city, onClose, onSave }: { city: City; onClose: () => void;
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
             <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.4em', color: '#333', textTransform: 'uppercase', marginBottom: 4 }}>Rate your experience</div>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 14, color: '#e8ff47' }}>{city.name}</div>
+            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 14, color: '#e8553a' }}>{city.name}</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', fontSize: 20 }}>×</button>
         </div>
@@ -59,7 +59,7 @@ function RateModal({ city, onClose, onSave }: { city: City; onClose: () => void;
             <div style={{ display: 'flex', gap: 4 }}>
               {[1,2,3,4,5].map(star => (
                 <button key={star} onClick={() => setRatings(r => ({ ...r, [key]: star }))}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: star <= (ratings as any)[key] ? '#e8ff47' : '#222', padding: 2, lineHeight: 1 }}>★</button>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: star <= (ratings as any)[key] ? '#e8553a' : '#222', padding: 2, lineHeight: 1 }}>★</button>
               ))}
             </div>
           </div>
@@ -67,7 +67,7 @@ function RateModal({ city, onClose, onSave }: { city: City; onClose: () => void;
         <textarea placeholder="Leave a note (optional)..." value={note} onChange={e => setNote(e.target.value)}
           style={{ width: '100%', background: '#111', border: '1px solid #1a1a1a', borderRadius: 8, padding: '10px 14px', color: '#fff', fontFamily: 'DM Sans, sans-serif', fontSize: 12, resize: 'none', height: 72, outline: 'none', marginBottom: 16 }} />
         <button onClick={() => onSave(city.slug, { ...ratings, note, city_name: city.name })}
-          style={{ width: '100%', background: '#e8ff47', color: '#080808', border: 'none', borderRadius: 8, padding: 12, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ width: '100%', background: '#e8553a', color: '#080808', border: 'none', borderRadius: 8, padding: 12, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 500 }}>
           Save Rating
         </button>
       </div>
@@ -143,12 +143,12 @@ export default function CitiesPage() {
         .cities-header { margin-bottom: 32px; }
         .cities-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; color: #333; text-transform: uppercase; margin-bottom: 12px; }
         .cities-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 7vw, 80px); line-height: 0.9; color: #fff; margin-bottom: 24px; }
-        .cities-title em { color: #e8ff47; font-style: normal; }
+        .cities-title em { color: #e8553a; font-style: normal; }
         .controls { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
         .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
         .filter-pill { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; border-radius: 20px; border: 1px solid #1a1a1a; color: #444; cursor: pointer; transition: all 0.2s; background: transparent; }
         .filter-pill:hover { color: #888; border-color: #333; }
-        .filter-pill.active { background: #e8ff47; color: #080808; border-color: #e8ff47; }
+        .filter-pill.active { background: #e8553a; color: #080808; border-color: #e8553a; }
         .controls-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .search-input { flex: 1; min-width: 160px; background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 9px 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: #fff; outline: none; transition: border-color 0.2s; }
         .search-input:focus { border-color: #333; }
@@ -161,9 +161,9 @@ export default function CitiesPage() {
         .city-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
         .city-image { position: relative; height: 150px; overflow: hidden; background: #111; }
         .city-image img { width: 100%; height: 100%; object-fit: cover; }
-        .city-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: rgba(232,255,71,0.06); letter-spacing: 0.1em; background: linear-gradient(135deg, #0e0e0e, #111); }
+        .city-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: rgba(232,85,58,0.06); letter-spacing: 0.1em; background: linear-gradient(135deg, #0e0e0e, #111); }
         .city-rank { position: absolute; top: 10px; left: 10px; width: 24px; height: 24px; background: rgba(8,8,8,0.8); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; color: #888; }
-        .city-overall { position: absolute; bottom: 10px; left: 10px; background: rgba(8,8,8,0.85); border-radius: 6px; padding: 4px 8px; display: flex; align-items: center; gap: 5px; font-family: 'DM Mono', monospace; font-size: 10px; color: #e8ff47; }
+        .city-overall { position: absolute; bottom: 10px; left: 10px; background: rgba(8,8,8,0.85); border-radius: 6px; padding: 4px 8px; display: flex; align-items: center; gap: 5px; font-family: 'DM Mono', monospace; font-size: 10px; color: #e8553a; }
         .city-body { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
         .city-name { font-size: 15px; font-weight: 500; color: #fff; }
         .city-scores { display: flex; flex-direction: column; gap: 5px; }
@@ -173,9 +173,9 @@ export default function CitiesPage() {
         .city-score-bar { flex: 1; height: 2px; background: #111; margin: 0 10px; border-radius: 2px; overflow: hidden; }
         .city-score-fill { height: 100%; border-radius: 2px; }
         .city-actions { display: flex; gap: 8px; margin-top: auto; }
-        .btn-rate { flex: 1; background: rgba(232,255,71,0.06); border: 1px solid rgba(232,255,71,0.15); color: #e8ff47; border-radius: 8px; padding: 8px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
-        .btn-rate:hover { background: rgba(232,255,71,0.12); }
-        .btn-rate.rated { background: rgba(232,255,71,0.12); }
+        .btn-rate { flex: 1; background: rgba(232,85,58,0.06); border: 1px solid rgba(232,85,58,0.15); color: #e8553a; border-radius: 8px; padding: 8px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+        .btn-rate:hover { background: rgba(232,85,58,0.12); }
+        .btn-rate.rated { background: rgba(232,85,58,0.12); }
         .cities-list { display: flex; flex-direction: column; gap: 8px; }
         .city-list-item { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 16px; transition: border-color 0.2s; cursor: pointer; }
         .city-list-item:hover { border-color: #2a2a2a; }
@@ -193,12 +193,12 @@ export default function CitiesPage() {
         .visa-name { font-size: 12px; font-weight: 500; color: #fff; }
         .visa-desc { font-size: 11px; color: #444; line-height: 1.5; font-weight: 300; }
         .visa-arrow { font-family: 'DM Mono', monospace; font-size: 9px; color: #2a2a2a; margin-top: auto; transition: color 0.2s; }
-        .visa-card:hover .visa-arrow { color: #e8ff47; }
+        .visa-card:hover .visa-arrow { color: #e8553a; }
         .section-divider { display: flex; align-items: center; gap: 16px; margin: 32px 0 20px; }
         .section-divider-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.4em; color: #222; text-transform: uppercase; white-space: nowrap; }
         .section-divider-line { flex: 1; height: 1px; background: #111; }
         .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #333; letter-spacing: 0.2em; }
-        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8ff47; animation: pulse 1.2s ease-in-out infinite; }
+        .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
         @media (max-width: 600px) { .cities-page { padding: 64px 16px 140px; } .cities-grid { grid-template-columns: 1fr 1fr; } .city-list-scores { display: none; } }
       `}</style>
