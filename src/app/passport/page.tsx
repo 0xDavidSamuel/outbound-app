@@ -111,13 +111,15 @@ export default function PassportPage() {
   const [token, setToken]                 = useState('');
   const [userId, setUserId]               = useState('');
 
-  // Location editing
-  const [editingLoc, setEditingLoc]   = useState(false);
-  const [locCity, setLocCity]         = useState('');
-  const [locCountry, setLocCountry]   = useState('');
-  const [locating, setLocating]       = useState(false);
-  const [locMsg, setLocMsg]           = useState('');
-  const [savingLoc, setSavingLoc]     = useState(false);
+  // Location — own state vars, not nested on profile
+  const [editingLoc, setEditingLoc]     = useState(false);
+  const [cityInput, setCityInput]       = useState('');
+  const [locLat, setLocLat]             = useState<number | null>(null);
+  const [locLng, setLocLng]             = useState<number | null>(null);
+  const [locating, setLocating]         = useState(false);
+  const [locMsg, setLocMsg]             = useState('');
+  const [locResolved, setLocResolved]   = useState<string | null>(null);
+  const [savingLoc, setSavingLoc]       = useState(false);
 
   const router = useRouter();
 
@@ -149,8 +151,9 @@ export default function PassportPage() {
 
       setProfile(data);
       setBioText(data?.bio || '');
-      setLocCity(data?.city || '');
-      setLocCountry(data?.country || '');
+      setCityInput(data?.city || '');
+      if (data?.lat) setLocLat(data.lat);
+      if (data?.lng) setLocLng(data.lng);
       setLoading(false);
     })();
   }, []);
@@ -202,20 +205,25 @@ export default function PassportPage() {
     if (!navigator.geolocation) { setLocMsg('Geolocation not supported'); return; }
     setLocating(true);
     setLocMsg('Detecting...');
+    setLocResolved(null);
     navigator.geolocation.getCurrentPosition(
       async pos => {
         const { latitude, longitude } = pos.coords;
+        setLocLat(latitude);
+        setLocLng(longitude);
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+            { headers: { 'Accept-Language': 'en' } }
           );
           const data = await res.json();
-          setLocCity(data.address?.city || data.address?.town || data.address?.village || '');
-          setLocCountry(data.address?.country || '');
-          setLocMsg('📍 Location detected');
-          // store coords on profile state for immediate use
-          setProfile((p: any) => ({ ...p, lat: latitude, lng: longitude }));
-        } catch { setLocMsg('📍 Coordinates captured — enter city manually'); }
+          const city    = data.address?.city || data.address?.town || data.address?.village || '';
+          const country = data.address?.country || '';
+          const combined = [city, country].filter(Boolean).join(', ');
+          setCityInput(combined);
+          setLocResolved(combined);
+          setLocMsg('');
+        } catch { setLocMsg('Coordinates captured — confirm city below'); }
         setLocating(false);
       },
       () => { setLocMsg('Denied — enter manually'); setLocating(false); }
@@ -224,13 +232,46 @@ export default function PassportPage() {
 
   const saveLocation = async () => {
     setSavingLoc(true);
-    const patch: any = { city: locCity, country: locCountry };
-    if (profile?.lat) patch.lat = profile.lat;
-    if (profile?.lng) patch.lng = profile.lng;
-    await dbPatch(patch);
-    setProfile({ ...profile, city: locCity, country: locCountry });
-    setEditingLoc(false);
-    setLocMsg('');
+    let patch: any = {};
+
+    if (locLat !== null && locLng !== null && locResolved) {
+      // Came from geolocation — coords already accurate
+      patch = { city: locResolved, lat: locLat, lng: locLng };
+    } else if (cityInput.trim()) {
+      // Manual input — forward geocode
+      try {
+        setLocMsg('Geocoding...');
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&addressdetails=1&limit=1`,
+          { headers: { 'Accept-Language': 'en' } }
+        );
+        const results = await res.json();
+        if (results?.[0]) {
+          const r = results[0];
+          const stdCity    = r.address?.city || r.address?.town || r.address?.village || cityInput;
+          const stdCountry = r.address?.country || '';
+          const combined   = [stdCity, stdCountry].filter(Boolean).join(', ');
+          patch = { city: combined, lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
+          setLocResolved(combined);
+          setCityInput(combined);
+        } else {
+          patch = { city: cityInput };
+          setLocMsg('Could not resolve — saved text only, no map pin');
+        }
+      } catch {
+        patch = { city: cityInput };
+      }
+    }
+
+    const res = await dbPatch(patch);
+    if (res.ok) {
+      setProfile((p: any) => ({ ...p, ...patch }));
+      setEditingLoc(false);
+      setLocMsg('');
+    } else {
+      setLocMsg('Save failed — check console');
+      console.error('[passport] location patch failed', res.status, await res.text());
+    }
     setSavingLoc(false);
   };
 
@@ -511,15 +552,25 @@ export default function PassportPage() {
                   <div className="pp-loc-box">
                     <div className="pp-loc-display">
                       <div className={`pp-loc-text${!profile?.city ? ' muted' : ''}`}>
-                        {profile?.city ? `📍 ${profile.city}${profile.country ? `, ${profile.country}` : ''}` : 'No location set'}
+                        {profile?.city ? `📍 ${profile.city}` : 'No location set'}
                       </div>
-                      <button className="pp-loc-edit-btn" onClick={() => { setEditingLoc(!editingLoc); setLocMsg(''); }}>
+                      <button className="pp-loc-edit-btn" onClick={() => {
+                        setEditingLoc(!editingLoc);
+                        setLocMsg('');
+                        setLocResolved(null);
+                        // Reset inputs to current saved values when opening
+                        if (!editingLoc) {
+                          setCityInput(profile?.city || '');
+                          setLocLat(profile?.lat || null);
+                          setLocLng(profile?.lng || null);
+                        }
+                      }}>
                         {editingLoc ? 'cancel' : 'edit'}
                       </button>
                     </div>
                     {profile?.lat && profile?.lng && !editingLoc && (
                       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#2a2a2a', marginTop: 6, letterSpacing: '0.1em' }}>
-                        {profile.lat.toFixed(4)}, {profile.lng.toFixed(4)}
+                        {Number(profile.lat).toFixed(4)}, {Number(profile.lng).toFixed(4)}
                       </div>
                     )}
                     {editingLoc && (
@@ -527,13 +578,18 @@ export default function PassportPage() {
                         <button className="pp-loc-detect" onClick={detectLocation} disabled={locating}>
                           {locating ? 'Detecting...' : '◎ Use my current location'}
                         </button>
-                        <div className="pp-loc-msg">{locMsg}</div>
-                        <div className="pp-loc-row">
-                          <input className="pp-loc-input" placeholder="City" value={locCity} onChange={e => setLocCity(e.target.value)} />
-                          <input className="pp-loc-input" placeholder="Country" value={locCountry} onChange={e => setLocCountry(e.target.value)} />
-                        </div>
+                        <input className="pp-loc-input" style={{ width: '100%', marginBottom: 8 }}
+                          placeholder="City, Country (e.g. Tokyo, Japan)"
+                          value={cityInput}
+                          onChange={e => { setCityInput(e.target.value); setLocResolved(null); setLocLat(null); setLocLng(null); }} />
+                        {locMsg && <div className="pp-loc-msg">{locMsg}</div>}
+                        {locResolved && (
+                          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8ff47', background: 'rgba(232,255,71,0.05)', border: '1px solid rgba(232,255,71,0.15)', borderRadius: 3, padding: '6px 10px', marginBottom: 8 }}>
+                            ✓ Resolved: {locResolved}
+                          </div>
+                        )}
                         <div className="pp-row-btns">
-                          <button className="pp-btn-y" onClick={saveLocation} disabled={savingLoc}>
+                          <button className="pp-btn-y" onClick={saveLocation} disabled={savingLoc || !cityInput}>
                             {savingLoc ? 'Saving...' : 'Save Location'}
                           </button>
                         </div>
@@ -551,7 +607,7 @@ export default function PassportPage() {
                       <tr><td>Member Since</td><td>{fmtDate(profile?.created_at)}</td></tr>
                       <tr><td>Classification</td><td>{TRAVELER_TYPES.find(t=>t.id===profile?.traveler_type)?.label||'—'}</td></tr>
                       <tr><td>Current Vibe</td><td>{VIBES.find(v=>v.id===profile?.current_vibe)?.label||'—'}</td></tr>
-                      <tr><td>Base City</td><td>{profile?.city||'—'}</td></tr>
+                      <tr><td>Base Location</td><td>{profile?.city||'—'}</td></tr>
                     </tbody>
                   </table>
                 </div>
