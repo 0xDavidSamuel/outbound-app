@@ -36,7 +36,7 @@ export default function HomePage() {
         .section { height: 100vh; scroll-snap-align: start; display: flex; align-items: center; padding: 0 48px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
         .ghost { position: absolute; font-family: 'Bebas Neue', sans-serif; color: rgba(255,255,255,0.025); pointer-events: none; user-select: none; white-space: nowrap; line-height: 1; }
         .eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5em; color: var(--dim); text-transform: uppercase; margin-bottom: 24px; }
-        .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 10vw, 148px); line-height: 0.88; color: var(--text); margin-bottom: 32px; }
+        .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 10vw, 148px); line-height: 0.88; color: var(--text); margin-bottom: 32px; text-transform: none;}
         .hero-title em { color: var(--accent); font-style: normal; }
         .hero-sub { font-size: 14px; color: var(--dim); line-height: 1.9; max-width: 360px; margin-bottom: 48px; font-weight: 300; }
         .cta-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -62,7 +62,7 @@ export default function HomePage() {
         .use-case-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: rgba(232,85,58,0.2); line-height: 1; flex-shrink: 0; width: 32px; }
         .use-case-text { font-size: 13px; color: #555; line-height: 1.7; font-weight: 300; }
         .use-case-text strong { color: #888; font-weight: 500; }
-        .final-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 11vw, 150px); line-height: 0.88; color: var(--text); margin-bottom: 12px; }
+        .final-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 11vw, 150px); line-height: 0.88; color: var(--text); margin-bottom: 12px; text-transform: none;}
         .final-sub { font-size: 13px; color: #2a2a2a; font-style: italic; font-weight: 300; margin-bottom: 40px; }
         .side-tagline { position: absolute; right: 48px; bottom: 48px; text-align: right; }
         .side-tagline span { display: block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.25em; color: #1e1e1e; text-transform: uppercase; }
