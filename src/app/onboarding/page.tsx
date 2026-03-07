@@ -52,7 +52,7 @@ export default function OnboardingPage() {
     setTimeout(() => setStep(3), 3400);
 
     const load = async () => {
-      const session = getSession();
+      const session = await getSession();
       if (!session) return; // steps still animate, form just won't save
 
       setAccessToken(session.access_token);

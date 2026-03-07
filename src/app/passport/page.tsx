@@ -103,6 +103,7 @@ function mrz(name: string, id: string) {
 export default function PassportPage() {
   const [profile, setProfile]             = useState<any>(null);
   const [loading, setLoading]             = useState(true);
+  const [loadError, setLoadError]         = useState('');
   const [editingBio, setEditingBio]       = useState(false);
   const [bioText, setBioText]             = useState('');
   const [addingCountry, setAddingCountry] = useState(false);
@@ -114,26 +115,40 @@ export default function PassportPage() {
 
   useEffect(() => {
     (async () => {
-      const session = getSession();
-      if (!session) { router.push('/'); return; }
+      console.log('[passport] loading...');
+      const session = await getSession();
+      console.log('[passport] session:', session ? `uid=${session.user.id}` : 'null');
+
+      if (!session) {
+        console.log('[passport] no session → home');
+        router.push('/');
+        return;
+      }
 
       setToken(session.access_token);
       setUserId(session.user.id);
 
-      // Retry up to 3 times — profile may not be written yet if coming straight from onboarding
+      // Retry up to 4 times — profile row may not be committed yet after onboarding
       let data = null;
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
+        console.log(`[passport] fetch attempt ${i + 1}...`);
         const res = await fetch(
           `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=*`,
           { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` } }
         );
         const rows = await res.json();
+        console.log('[passport] rows:', rows);
         data = rows?.[0] || null;
         if (data) break;
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 1000));
       }
 
-      if (!data) { router.push('/'); return; }
+      if (!data) {
+        console.log('[passport] no profile found after retries');
+        setLoadError(`No profile found for user ${session.user.id}. Try logging in again.`);
+        setLoading(false);
+        return;
+      }
 
       setProfile(data);
       setBioText(data?.bio || '');
@@ -186,7 +201,16 @@ export default function PassportPage() {
 
   if (loading) return (
     <div style={{ height:'100vh', background:'#080808', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
+      <div style={{ width:32, height:32, border:'2px solid #1a1a1a', borderTop:'2px solid #e8ff47', borderRadius:'50%', animation:'spin 0.8s linear infinite' }}/>
       <p style={{ fontFamily:'DM Mono, monospace', fontSize:11, color:'#333', letterSpacing:'0.2em', textTransform:'uppercase' }}>loading passport...</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+
+  if (loadError) return (
+    <div style={{ height:'100vh', background:'#080808', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16, padding:32 }}>
+      <p style={{ fontFamily:'DM Mono, monospace', fontSize:11, color:'#ff5050', letterSpacing:'0.1em', textAlign:'center' }}>{loadError}</p>
+      <button onClick={() => router.push('/')} style={{ fontFamily:'DM Mono, monospace', fontSize:10, color:'#e8ff47', background:'transparent', border:'1px solid rgba(232,255,71,0.3)', padding:'8px 20px', borderRadius:3, cursor:'pointer', letterSpacing:'0.15em', textTransform:'uppercase' }}>← Back Home</button>
     </div>
   );
 

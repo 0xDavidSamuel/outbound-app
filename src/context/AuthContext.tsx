@@ -32,14 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [booting, setBooting] = useState(true);
 
   useEffect(() => {
-    // On load, check for existing session and load profile
-    const session = getSession();
+  (async () => {
+    const session = await getSession();
     if (session) {
-      loadProfile(session.access_token, session.user.id).finally(() => setBooting(false));
-    } else {
-      setBooting(false);
+      await loadProfile(session.access_token, session.user.id);
     }
-  }, []);
+    setBooting(false);
+  })();
+}, []);
 
   const loadProfile = async (token: string, uid: string) => {
     try {
