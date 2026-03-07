@@ -110,40 +110,38 @@ export default function PassportPage() {
   const [page, setPage]                   = useState(0);
   const [token, setToken]                 = useState('');
   const [userId, setUserId]               = useState('');
+
+  // Location editing
+  const [editingLoc, setEditingLoc]   = useState(false);
+  const [locCity, setLocCity]         = useState('');
+  const [locCountry, setLocCountry]   = useState('');
+  const [locating, setLocating]       = useState(false);
+  const [locMsg, setLocMsg]           = useState('');
+  const [savingLoc, setSavingLoc]     = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
     (async () => {
-      console.log('[passport] loading...');
       const session = await getSession();
-      console.log('[passport] session:', session ? `uid=${session.user.id}` : 'null');
-
-      if (!session) {
-        console.log('[passport] no session → home');
-        router.push('/');
-        return;
-      }
+      if (!session) { router.push('/'); return; }
 
       setToken(session.access_token);
       setUserId(session.user.id);
 
-      // Retry up to 4 times — profile row may not be committed yet after onboarding
       let data = null;
       for (let i = 0; i < 4; i++) {
-        console.log(`[passport] fetch attempt ${i + 1}...`);
         const res = await fetch(
           `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=*`,
           { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` } }
         );
         const rows = await res.json();
-        console.log('[passport] rows:', rows);
         data = rows?.[0] || null;
         if (data) break;
         await new Promise(r => setTimeout(r, 1000));
       }
 
       if (!data) {
-        console.log('[passport] no profile found after retries');
         setLoadError(`No profile found for user ${session.user.id}. Try logging in again.`);
         setLoading(false);
         return;
@@ -151,6 +149,8 @@ export default function PassportPage() {
 
       setProfile(data);
       setBioText(data?.bio || '');
+      setLocCity(data?.city || '');
+      setLocCountry(data?.country || '');
       setLoading(false);
     })();
   }, []);
@@ -196,6 +196,42 @@ export default function PassportPage() {
     const updated = (profile.countries_visited || []).filter((c: string) => c !== code);
     await dbPatch({ countries_visited: updated });
     setProfile({ ...profile, countries_visited: updated });
+  };
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) { setLocMsg('Geolocation not supported'); return; }
+    setLocating(true);
+    setLocMsg('Detecting...');
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await res.json();
+          setLocCity(data.address?.city || data.address?.town || data.address?.village || '');
+          setLocCountry(data.address?.country || '');
+          setLocMsg('📍 Location detected');
+          // store coords on profile state for immediate use
+          setProfile((p: any) => ({ ...p, lat: latitude, lng: longitude }));
+        } catch { setLocMsg('📍 Coordinates captured — enter city manually'); }
+        setLocating(false);
+      },
+      () => { setLocMsg('Denied — enter manually'); setLocating(false); }
+    );
+  };
+
+  const saveLocation = async () => {
+    setSavingLoc(true);
+    const patch: any = { city: locCity, country: locCountry };
+    if (profile?.lat) patch.lat = profile.lat;
+    if (profile?.lng) patch.lng = profile.lng;
+    await dbPatch(patch);
+    setProfile({ ...profile, city: locCity, country: locCountry });
+    setEditingLoc(false);
+    setLocMsg('');
+    setSavingLoc(false);
   };
 
   if (loading) return (
@@ -260,6 +296,7 @@ export default function PassportPage() {
         .pp-row-btns { display: flex; gap: 6px; margin-top: 6px; }
         .pp-btn-y { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; background: #e8ff47; color: #080808; border: none; border-radius: 2px; padding: 5px 12px; cursor: pointer; transition: opacity 0.2s; }
         .pp-btn-y:hover { opacity: 0.8; }
+        .pp-btn-y:disabled { opacity: 0.4; cursor: not-allowed; }
         .pp-btn-ghost { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; background: transparent; color: #444; border: 1px solid #1e1e1e; border-radius: 2px; padding: 5px 12px; cursor: pointer; transition: border-color 0.2s; }
         .pp-btn-ghost:hover { border-color: #333; }
         .pp-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 16px; }
@@ -309,6 +346,21 @@ export default function PassportPage() {
         .pp-stats-tbl td { padding: 9px 0; border-bottom: 1px solid #111; font-family: 'DM Mono', monospace; }
         .pp-stats-tbl td:first-child { font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: #333; width: 55%; }
         .pp-stats-tbl td:last-child { font-size: 13px; color: #ccc; text-align: right; }
+        .pp-loc-box { background: #111; border: 1px solid #1a1a1a; border-radius: 6px; padding: 14px 16px; margin-bottom: 20px; }
+        .pp-loc-display { display: flex; align-items: center; justify-content: space-between; }
+        .pp-loc-text { font-family: 'DM Mono', monospace; font-size: 13px; color: #ccc; }
+        .pp-loc-text.muted { color: #2a2a2a; font-style: italic; }
+        .pp-loc-edit-btn { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: #333; background: transparent; border: 1px solid #1e1e1e; border-radius: 2px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+        .pp-loc-edit-btn:hover { color: #e8ff47; border-color: rgba(232,255,71,0.3); }
+        .pp-loc-form { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .pp-loc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .pp-loc-input { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 3px; padding: 9px 12px; font-family: 'DM Mono', monospace; font-size: 12px; color: #ccc; outline: none; width: 100%; transition: border-color 0.2s; }
+        .pp-loc-input:focus { border-color: #2a2a2a; }
+        .pp-loc-input::placeholder { color: #2a2a2a; }
+        .pp-loc-detect { width: 100%; background: transparent; border: 1px dashed #1a1a1a; border-radius: 3px; padding: 8px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: #333; cursor: pointer; transition: all 0.2s; }
+        .pp-loc-detect:hover { border-color: rgba(232,255,71,0.2); color: #888; }
+        .pp-loc-detect:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pp-loc-msg { font-family: 'DM Mono', monospace; font-size: 9px; color: #e8ff47; letter-spacing: 0.1em; min-height: 14px; }
         .pp-pagenum { position: absolute; bottom: 12px; right: 22px; font-family: 'DM Mono', monospace; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #1a1a1a; }
         .pp-torn { height: 16px; position: relative; z-index: 4; margin-top: -2px; }
         .pp-torn svg { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; }
@@ -320,7 +372,6 @@ export default function PassportPage() {
         }
       `}</style>
 
-      
       <div className="pp-wrap">
         <div className="pp-book">
           <div className="pp-tabs">
@@ -453,6 +504,44 @@ export default function PassportPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Location */}
+                <div style={{ marginBottom: 24 }}>
+                  <div className="pp-section-head">Base Location</div>
+                  <div className="pp-loc-box">
+                    <div className="pp-loc-display">
+                      <div className={`pp-loc-text${!profile?.city ? ' muted' : ''}`}>
+                        {profile?.city ? `📍 ${profile.city}${profile.country ? `, ${profile.country}` : ''}` : 'No location set'}
+                      </div>
+                      <button className="pp-loc-edit-btn" onClick={() => { setEditingLoc(!editingLoc); setLocMsg(''); }}>
+                        {editingLoc ? 'cancel' : 'edit'}
+                      </button>
+                    </div>
+                    {profile?.lat && profile?.lng && !editingLoc && (
+                      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#2a2a2a', marginTop: 6, letterSpacing: '0.1em' }}>
+                        {profile.lat.toFixed(4)}, {profile.lng.toFixed(4)}
+                      </div>
+                    )}
+                    {editingLoc && (
+                      <div className="pp-loc-form">
+                        <button className="pp-loc-detect" onClick={detectLocation} disabled={locating}>
+                          {locating ? 'Detecting...' : '◎ Use my current location'}
+                        </button>
+                        <div className="pp-loc-msg">{locMsg}</div>
+                        <div className="pp-loc-row">
+                          <input className="pp-loc-input" placeholder="City" value={locCity} onChange={e => setLocCity(e.target.value)} />
+                          <input className="pp-loc-input" placeholder="Country" value={locCountry} onChange={e => setLocCountry(e.target.value)} />
+                        </div>
+                        <div className="pp-row-btns">
+                          <button className="pp-btn-y" onClick={saveLocation} disabled={savingLoc}>
+                            {savingLoc ? 'Saving...' : 'Save Location'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <div className="pp-section-head">Travel Record</div>
                   <table className="pp-stats-tbl">
