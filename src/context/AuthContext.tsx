@@ -32,14 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [booting, setBooting] = useState(true);
 
   useEffect(() => {
-  (async () => {
-    const session = await getSession();
-    if (session) {
-      await loadProfile(session.access_token, session.user.id);
-    }
-    setBooting(false);
-  })();
-}, []);
+    (async () => {
+      const session = await getSession();
+      if (session) {
+        await loadProfile(session.access_token, session.user.id);
+      }
+      setBooting(false);
+    })();
+  }, []);
 
   const loadProfile = async (token: string, uid: string) => {
     try {
@@ -62,27 +62,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async () => {
-  setLoading(true);
-  try {
-    const { createWeb3Auth } = await import('@/lib/web3auth');
-    const web3auth = await createWeb3Auth();
-    await web3auth.connect();
-  } catch (err: any) {
-    const msg = err?.message || '';
-    if (msg.includes('redirect') || msg.includes('user closed') || msg.includes('Modal is already open')) {
-      return;
+    setLoading(true);
+
+    // Safety timeout — reset loading after 30s if nothing happens
+    const timeout = setTimeout(() => setLoading(false), 30000);
+
+    try {
+      const { createWeb3Auth } = await import('@/lib/web3auth');
+      const web3auth = await createWeb3Auth();
+
+      // If stale connected instance from previous session, disconnect first
+      if (web3auth.connected) {
+        try { await web3auth.logout(); } catch {}
+      }
+
+      await web3auth.connect();
+      // On success Web3Auth redirects — loading stays true intentionally
+    } catch (err: any) {
+      clearTimeout(timeout);
+      const msg = err?.message || '';
+      if (
+        msg.includes('redirect') ||
+        msg.includes('user closed') ||
+        msg.includes('Modal is already open') ||
+        msg.includes('User closed the modal')
+      ) {
+        setLoading(false);
+        return;
+      }
+      console.error('[login error]', msg);
+      setLoading(false);
     }
-    console.error('[login error]', msg);
-    setLoading(false);
-  }
-};
+  };
 
   const logout = () => {
     clearSession();
     setUser(null);
-    // Also disconnect Web3Auth if connected
+    // Disconnect Web3Auth cleanly so next login starts fresh
     import('@/lib/web3auth').then(({ createWeb3Auth }) => {
-      createWeb3Auth().then(w => { if (w.connected) w.logout(); }).catch(() => {});
+      createWeb3Auth()
+        .then(w => { if (w.connected) return w.logout(); })
+        .catch(() => {});
     });
     window.location.href = '/';
   };
