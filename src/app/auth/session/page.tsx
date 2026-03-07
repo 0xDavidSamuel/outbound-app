@@ -1,95 +1,65 @@
-// src/lib/session.ts
-const SESSION_KEY = 'outbound-auth-session';
+// src/app/auth/session/page.tsx
+'use client';
 
-export interface OutboundSession {
-  access_token: string;
-  refresh_token: string;
-  expires_at: number;
-  user: {
-    id: string;
-    email: string;
-    user_metadata: Record<string, any>;
-  };
-}
+import { useEffect, useState } from 'react';
+import { saveSession } from '@/lib/session';
 
-function storage(): Storage | null {
-  if (typeof window === 'undefined') return null;
-  return window.localStorage;
-}
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export function saveSession(token: string, refreshToken: string): OutboundSession | null {
-  const store = storage();
-  if (!store) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const session: OutboundSession = {
-      access_token: token,
-      refresh_token: refreshToken,
-      expires_at: payload.exp || Math.floor(Date.now() / 1000) + 3600,
-      user: {
-        id: payload.sub,
-        email: payload.email || '',
-        user_metadata: payload.user_metadata || {},
-      },
-    };
-    store.setItem(SESSION_KEY, JSON.stringify(session));
-    return session;
-  } catch {
-    return null;
-  }
-}
+export default function SessionPage() {
+  const [status, setStatus] = useState('Setting up your session...');
 
-export async function getSession(): Promise<OutboundSession | null> {
-  const store = storage();
-  if (!store) return null;
-  try {
-    const stored = store.getItem(SESSION_KEY);
-    if (!stored) return null;
-    const session: OutboundSession = JSON.parse(stored);
+  useEffect(() => {
+    (async () => {
+      const hash   = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const at     = params.get('access_token');
+      const rt     = params.get('refresh_token');
 
-    const now = Math.floor(Date.now() / 1000);
-
-    // Only refresh if actually expired (not just near expiry)
-    if (session.expires_at < now) {
-      console.log('[session] token expired, attempting refresh...');
-      return refreshSession(session.refresh_token);
-    }
-
-    return session;
-  } catch {
-    return null;
-  }
-}
-
-async function refreshSession(refreshToken: string): Promise<OutboundSession | null> {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        },
-        body: JSON.stringify({ refresh_token: refreshToken }),
+      if (!at || !rt) {
+        setStatus('No tokens found — returning home...');
+        setTimeout(() => window.location.href = '/', 2000);
+        return;
       }
-    );
-    if (!res.ok) {
-      console.error('[session] refresh failed:', res.status);
-      clearSession();
-      return null;
-    }
-    const data = await res.json();
-    console.log('[session] refreshed successfully');
-    return saveSession(data.access_token, data.refresh_token);
-  } catch (e) {
-    console.error('[session] refresh error:', e);
-    clearSession();
-    return null;
-  }
-}
 
-export function clearSession(): void {
-  const store = storage();
-  if (store) store.removeItem(SESSION_KEY);
+      const session = saveSession(at, rt);
+      if (!session) {
+        setStatus('Invalid token — returning home...');
+        setTimeout(() => window.location.href = '/', 2000);
+        return;
+      }
+
+      window.history.replaceState(null, '', '/auth/session');
+      setStatus('Welcome to Outbound!');
+
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=username`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${at}` } }
+      );
+      const rows = await res.json();
+      const isNewUser = !rows?.[0]?.username;
+
+      window.location.href = isNewUser ? '/onboarding' : '/passport';
+    })();
+  }, []);
+
+  return (
+    <div style={{
+      height: '100vh', background: '#080808',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: 20,
+    }}>
+      <div style={{
+        width: 36, height: 36,
+        border: '2px solid #1a1a1a', borderTop: '2px solid #e8ff47',
+        borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+      }} />
+      <p style={{
+        fontFamily: 'DM Mono, monospace', fontSize: 11, color: '#333',
+        letterSpacing: '0.2em', textTransform: 'uppercase',
+      }}>{status}</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 }
