@@ -88,6 +88,7 @@ export default function HomePage() {
       .section { padding: 40px 24px; }
       .features-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 32px; }
       .btn-enter { display: none; }
+      .left-footer { display: none; }
       .mobile-cta { display: block; padding: 24px 24px 48px; }
       .mobile-cta .btn-enter { display: flex; width: 100%; justify-content: center; }
     }
