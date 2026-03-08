@@ -31,7 +31,7 @@ export default function HomePage() {
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; }
+        html, body { background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; }
 
         .grain {
           position: fixed; inset: 0;
@@ -39,7 +39,14 @@ export default function HomePage() {
           pointer-events: none; z-index: 999; opacity: 0.3;
         }
 
-        /* DESKTOP: split layout */
+        .ghost-bg {
+          position: fixed; right: -2vw; bottom: -4vw;
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 28vw; color: rgba(232,85,58,0.03);
+          pointer-events: none; user-select: none; line-height: 1; z-index: 0;
+        }
+
+        /* ── DESKTOP: split ── */
         .layout {
           min-height: 100vh;
           display: grid;
@@ -47,12 +54,11 @@ export default function HomePage() {
         }
 
         .left {
-          display: flex; flex-direction: column;
-          justify-content: space-between;
+          position: sticky; top: 0;
+          min-height: 100vh;
+          display: flex; flex-direction: column; justify-content: space-between;
           padding: 40px 48px;
           border-right: 1px solid #111;
-          min-height: 100vh;
-          position: sticky; top: 0;
         }
 
         .wordmark {
@@ -82,7 +88,6 @@ export default function HomePage() {
           font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
           border-radius: 3px; cursor: pointer;
           transition: opacity 0.2s, transform 0.15s; font-weight: 500;
-          align-self: flex-start;
         }
         .btn-enter:hover { opacity: 0.85; transform: translateY(-1px); }
         .btn-enter:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
@@ -90,6 +95,7 @@ export default function HomePage() {
         .left-footer {
           display: flex; align-items: center; justify-content: space-between;
         }
+
         .beta-pill {
           font-family: 'DM Mono', monospace; font-size: 8px;
           letter-spacing: 0.2em; color: #e8553a;
@@ -97,6 +103,7 @@ export default function HomePage() {
           border: 1px solid rgba(232,85,58,0.18);
           padding: 5px 10px; border-radius: 3px; text-transform: uppercase;
         }
+
         .shop-link {
           font-family: 'DM Mono', monospace; font-size: 8px;
           letter-spacing: 0.2em; color: #333; text-transform: uppercase;
@@ -105,8 +112,7 @@ export default function HomePage() {
         .shop-link:hover { color: #666; }
 
         .right {
-          display: flex; flex-direction: column;
-          justify-content: center;
+          display: flex; flex-direction: column; justify-content: center;
           padding: 40px 48px;
         }
 
@@ -140,54 +146,45 @@ export default function HomePage() {
           font-size: 13px; color: #666; line-height: 1.75; font-weight: 300;
         }
 
-        .ghost-bg {
-          position: fixed; right: -2vw; bottom: -4vw;
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 28vw; color: rgba(232,85,58,0.03);
-          pointer-events: none; user-select: none; line-height: 1; z-index: 0;
-        }
-
-        /* MOBILE: single column, scenarios above CTA */
+        /* ── MOBILE: single column ── */
         @media (max-width: 768px) {
-          html, body { overflow-y: auto; }
           .layout {
             grid-template-columns: 1fr;
-            grid-template-rows: auto auto;
+            min-height: 100vh;
           }
+
           .left {
-            position: static;
-            min-height: unset;
+            position: static; min-height: unset;
             border-right: none;
-            border-bottom: none;
-            padding: 32px 24px 0;
+            padding: 40px 24px 0;
           }
-          /* Hide desktop CTA and footer in mobile — shown at bottom instead */
+
+          /* hide desktop CTA + footer on mobile */
           .left .btn-enter { display: none; }
           .left-footer { display: none; }
+
           .right {
-            padding: 24px 24px 0;
-            order: 2;
+            padding: 32px 24px 0;
           }
-          .mobile-cta {
-            padding: 24px 24px 40px;
+
+          .mobile-bottom {
+            padding: 28px 24px 48px;
             display: flex; flex-direction: column; gap: 16px;
           }
-          .mobile-cta .btn-enter {
-            width: 100%; justify-content: center;
-            display: flex;
+
+          .mobile-bottom .btn-enter {
+            width: 100%; justify-content: center; display: flex;
           }
+
           .mobile-footer {
             display: flex; align-items: center; justify-content: space-between;
           }
         }
 
-        /* Hide mobile-only elements on desktop */
-        .mobile-cta { display: none; }
-        @media (min-width: 769px) {
-          .mobile-cta { display: none !important; }
-        }
+        /* hide mobile-bottom on desktop */
+        .mobile-bottom { display: none; }
         @media (max-width: 768px) {
-          .mobile-cta { display: flex; flex-direction: column; gap: 16px; }
+          .mobile-bottom { display: flex; flex-direction: column; }
         }
       `}</style>
 
@@ -195,10 +192,9 @@ export default function HomePage() {
       <div className="ghost-bg">OB</div>
 
       <div className="layout">
-        {/* LEFT — sticky on desktop */}
+        {/* LEFT */}
         <div className="left">
           <div className="wordmark">outbound</div>
-
           <div className="left-body">
             <h1 className="headline">
               Never travel<br />alone<br /><em>again.</em>
@@ -206,12 +202,10 @@ export default function HomePage() {
             <p className="tagline">
               A real-time network for people who live and work across borders. Find your people, wherever you land.
             </p>
-            {/* Desktop CTA */}
             <button className="btn-enter" onClick={handleJoin} disabled={loading}>
               {loading ? 'Connecting...' : '→ Join Outbound'}
             </button>
           </div>
-
           <div className="left-footer">
             <span className="beta-pill">Beta · Open</span>
             <a className="shop-link" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">Shop →</a>
@@ -232,8 +226,8 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Mobile-only CTA below scenarios */}
-        <div className="mobile-cta">
+        {/* Mobile bottom — CTA after scenarios */}
+        <div className="mobile-bottom">
           <button className="btn-enter" onClick={handleJoin} disabled={loading}>
             {loading ? 'Connecting...' : '→ Join Outbound'}
           </button>
