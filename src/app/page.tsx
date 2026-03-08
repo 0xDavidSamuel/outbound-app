@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getSession } from '@/lib/session';
 
@@ -10,14 +10,26 @@ const SCENARIOS = [
   { num: '04', city: 'Anywhere', text: "6 weeks alone on the road. Outbound shows 3 nomads in your city this week. You're not alone anymore." },
 ];
 
+const FEATURES = [
+  { icon: '📍', name: "Who's nearby",       desc: 'See other travelers in your city right now. Meet people, share space, stop being alone.' },
+  { icon: '🏠', name: 'Places to stay',     desc: 'Nomad-friendly rooms, apartments, colivings — listed by people who actually live there.' },
+  { icon: '🧠', name: 'Ground intelligence', desc: 'Real-time tips on WiFi, safety, neighbourhoods, hidden spots. No outdated blogs.' },
+  { icon: '🌍', name: 'Destination rooms',  desc: 'Join Japan, Colombia, Portugal — connect with locals, expats, and fellow travelers.' },
+  { icon: '⚡', name: 'Events & meetups',   desc: "Find what's happening near you — co-working days, dinners, experiences." },
+  { icon: '💼', name: 'Work while you roam', desc: 'Bounties, grants, remote contracts. Opportunities that move with you.' },
+];
+
 export default function HomePage() {
   const { login, loading } = useAuth();
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
     (async () => {
       const session = await getSession();
-      if (session) window.location.href = '/passport';
+      if (session) { window.location.href = '/passport'; return; }
     })();
+    const t = setTimeout(() => setRevealed(true), 80);
+    return () => clearTimeout(t);
   }, []);
 
   const handleJoin = async () => {
@@ -31,7 +43,7 @@ export default function HomePage() {
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; }
+        html, body { background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
 
         .grain {
           position: fixed; inset: 0;
@@ -39,46 +51,54 @@ export default function HomePage() {
           pointer-events: none; z-index: 999; opacity: 0.3;
         }
 
+        /* ── HERO ── */
+        .hero {
+          height: 100vh; display: flex; flex-direction: column;
+          justify-content: space-between; padding: 40px 48px;
+          position: relative; overflow: hidden;
+        }
+
         .ghost-bg {
-          position: fixed; right: -2vw; bottom: -4vw;
+          position: absolute; right: -2vw; bottom: -4vw;
           font-family: 'Bebas Neue', sans-serif;
-          font-size: 28vw; color: rgba(232,85,58,0.03);
+          font-size: 32vw; color: rgba(232,85,58,0.03);
           pointer-events: none; user-select: none; line-height: 1; z-index: 0;
         }
 
-        /* ── DESKTOP: split ── */
-        .layout {
-          min-height: 100vh;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+        /* Reveal animations */
+        .reveal {
+          opacity: 0; transform: translateY(18px);
+          transition: opacity 0.7s ease, transform 0.7s ease;
         }
-
-        .left {
-          position: sticky; top: 0;
-          min-height: 100vh;
-          display: flex; flex-direction: column; justify-content: space-between;
-          padding: 40px 48px;
-          border-right: 1px solid #111;
-        }
+        .revealed .reveal { opacity: 1; transform: translateY(0); }
+        .revealed .d1 { transition-delay: 0s; }
+        .revealed .d2 { transition-delay: 0.12s; }
+        .revealed .d3 { transition-delay: 0.24s; }
+        .revealed .d4 { transition-delay: 0.36s; }
+        .revealed .d5 { transition-delay: 0.48s; }
 
         .wordmark {
           font-family: 'DM Mono', monospace; font-size: 10px;
           letter-spacing: 0.4em; color: #e8553a; text-transform: uppercase;
+          position: relative; z-index: 1;
         }
 
-        .left-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .hero-body {
+          position: relative; z-index: 1;
+          display: flex; flex-direction: column;
+        }
 
         .headline {
           font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(56px, 6.5vw, 100px);
-          line-height: 0.9; color: #fff;
+          font-size: clamp(72px, 12vw, 160px);
+          line-height: 0.88; color: #fff;
           margin-bottom: 24px; text-transform: none;
         }
         .headline em { color: #e8553a; font-style: normal; }
 
         .tagline {
           font-size: 14px; color: #666; line-height: 1.8;
-          max-width: 320px; font-weight: 300; margin-bottom: 16px;
+          max-width: 360px; font-weight: 300; margin-bottom: 36px;
         }
 
         .btn-enter {
@@ -88,12 +108,15 @@ export default function HomePage() {
           font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
           border-radius: 3px; cursor: pointer;
           transition: opacity 0.2s, transform 0.15s; font-weight: 500;
+          align-self: flex-start;
         }
         .btn-enter:hover { opacity: 0.85; transform: translateY(-1px); }
         .btn-enter:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-enter.full { align-self: auto; width: 100%; justify-content: center; }
 
-        .left-footer {
+        .hero-footer {
           display: flex; align-items: center; justify-content: space-between;
+          position: relative; z-index: 1;
         }
 
         .beta-pill {
@@ -111,17 +134,19 @@ export default function HomePage() {
         }
         .shop-link:hover { color: #666; }
 
-        .right {
-          display: flex; flex-direction: column; justify-content: center;
-          padding: 40px 48px;
+        /* ── SECTIONS ── */
+        .section {
+          padding: 80px 48px;
+          border-top: 1px solid #111;
         }
 
-        .scenarios-label {
+        .section-label {
           font-family: 'DM Mono', monospace; font-size: 8px;
           letter-spacing: 0.4em; color: #666; text-transform: uppercase;
-          margin-bottom: 32px;
+          margin-bottom: 40px;
         }
 
+        /* Scenarios */
         .scenario {
           display: flex; gap: 20px; align-items: flex-start;
           padding: 20px 0; border-bottom: 1px solid #0f0f0f;
@@ -146,96 +171,107 @@ export default function HomePage() {
           font-size: 13px; color: #666; line-height: 1.75; font-weight: 300;
         }
 
-        /* ── MOBILE: single column ── */
-        @media (max-width: 768px) {
-          .layout {
-            grid-template-columns: 1fr;
-            min-height: 100vh;
-          }
-
-          .left {
-            position: static; min-height: unset;
-            border-right: none;
-            padding: 40px 24px 0;
-          }
-
-          /* hide desktop CTA + footer on mobile */
-          .left .btn-enter { display: none; }
-          .left-footer { display: none; }
-
-          .right {
-            padding: 32px 24px 0;
-          }
-
-          .mobile-bottom {
-            padding: 28px 24px 48px;
-            display: flex; flex-direction: column; gap: 16px;
-          }
-
-          .mobile-bottom .btn-enter {
-            width: 100%; justify-content: center; display: flex;
-          }
-
-          .mobile-footer {
-            display: flex; align-items: center; justify-content: space-between;
-          }
+        /* Features grid */
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 48px 60px;
         }
 
-        /* hide mobile-bottom on desktop */
-        .mobile-bottom { display: none; }
+        .feature { display: flex; flex-direction: column; gap: 8px; }
+        .feature-icon { font-size: 22px; margin-bottom: 4px; }
+        .feature-name { font-size: 15px; font-weight: 500; color: #fff; }
+        .feature-desc { font-size: 13px; color: #555; line-height: 1.7; font-weight: 300; }
+
+        /* Final CTA */
+        .final-cta {
+          padding: 80px 48px;
+          border-top: 1px solid #111;
+          display: flex; flex-direction: column; gap: 24px;
+        }
+
+        .final-headline {
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(52px, 8vw, 110px);
+          line-height: 0.9; color: #fff; text-transform: none;
+        }
+        .final-headline em { color: #e8553a; font-style: normal; }
+
+        .final-sub {
+          font-size: 13px; color: #444; font-weight: 300; font-style: italic;
+        }
+
+        /* Mobile */
         @media (max-width: 768px) {
-          .mobile-bottom { display: flex; flex-direction: column; }
+          .hero { padding: 32px 24px; }
+          .section { padding: 60px 24px; }
+          .final-cta { padding: 60px 24px; }
+          .features-grid { grid-template-columns: 1fr; gap: 36px; }
+          .btn-enter { align-self: auto; width: 100%; justify-content: center; }
         }
       `}</style>
 
       <div className="grain" />
-      <div className="ghost-bg">OB</div>
 
-      <div className="layout">
-        {/* LEFT */}
-        <div className="left">
-          <div className="wordmark">outbound</div>
-          <div className="left-body">
-            <h1 className="headline">
-              Never travel<br />alone<br /><em>again.</em>
-            </h1>
-            <p className="tagline">
-              A real-time network for people who live and work across borders. Find your people, wherever you land.
-            </p>
-            <button className="btn-enter" onClick={handleJoin} disabled={loading}>
-              {loading ? 'Connecting...' : '→ Join Outbound'}
-            </button>
-          </div>
-          <div className="left-footer">
-            <span className="beta-pill">Beta · Open</span>
-            <a className="shop-link" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">Shop →</a>
-          </div>
+      {/* ── HERO ── */}
+      <div className={`hero ${revealed ? 'revealed' : ''}`}>
+        <div className="ghost-bg">OB</div>
+
+        <div className="wordmark reveal d1">outbound</div>
+
+        <div className="hero-body">
+          <h1 className="headline reveal d2">
+            Never travel<br />alone<br /><em>again.</em>
+          </h1>
+          <p className="tagline reveal d3">
+            A real-time network for people who live and work across borders. Find your people, wherever you land.
+          </p>
+          <button className="btn-enter reveal d4" onClick={handleJoin} disabled={loading}>
+            {loading ? 'Connecting...' : '→ Join Outbound'}
+          </button>
         </div>
 
-        {/* RIGHT — scenarios */}
-        <div className="right">
-          <div className="scenarios-label">Everything you need on the road</div>
-          {SCENARIOS.map(s => (
-            <div className="scenario" key={s.num}>
-              <span className="scenario-num">{s.num}</span>
-              <div className="scenario-body">
-                <div className="scenario-city">{s.city}</div>
-                <div className="scenario-text">{s.text}</div>
-              </div>
+        <div className="hero-footer reveal d5">
+          <span className="beta-pill">Beta · Open</span>
+          <a className="shop-link" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">Shop →</a>
+        </div>
+      </div>
+
+      {/* ── SCENARIOS ── */}
+      <div className="section">
+        <div className="section-label">Everything you need on the road</div>
+        {SCENARIOS.map(s => (
+          <div className="scenario" key={s.num}>
+            <span className="scenario-num">{s.num}</span>
+            <div className="scenario-body">
+              <div className="scenario-city">{s.city}</div>
+              <div className="scenario-text">{s.text}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── FEATURES ── */}
+      <div className="section">
+        <div className="section-label">The platform</div>
+        <div className="features-grid">
+          {FEATURES.map(f => (
+            <div className="feature" key={f.name}>
+              <div className="feature-icon">{f.icon}</div>
+              <div className="feature-name">{f.name}</div>
+              <div className="feature-desc">{f.desc}</div>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Mobile bottom — CTA after scenarios */}
-        <div className="mobile-bottom">
-          <button className="btn-enter" onClick={handleJoin} disabled={loading}>
-            {loading ? 'Connecting...' : '→ Join Outbound'}
-          </button>
-          <div className="mobile-footer">
-            <span className="beta-pill">Beta · Open</span>
-            <a className="shop-link" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">Shop →</a>
-          </div>
-        </div>
+      {/* ── FINAL CTA ── */}
+      <div className="final-cta">
+        <h2 className="final-headline">Join<br /><em>Outbound.</em></h2>
+        <p className="final-sub">Currently in beta. Free to join. Travelers worldwide.</p>
+        <button className="btn-enter" onClick={handleJoin} disabled={loading}>
+          {loading ? 'Connecting...' : '→ Join Outbound'}
+        </button>
       </div>
     </>
   );
