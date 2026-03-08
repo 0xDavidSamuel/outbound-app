@@ -91,10 +91,12 @@ export default function HomePage() {
       .left-footer { display: none; }
       .mobile-cta { display: block; padding: 24px 24px 48px; }
       .mobile-cta .btn-enter { display: flex; width: 100%; justify-content: center; }
+      .mobile-footer { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; }
     }
   `;
 
   return (
+    
     <div>
       <style suppressHydrationWarning>{CSS}</style>
       <div className="grain" />
