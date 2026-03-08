@@ -425,25 +425,31 @@ export default function FeedPage() {
         )}
       </div>
       {profileBubble && (
-        <div className="profile-overlay" onClick={() => setProfileBubble(null)} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center",background:"rgba(0,0,0,0.6)",backdropFilter:"blur(4px)"}}>
-          <div className="profile-bubble" onClick={e => e.stopPropagation()}>
-            <div className="bubble-handle" />
+        <>
+          <div className="profile-overlay" onClick={() => setProfileBubble(null)} />
+          <div className="profile-bubble" style={{top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+              <span style={{fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.3em',color:'#e8553a',textTransform:'uppercase'}}>Profile</span>
+              <button className="bubble-close" onClick={() => setProfileBubble(null)}>×</button>
+            </div>
             {bubbleLoading ? (
               <div style={{color:'#333',fontFamily:'DM Mono, monospace',fontSize:10}}>Loading...</div>
             ) : (
-              <>
+              <div style={{display:'flex',gap:12,alignItems:'center'}}>
                 <div className="bubble-avatar">
                   {profileBubble.avatar_url ? <img src={profileBubble.avatar_url} alt="" /> : '✈️'}
                 </div>
-                <div className="bubble-username">@{profileBubble.username || 'traveler'}</div>
-                {profileBubble.city
-                  ? <div className="bubble-city">📍 {profileBubble.city}</div>
-                  : <div className="bubble-no-city">No location set</div>
-                }
-              </>
+                <div>
+                  <div className="bubble-username">@{profileBubble.username || 'traveler'}</div>
+                  {profileBubble.city
+                    ? <div className="bubble-city">📍 {profileBubble.city}</div>
+                    : <div className="bubble-no-city">No location set</div>
+                  }
+                </div>
+              </div>
             )}
           </div>
-        </div>
+        </>
       )}
     </>
   );
