@@ -86,7 +86,7 @@ export default function HomePage() {
       .left { height: auto; padding: 40px 24px 32px; border-right: none; border-bottom: 1px solid #111; }
       .right { height: auto; overflow: visible; }
       .section { padding: 40px 24px; }
-      .features-grid { grid-template-columns: 1fr; gap: 32px; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 32px; }
       .btn-enter { display: none; }
       .mobile-cta { display: block; padding: 24px 24px 48px; }
       .mobile-cta .btn-enter { display: flex; width: 100%; justify-content: center; }
@@ -150,6 +150,10 @@ export default function HomePage() {
         <button className="btn-enter" onClick={handleJoin} disabled={loading}>
           {loading ? 'Connecting...' : '→ Join Outbound'}
         </button>
+        <div className="mobile-footer">
+          <span className="beta-pill">Beta · Open</span>
+          <a className="shop-link" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">Shop →</a>
+        </div>
       </div>
     </div>
   );
