@@ -78,7 +78,7 @@ export default function HomePage() {
 
         .tagline {
           font-size: 14px; color: #666; line-height: 1.8;
-          max-width: 320px; font-weight: 300; margin-bottom: 8px;
+          max-width: 320px; font-weight: 300; margin-bottom: 16px;
         }
 
         .btn-enter {
@@ -118,8 +118,8 @@ export default function HomePage() {
 
         .scenarios-label {
           font-family: 'DM Mono', monospace; font-size: 8px;
-          letter-spacing: 0.4em; color: #2a2a2a; text-transform: uppercase;
-          margin-bottom: 4px;
+          letter-spacing: 0.4em; color: #666; text-transform: uppercase;
+          margin-bottom: 32px;
         }
 
         .scenario {
@@ -130,7 +130,7 @@ export default function HomePage() {
 
         .scenario-num {
           font-family: 'Bebas Neue', sans-serif; font-size: 28px;
-          color: rgba(232,85,58,0.2); line-height: 1;
+          color: rgba(232,85,58,0.6); line-height: 1;
           flex-shrink: 0; width: 28px; padding-top: 2px;
         }
 
