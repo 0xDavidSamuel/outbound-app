@@ -31,7 +31,7 @@ export default function HomePage() {
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; overflow: hidden; background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; }
+        html, body { height: 100%; background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; }
 
         .grain {
           position: fixed; inset: 0;
@@ -39,19 +39,20 @@ export default function HomePage() {
           pointer-events: none; z-index: 999; opacity: 0.3;
         }
 
+        /* DESKTOP: split layout */
         .layout {
-          position: fixed; inset: 0;
+          min-height: 100vh;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          grid-template-rows: 1fr;
         }
 
-        /* LEFT */
         .left {
           display: flex; flex-direction: column;
           justify-content: space-between;
           padding: 40px 48px;
           border-right: 1px solid #111;
+          min-height: 100vh;
+          position: sticky; top: 0;
         }
 
         .wordmark {
@@ -103,12 +104,10 @@ export default function HomePage() {
         }
         .shop-link:hover { color: #666; }
 
-        /* RIGHT */
         .right {
           display: flex; flex-direction: column;
           justify-content: center;
           padding: 40px 48px;
-          gap: 0;
         }
 
         .scenarios-label {
@@ -141,20 +140,54 @@ export default function HomePage() {
           font-size: 13px; color: #666; line-height: 1.75; font-weight: 300;
         }
 
-        /* Ghost */
         .ghost-bg {
           position: fixed; right: -2vw; bottom: -4vw;
           font-family: 'Bebas Neue', sans-serif;
           font-size: 28vw; color: rgba(232,85,58,0.03);
-          pointer-events: none; user-select: none; line-height: 1;
-          z-index: 0;
+          pointer-events: none; user-select: none; line-height: 1; z-index: 0;
         }
 
+        /* MOBILE: single column, scenarios above CTA */
         @media (max-width: 768px) {
-          .layout { grid-template-columns: 1fr; grid-template-rows: auto auto; overflow-y: auto; }
-          .left { border-right: none; border-bottom: 1px solid #111; padding: 32px 24px; }
-          .right { padding: 32px 24px; }
-          html, body { overflow: auto; }
+          html, body { overflow-y: auto; }
+          .layout {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto;
+          }
+          .left {
+            position: static;
+            min-height: unset;
+            border-right: none;
+            border-bottom: none;
+            padding: 32px 24px 0;
+          }
+          /* Hide desktop CTA and footer in mobile — shown at bottom instead */
+          .left .btn-enter { display: none; }
+          .left-footer { display: none; }
+          .right {
+            padding: 24px 24px 0;
+            order: 2;
+          }
+          .mobile-cta {
+            padding: 24px 24px 40px;
+            display: flex; flex-direction: column; gap: 16px;
+          }
+          .mobile-cta .btn-enter {
+            width: 100%; justify-content: center;
+            display: flex;
+          }
+          .mobile-footer {
+            display: flex; align-items: center; justify-content: space-between;
+          }
+        }
+
+        /* Hide mobile-only elements on desktop */
+        .mobile-cta { display: none; }
+        @media (min-width: 769px) {
+          .mobile-cta { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          .mobile-cta { display: flex; flex-direction: column; gap: 16px; }
         }
       `}</style>
 
@@ -162,6 +195,7 @@ export default function HomePage() {
       <div className="ghost-bg">OB</div>
 
       <div className="layout">
+        {/* LEFT — sticky on desktop */}
         <div className="left">
           <div className="wordmark">outbound</div>
 
@@ -172,6 +206,7 @@ export default function HomePage() {
             <p className="tagline">
               A real-time network for people who live and work across borders. Find your people, wherever you land.
             </p>
+            {/* Desktop CTA */}
             <button className="btn-enter" onClick={handleJoin} disabled={loading}>
               {loading ? 'Connecting...' : '→ Join Outbound'}
             </button>
@@ -183,6 +218,7 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* RIGHT — scenarios */}
         <div className="right">
           <div className="scenarios-label">Real scenarios</div>
           {SCENARIOS.map(s => (
@@ -194,6 +230,17 @@ export default function HomePage() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Mobile-only CTA below scenarios */}
+        <div className="mobile-cta">
+          <button className="btn-enter" onClick={handleJoin} disabled={loading}>
+            {loading ? 'Connecting...' : '→ Join Outbound'}
+          </button>
+          <div className="mobile-footer">
+            <span className="beta-pill">Beta · Open</span>
+            <a className="shop-link" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">Shop →</a>
+          </div>
         </div>
       </div>
     </>
