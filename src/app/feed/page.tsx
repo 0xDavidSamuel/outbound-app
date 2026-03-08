@@ -208,6 +208,7 @@ export default function FeedPage() {
         { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${t}` } }
       );
       const rows = await res.json();
+      console.log('[openProfile] rows:', rows);
       setProfileBubble(rows?.[0] || null);
     } catch (e) { console.error('[openProfile]', e); setProfileBubble(null); }
     setBubbleLoading(false);
