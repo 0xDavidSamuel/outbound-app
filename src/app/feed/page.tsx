@@ -110,6 +110,7 @@ export default function FeedPage() {
   const [commentInputs, setCommentInputs]       = useState<Record<string, string>>({});
   const [profileBubble, setProfileBubble]       = useState<any>(null);
   const [bubbleLoading, setBubbleLoading]       = useState(false);
+  const [bubblePos, setBubblePos]               = useState({x:0,y:0});
 
   useEffect(() => {
     (async () => {
@@ -195,10 +196,10 @@ export default function FeedPage() {
   const filtered = filter === 'All' ? posts : posts.filter(p => p.type === filterMap[filter]);
   const currentPlaceholder = POST_TYPES.find(t => t.key === postType)?.placeholder || '';
 
-  const openProfile = async (uid: string) => {
-    console.log('[openProfile] called with uid:', uid);
+  const openProfile = async (uid: string, e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setBubblePos({ x: rect.left + rect.width / 2, y: rect.top });
     const t = token || (await getSession())?.access_token;
-    console.log('[openProfile] token:', t ? 'present' : 'missing');
     if (!t) return;
     setBubbleLoading(true);
     setProfileBubble({ loading: true });
@@ -208,7 +209,6 @@ export default function FeedPage() {
         { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${t}` } }
       );
       const rows = await res.json();
-      console.log('[openProfile] rows:', rows);
       setProfileBubble(rows?.[0] || null);
     } catch (e) { console.error('[openProfile]', e); setProfileBubble(null); }
     setBubbleLoading(false);
@@ -359,11 +359,11 @@ export default function FeedPage() {
                 <div key={post.id} className="post-card">
                   <div className="post-header">
                     <div className="post-author">
-                      <div className="post-avatar" onClick={() => openProfile(post.user_id)} style={{cursor:'pointer'}}>
+                      <div className="post-avatar" onClick={(e) => openProfile(post.user_id, e)} style={{cursor:'pointer'}}>
                         {post.author?.avatar_url ? <img src={post.author.avatar_url} alt="" /> : '✈️'}
                       </div>
                       <div>
-                        <div className="post-username" onClick={() => openProfile(post.user_id)} style={{cursor:'pointer'}}>@{post.author?.username || 'traveler'}</div>
+                        <div className="post-username" onClick={(e) => openProfile(post.user_id, e)} style={{cursor:'pointer'}}>@{post.author?.username || 'traveler'}</div>
                         <div className="post-meta">
                           {(post.city || post.country) && (
                             <span className="post-location">📍 {[post.city, post.country].filter(Boolean).join(', ')}</span>
@@ -427,7 +427,7 @@ export default function FeedPage() {
       {profileBubble && (
         <>
           <div className="profile-overlay" onClick={() => setProfileBubble(null)} />
-          <div className="profile-bubble" style={{top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
+          <div className="profile-bubble" style={{top: bubblePos.y - 8, left: bubblePos.x, transform:"translate(-50%, -100%)"}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
               <span style={{fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.3em',color:'#e8553a',textTransform:'uppercase'}}>Profile</span>
               <button className="bubble-close" onClick={() => setProfileBubble(null)}>×</button>
