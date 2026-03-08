@@ -80,7 +80,7 @@ export default function HomePage() {
     .feature { display: flex; flex-direction: column; gap: 6px; }
     .feature-icon { font-size: 20px; margin-bottom: 4px; }
     .feature-name { font-size: 14px; font-weight: 500; color: #fff; }
-    @media (max-width: 768px; margin-top: 24px) {
+    @media (max-width: 768px) {
       html, body { height: auto; overflow: auto; }
       .layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
       .left { height: auto; padding: 40px 24px 32px; border-right: none; border-bottom: 1px solid #111; }
