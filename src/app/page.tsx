@@ -78,7 +78,7 @@ export default function HomePage() {
 
         .tagline {
           font-size: 14px; color: #666; line-height: 1.8;
-          max-width: 320px; font-weight: 300; margin-bottom: 12px;
+          max-width: 320px; font-weight: 300; margin-bottom: 8px;
         }
 
         .btn-enter {
@@ -119,7 +119,7 @@ export default function HomePage() {
         .scenarios-label {
           font-family: 'DM Mono', monospace; font-size: 8px;
           letter-spacing: 0.4em; color: #2a2a2a; text-transform: uppercase;
-          margin-bottom: 16px;
+          margin-bottom: 4px;
         }
 
         .scenario {
