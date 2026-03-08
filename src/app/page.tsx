@@ -78,7 +78,7 @@ export default function HomePage() {
 
         .tagline {
           font-size: 14px; color: #666; line-height: 1.8;
-          max-width: 320px; font-weight: 300; margin-bottom: 16px;
+          max-width: 320px; font-weight: 300; margin-bottom: 12px;
         }
 
         .btn-enter {
