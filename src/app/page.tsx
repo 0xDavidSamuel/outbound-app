@@ -119,7 +119,7 @@ export default function HomePage() {
         .scenarios-label {
           font-family: 'DM Mono', monospace; font-size: 8px;
           letter-spacing: 0.4em; color: #2a2a2a; text-transform: uppercase;
-          margin-bottom: 32px;
+          margin-bottom: 16px;
         }
 
         .scenario {
