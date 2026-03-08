@@ -108,6 +108,8 @@ export default function FeedPage() {
   const [posting, setPosting]           = useState(false);
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [commentInputs, setCommentInputs]       = useState<Record<string, string>>({});
+  const [profileBubble, setProfileBubble]       = useState<any>(null);
+  const [bubbleLoading, setBubbleLoading]       = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -192,6 +194,21 @@ export default function FeedPage() {
   const filterMap: Record<string, string> = { Moments: 'moment', Tips: 'tip', Questions: 'question', 'Looking For': 'looking' };
   const filtered = filter === 'All' ? posts : posts.filter(p => p.type === filterMap[filter]);
   const currentPlaceholder = POST_TYPES.find(t => t.key === postType)?.placeholder || '';
+
+  const openProfile = async (userId: string) => {
+    if (!token) return;
+    setBubbleLoading(true);
+    setProfileBubble({ loading: true });
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=username,avatar_url,city,lat,lng`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } }
+      );
+      const rows = await res.json();
+      setProfileBubble(rows?.[0] || null);
+    } catch { setProfileBubble(null); }
+    setBubbleLoading(false);
+  };
 
   return (
     <>
@@ -338,11 +355,11 @@ export default function FeedPage() {
                 <div key={post.id} className="post-card">
                   <div className="post-header">
                     <div className="post-author">
-                      <div className="post-avatar">
+                      <div className="post-avatar" onClick={() => openProfile(post.user_id)} style={{cursor:'pointer'}}>
                         {post.author?.avatar_url ? <img src={post.author.avatar_url} alt="" /> : '✈️'}
                       </div>
                       <div>
-                        <div className="post-username">@{post.author?.username || 'traveler'}</div>
+                        <div className="post-username" onClick={() => openProfile(post.user_id)} style={{cursor:'pointer'}}>@{post.author?.username || 'traveler'}</div>
                         <div className="post-meta">
                           {(post.city || post.country) && (
                             <span className="post-location">📍 {[post.city, post.country].filter(Boolean).join(', ')}</span>
@@ -403,6 +420,27 @@ export default function FeedPage() {
           </div>
         )}
       </div>
+      {profileBubble && (
+        <div className="profile-overlay" onClick={() => setProfileBubble(null)}>
+          <div className="profile-bubble" onClick={e => e.stopPropagation()}>
+            <div className="bubble-handle" />
+            {bubbleLoading ? (
+              <div style={{color:'#333',fontFamily:'DM Mono, monospace',fontSize:10}}>Loading...</div>
+            ) : (
+              <>
+                <div className="bubble-avatar">
+                  {profileBubble.avatar_url ? <img src={profileBubble.avatar_url} alt="" /> : '✈️'}
+                </div>
+                <div className="bubble-username">@{profileBubble.username || 'traveler'}</div>
+                {profileBubble.city
+                  ? <div className="bubble-city">📍 {profileBubble.city}</div>
+                  : <div className="bubble-no-city">No location set</div>
+                }
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
