@@ -78,7 +78,7 @@ export default function HomePage() {
 
         .tagline {
           font-size: 14px; color: #666; line-height: 1.8;
-          max-width: 320px; font-weight: 300; margin-bottom: 40px;
+          max-width: 320px; font-weight: 300; margin-bottom: 16px;
         }
 
         .btn-enter {
@@ -214,7 +214,7 @@ export default function HomePage() {
 
         {/* RIGHT — scenarios */}
         <div className="right">
-          <div className="scenarios-label">Real scenarios</div>
+          <div className="scenarios-label">Everything you need on the road</div>
           {SCENARIOS.map(s => (
             <div className="scenario" key={s.num}>
               <span className="scenario-num">{s.num}</span>
