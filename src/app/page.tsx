@@ -57,7 +57,7 @@ export default function HomePage() {
     .left-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
     .headline { font-family: 'Bebas Neue', sans-serif; font-size: clamp(56px, 6.5vw, 100px); line-height: 0.9; color: #fff; margin-bottom: 24px; text-transform: none; }
     .headline em { color: #e8553a; font-style: normal; }
-    .tagline { font-size: 14px; color: #666; line-height: 1.8; max-width: 320px; font-weight: 300; margin-bottom: 20px; }
+    .tagline { font-size: 14px; color: #666; line-height: 1.8; max-width: 320px; font-weight: 300; margin-bottom: 8px; }
     .btn-enter { display: inline-flex; align-items: center; gap: 10px; background: #e8553a; color: #fff; border: none; padding: 14px 32px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; border-radius: 3px; cursor: pointer; transition: opacity 0.2s, transform 0.15s; font-weight: 500; align-self: flex-start; }
     .btn-enter:hover { opacity: 0.85; transform: translateY(-1px); }
     .btn-enter:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
