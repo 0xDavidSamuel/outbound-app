@@ -87,7 +87,9 @@ export default function HomePage() {
       .right { height: auto; overflow: visible; }
       .section { padding: 40px 24px; }
       .features-grid { grid-template-columns: 1fr; gap: 32px; }
-      .btn-enter { align-self: auto; width: 100%; justify-content: center; }
+      .btn-enter { display: none; }
+      .mobile-cta { display: block; padding: 24px 24px 48px; }
+      .mobile-cta .btn-enter { display: flex; width: 100%; justify-content: center; }
     }
   `;
 
@@ -143,6 +145,11 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="mobile-cta">
+        <button className="btn-enter" onClick={handleJoin} disabled={loading}>
+          {loading ? 'Connecting...' : '→ Join Outbound'}
+        </button>
       </div>
     </div>
   );
