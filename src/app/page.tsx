@@ -83,7 +83,7 @@ export default function HomePage() {
     @media (max-width: 768px) {
       html, body { height: auto; overflow: auto; }
       .layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
-      .left { height: auto; padding: 40px 24px 32px; border-right: none; border-bottom: 1px solid #111; }
+      .left { height: auto; padding: 60px 24px 32px; border-right: none; border-bottom: 1px solid #111; }
       .right { height: auto; overflow: visible; }
       .section { padding: 40px 24px; }
       .features-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 32px; }
