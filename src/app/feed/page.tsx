@@ -195,18 +195,19 @@ export default function FeedPage() {
   const filtered = filter === 'All' ? posts : posts.filter(p => p.type === filterMap[filter]);
   const currentPlaceholder = POST_TYPES.find(t => t.key === postType)?.placeholder || '';
 
-  const openProfile = async (userId: string) => {
-    if (!token) return;
+  const openProfile = async (uid: string) => {
+    const t = token || (await getSession())?.access_token;
+    if (!t) return;
     setBubbleLoading(true);
     setProfileBubble({ loading: true });
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=username,avatar_url,city,lat,lng`,
-        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } }
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${t}` } }
       );
       const rows = await res.json();
       setProfileBubble(rows?.[0] || null);
-    } catch { setProfileBubble(null); }
+    } catch (e) { console.error('[openProfile]', e); setProfileBubble(null); }
     setBubbleLoading(false);
   };
 
