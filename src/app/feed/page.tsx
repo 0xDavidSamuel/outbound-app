@@ -196,7 +196,9 @@ export default function FeedPage() {
   const currentPlaceholder = POST_TYPES.find(t => t.key === postType)?.placeholder || '';
 
   const openProfile = async (uid: string) => {
+    console.log('[openProfile] called with uid:', uid);
     const t = token || (await getSession())?.access_token;
+    console.log('[openProfile] token:', t ? 'present' : 'missing');
     if (!t) return;
     setBubbleLoading(true);
     setProfileBubble({ loading: true });
