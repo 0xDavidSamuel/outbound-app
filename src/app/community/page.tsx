@@ -229,11 +229,11 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
               <div key={post.id} style={{ background: '#0d0d0d', border: `1px solid ${post.is_pinned ? 'rgba(232,85,58,0.15)' : '#1a1a1a'}`, borderRadius: 14, overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '14px 16px 0', gap: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #222', background: '#111', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#444' }}>
+                    <div onClick={() => openProfile(post.user_id)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid #222', background: '#111', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#444', cursor: 'pointer' }}>
                       {post.author?.avatar_url ? <img src={post.author.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : '✈'}
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>@{post.author?.username || 'traveler'}</div>
+                      <div onClick={() => openProfile(post.user_id)} style={{ fontSize: 13, fontWeight: 500, color: '#fff', cursor: 'pointer' }}>@{post.author?.username || 'traveler'}</div>
                       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#2a2a2a', letterSpacing: '0.08em', marginTop: 2 }}>{timeAgo(post.created_at)}</div>
                     </div>
                   </div>
