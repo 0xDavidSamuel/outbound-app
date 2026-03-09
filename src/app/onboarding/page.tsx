@@ -13,6 +13,24 @@ const STEPS = [
   { id: 'network',  label: 'Network Joined',  sub: 'Welcome to 60+ city chapters'  },
 ];
 
+const VIBES = [
+  { id: 'settling',    label: 'Settling In',   icon: '🏠' },
+  { id: 'exploring',   label: 'Exploring',     icon: '🗺' },
+  { id: 'working',     label: 'Deep Work',     icon: '⚡' },
+  { id: 'socializing', label: 'Meeting People', icon: '🤝' },
+  { id: 'moving',      label: 'In Transit',    icon: '✈' },
+  { id: 'recharging',  label: 'Recharging',    icon: '🌊' },
+];
+
+const TRAVELER_TYPES = [
+  { id: 'nomad',    label: 'Digital Nomad',    code: 'NMD' },
+  { id: 'expat',    label: 'Expat',            code: 'EXP' },
+  { id: 'solo',     label: 'Solo Traveler',    code: 'SLO' },
+  { id: 'remote',   label: 'Remote Worker',    code: 'RWK' },
+  { id: 'explorer', label: 'Adventure Seeker', code: 'ADV' },
+  { id: 'slow',     label: 'Slow Traveler',    code: 'SLW' },
+];
+
 async function dbGet(path: string, token: string) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
@@ -56,7 +74,7 @@ async function forwardGeocode(city: string) {
 export default function OnboardingPage() {
   const [profile, setProfile]         = useState<any>({});
   const [step, setStep]               = useState(-1);
-  const [username, setUsername]       = useState('');
+  const [username, setUsername]        = useState('');
   const [checking, setChecking]       = useState(false);
   const [usernameOk, setUsernameOk]   = useState<boolean | null>(null);
   const [saving, setSaving]           = useState(false);
@@ -70,6 +88,10 @@ export default function OnboardingPage() {
   const [locating, setLocating]       = useState(false);
   const [locMsg, setLocMsg]           = useState('');
   const [resolved, setResolved]       = useState<string | null>(null);
+
+  // Status selections (optional during onboarding)
+  const [selectedVibe, setSelectedVibe]     = useState<string | null>(null);
+  const [selectedType, setSelectedType]     = useState<string | null>(null);
 
   useEffect(() => {
     setTimeout(() => setStep(0), 400);
@@ -140,6 +162,10 @@ export default function OnboardingPage() {
     setSaving(true);
 
     const patch: any = { username: username.toLowerCase() };
+
+    // Include optional status selections
+    if (selectedVibe) patch.current_vibe = selectedVibe;
+    if (selectedType) patch.traveler_type = selectedType;
 
     if (cityInput) {
       if (locLat !== null && locLng !== null && resolved) {
@@ -233,6 +259,16 @@ export default function OnboardingPage() {
         .ob-finish-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
         .ob-skip { text-align: center; margin-top: 12px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #222; text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
         .ob-skip:hover { color: #444; }
+        .ob-section-head { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.4em; text-transform: uppercase; color: #333; margin-bottom: 10px; }
+        .ob-vibe-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+        .ob-vibe-btn { display: flex; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid #1a1a1a; border-radius: 2px; font-family: 'DM Mono', monospace; font-size: 10px; color: #444; background: transparent; cursor: pointer; transition: all 0.15s; }
+        .ob-vibe-btn:hover { border-color: #555; color: #888; }
+        .ob-vibe-btn.on { border-color: rgba(232,85,58,0.3); color: #e8553a; background: rgba(232,85,58,0.05); }
+        .ob-type-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+        .ob-type-chip { font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 9px; border: 1px solid #1a1a1a; border-radius: 2px; color: #444; background: transparent; cursor: pointer; transition: all 0.14s; }
+        .ob-type-chip:hover { border-color: #555; color: #888; }
+        .ob-type-chip.on { background: #e8553a; color: #080808; border-color: #e8553a; }
+        .ob-optional { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: #222; text-transform: uppercase; display: inline-block; margin-left: 6px; }
       `}</style>
 
       <div className="ob-wrap">
@@ -294,6 +330,45 @@ export default function OnboardingPage() {
                 ✓ Resolved to: {resolved}
               </div>
             )}
+
+            {/* Status section — optional during onboarding */}
+            <div className="ob-divider" />
+
+            <div style={{ marginBottom: 16 }}>
+              <div className="ob-section-head">
+                Current Situation
+                <span className="ob-optional">· optional</span>
+              </div>
+              <div className="ob-vibe-row">
+                {VIBES.map(v => (
+                  <button
+                    key={v.id}
+                    className={`ob-vibe-btn${selectedVibe === v.id ? ' on' : ''}`}
+                    onClick={() => setSelectedVibe(selectedVibe === v.id ? null : v.id)}
+                  >
+                    {v.icon} {v.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div className="ob-section-head">
+                Traveler Type
+                <span className="ob-optional">· optional</span>
+              </div>
+              <div className="ob-type-row">
+                {TRAVELER_TYPES.map(t => (
+                  <button
+                    key={t.id}
+                    className={`ob-type-chip${selectedType === t.id ? ' on' : ''}`}
+                    onClick={() => setSelectedType(selectedType === t.id ? null : t.id)}
+                  >
+                    {t.code} · {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <button className="ob-finish-btn" disabled={!usernameOk || saving} onClick={handleFinish}>
               {saving ? 'Saving...' : 'Open My Passport →'}
