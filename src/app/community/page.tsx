@@ -115,18 +115,16 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
   const allMembers = members.filter(m => !m.is_here_now);
 
   const openProfile = async (uid: string) => {
-    const t = token || (await getSession())?.access_token;
-    if (!t) return;
     setBubbleLoading(true);
     setProfileBubble({ loading: true });
     try {
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city`,
-        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${t}` } }
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } }
       );
       const rows = await res.json();
-      setProfileBubble(rows?.[0] || null);
-    } catch (e) { console.error('[openProfile]', e); setProfileBubble(null); }
+      setProfileBubble(rows?.[0] || { username: null, avatar_url: null, city: null });
+    } catch (err) { console.error('[openProfile]', err); setProfileBubble(null); }
     setBubbleLoading(false);
   };
 
@@ -258,25 +256,43 @@ function CommunityRoom({ community, userId, token, userProfile, onBack }: { comm
       )}
     </div>
       {profileBubble && (
-        <div onClick={() => setProfileBubble(null)} style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.6)', backdropFilter:'blur(4px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'#0f0f0f', border:'1px solid #1e1e1e', borderRadius:'20px 20px 0 0', padding:'28px 24px 40px', width:'100%', maxWidth:480, display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ width:36, height:3, background:'#222', borderRadius:2, alignSelf:'center', marginBottom:8 }} />
+        <>
+          <div onClick={() => setProfileBubble(null)} style={{position:'fixed',inset:0,zIndex:9998,background:'rgba(0,0,0,0.5)'}} />
+          <div style={{
+            position:'fixed',
+            top:'50%',left:'50%',
+            transform:'translate(-50%,-50%)',
+            zIndex:9999,
+            background:'#0d0d0d',
+            border:'1px solid #1a1a1a',
+            borderRadius:12,
+            padding:16,
+            width:240,
+            fontFamily:'DM Sans, sans-serif',
+            boxShadow:'0 8px 32px rgba(0,0,0,0.8)'
+          }}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+              <span style={{fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.3em',color:'#e8553a',textTransform:'uppercase'}}>Profile</span>
+              <button onClick={() => setProfileBubble(null)} style={{background:'none',border:'none',color:'#555',cursor:'pointer',fontSize:16,lineHeight:1,padding:0}}>×</button>
+            </div>
             {bubbleLoading ? (
-              <div style={{ color:'#333', fontFamily:'DM Mono, monospace', fontSize:10 }}>Loading...</div>
+              <div style={{color:'#444',fontFamily:'DM Mono, monospace',fontSize:10,textAlign:'center',padding:'12px 0'}}>Loading...</div>
             ) : (
-              <>
-                <div style={{ width:64, height:64, borderRadius:'50%', border:'1px solid #222', background:'#111', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24 }}>
-                  {profileBubble.avatar_url ? <img src={profileBubble.avatar_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="" /> : '✈️'}
+              <div style={{display:'flex',gap:12,alignItems:'center'}}>
+                <div style={{width:44,height:44,borderRadius:'50%',border:'1px solid #222',background:'#111',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>
+                  {profileBubble.avatar_url ? <img src={profileBubble.avatar_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} /> : '✈️'}
                 </div>
-                <div style={{ fontSize:16, fontWeight:500, color:'#fff' }}>@{profileBubble.username || 'traveler'}</div>
-                {profileBubble.city
-                  ? <div style={{ fontFamily:'DM Mono, monospace', fontSize:9, letterSpacing:'0.2em', color:'#e8553a', textTransform:'uppercase' }}>📍 {profileBubble.city}</div>
-                  : <div style={{ fontFamily:'DM Mono, monospace', fontSize:9, letterSpacing:'0.2em', color:'#333', textTransform:'uppercase' }}>No location set</div>
-                }
-              </>
+                <div>
+                  <div style={{fontSize:13,fontWeight:500,color:'#fff',marginBottom:4}}>@{profileBubble.username || 'traveler'}</div>
+                  {profileBubble.city
+                    ? <div style={{fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#e8553a',textTransform:'uppercase'}}>📍 {profileBubble.city}</div>
+                    : <div style={{fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#333',textTransform:'uppercase'}}>No location set</div>
+                  }
+                </div>
+              </div>
             )}
           </div>
-        </div>
+        </>
       )}
     </>
   );
