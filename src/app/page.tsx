@@ -60,7 +60,7 @@ export default function HomePage() {
     .revealed .d10 { transition-delay: 1.08s; }
     .revealed .d11 { transition-delay: 1.20s; }
     .revealed .d12 { transition-delay: 1.32s; }
-    .wordmark { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.4em; color: #e8553a; text-transform: uppercase; margin-bottom: 48px; }
+    .wordmark { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.4em; color: #e8553a; text-transform: uppercase; margin-bottom: 16px; }
     .left-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
     .headline { font-family: 'Bebas Neue', sans-serif; font-size: clamp(56px, 6.5vw, 100px); line-height: 0.9; color: #fff; margin-bottom: 24px; text-transform: none; }
     .headline em { color: #e8553a; font-style: normal; }
