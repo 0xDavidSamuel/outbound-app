@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { getSession } from '@/lib/session';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -110,7 +110,7 @@ export default function FeedPage() {
   const [commentInputs, setCommentInputs]       = useState<Record<string, string>>({});
   const [profileBubble, setProfileBubble]       = useState<any>(null);
   const [bubbleLoading, setBubbleLoading]       = useState(false);
-  const bubblePosRef = useRef({x:0,y:0});
+  const [bubblePos, setBubblePos] = useState({x:0,y:0});
 
   useEffect(() => {
     (async () => {
@@ -198,19 +198,20 @@ export default function FeedPage() {
 
   const openProfile = async (uid: string, e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    bubblePosRef.current = { x: rect.left + rect.width / 2, y: rect.top };
-    const t = token || (await getSession())?.access_token;
-    if (!t) return;
+    // Set position and show bubble synchronously before any async work
+    setBubblePos({ x: rect.left + rect.width / 2, y: rect.top });
     setBubbleLoading(true);
     setProfileBubble({ loading: true });
+    const t = token || (await getSession())?.access_token;
+    if (!t) { setProfileBubble(null); setBubbleLoading(false); return; }
     try {
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city`,
         { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${t}` } }
       );
       const rows = await res.json();
-      setProfileBubble(rows?.[0] || null);
-    } catch (e) { console.error('[openProfile]', e); setProfileBubble(null); }
+      setProfileBubble(rows?.[0] || { username: null, avatar_url: null, city: null });
+    } catch (err) { console.error('[openProfile]', err); setProfileBubble(null); }
     setBubbleLoading(false);
   };
 
@@ -427,7 +428,7 @@ export default function FeedPage() {
       {profileBubble && (
         <>
           <div className="profile-overlay" onClick={() => setProfileBubble(null)} />
-          <div className="profile-bubble" style={{top: bubblePosRef.current.y - 8, left: bubblePosRef.current.x, transform:"translate(-50%, -100%)"}}>
+          <div className="profile-bubble" style={{top: bubblePos.y - 8, left: bubblePos.x, transform:"translate(-50%, -100%)"}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
               <span style={{fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.3em',color:'#e8553a',textTransform:'uppercase'}}>Profile</span>
               <button className="bubble-close" onClick={() => setProfileBubble(null)}>×</button>
