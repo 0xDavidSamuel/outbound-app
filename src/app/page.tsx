@@ -68,7 +68,7 @@ export default function HomePage() {
     .btn-enter { display: inline-flex; align-items: center; gap: 10px; background: #e8553a; color: #fff; border: none; padding: 14px 32px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; border-radius: 3px; cursor: pointer; transition: opacity 0.2s, transform 0.15s; font-weight: 500; align-self: flex-start; }
     .btn-enter:hover { opacity: 0.85; transform: translateY(-1px); }
     .btn-enter:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .left-footer { display: flex; align-items: center; justify-content: space-between; }
+    .left-footer { display: flex; align-items: center; justify-content: space-between; width: 100%; }
     .beta-pill { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.2em; color: #e8553a; background: rgba(232,85,58,0.07); border: 1px solid rgba(232,85,58,0.18); padding: 5px 10px; border-radius: 3px; text-transform: uppercase; }
     .shop-link { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.2em; color: #333; text-transform: uppercase; text-decoration: none; transition: color 0.2s; }
     .shop-link:hover { color: #666; }
