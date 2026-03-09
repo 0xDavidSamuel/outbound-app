@@ -48,16 +48,23 @@ export default function HomePage() {
     .left { display: flex; flex-direction: column; justify-content: space-between; padding: 40px 48px; border-right: 1px solid #111; height: 100vh; position: relative; z-index: 1; }
     .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
     .revealed .reveal { opacity: 1; transform: translateY(0); }
-    .revealed .d1 { transition-delay: 0s; }
-    .revealed .d2 { transition-delay: 0.12s; }
-    .revealed .d3 { transition-delay: 0.24s; }
-    .revealed .d4 { transition-delay: 0.36s; }
-    .revealed .d5 { transition-delay: 0.48s; }
-    .wordmark { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.4em; color: #e8553a; text-transform: uppercase; margin-bottom: 32px; }
+    .revealed .d1  { transition-delay: 0s; }
+    .revealed .d2  { transition-delay: 0.12s; }
+    .revealed .d3  { transition-delay: 0.24s; }
+    .revealed .d4  { transition-delay: 0.36s; }
+    .revealed .d5  { transition-delay: 0.48s; }
+    .revealed .d6  { transition-delay: 0.60s; }
+    .revealed .d7  { transition-delay: 0.72s; }
+    .revealed .d8  { transition-delay: 0.84s; }
+    .revealed .d9  { transition-delay: 0.96s; }
+    .revealed .d10 { transition-delay: 1.08s; }
+    .revealed .d11 { transition-delay: 1.20s; }
+    .revealed .d12 { transition-delay: 1.32s; }
+    .wordmark { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.4em; color: #e8553a; text-transform: uppercase; }
     .left-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
     .headline { font-family: 'Bebas Neue', sans-serif; font-size: clamp(56px, 6.5vw, 100px); line-height: 0.9; color: #fff; margin-bottom: 24px; text-transform: none; }
     .headline em { color: #e8553a; font-style: normal; }
-    .tagline { font-size: 14px; color: #666; line-height: 1.8; max-width: 320px; font-weight: 300; margin-bottom: 8px; }
+    .tagline { font-size: 14px; color: #666; line-height: 1.8; max-width: 320px; font-weight: 300; margin-bottom: 16px; }
     .btn-enter { display: inline-flex; align-items: center; gap: 10px; background: #e8553a; color: #fff; border: none; padding: 14px 32px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; border-radius: 3px; cursor: pointer; transition: opacity 0.2s, transform 0.15s; font-weight: 500; align-self: flex-start; }
     .btn-enter:hover { opacity: 0.85; transform: translateY(-1px); }
     .btn-enter:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
@@ -91,12 +98,10 @@ export default function HomePage() {
       .left-footer { display: none; }
       .mobile-cta { display: block; padding: 24px 24px 48px; }
       .mobile-cta .btn-enter { display: flex; width: 100%; justify-content: center; }
-      .mobile-footer { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 16px; }
     }
   `;
 
   return (
-    
     <div>
       <style suppressHydrationWarning>{CSS}</style>
       <div className="grain" />
@@ -122,11 +127,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="right">
+        <div className={`right ${revealed ? 'revealed' : ''}`}>
           <div className="section">
-            <div className="section-label">Everything you need on the road</div>
-            {SCENARIOS.map(s => (
-              <div className="scenario" key={s.num}>
+            <div className="section-label reveal d6">Everything you need on the road</div>
+            {SCENARIOS.map((s, i) => (
+              <div className={`scenario reveal d${7 + i}`} key={s.num}>
                 <span className="scenario-num">{s.num}</span>
                 <div className="scenario-body">
                   <div className="scenario-city">{s.city}</div>
@@ -137,10 +142,10 @@ export default function HomePage() {
           </div>
 
           <div className="section">
-            <div className="section-label">The platform</div>
+            <div className="section-label reveal d6">The platform</div>
             <div className="features-grid">
-              {FEATURES.map(f => (
-                <div className="feature" key={f.name}>
+              {FEATURES.map((f, i) => (
+                <div className={`feature reveal d${7 + i}`} key={f.name}>
                   <div className="feature-icon">{f.icon}</div>
                   <div className="feature-name">{f.name}</div>
                 </div>
