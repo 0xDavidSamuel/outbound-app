@@ -20,6 +20,9 @@ const NAV_ITEMS = [
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+// Pages where NavBar should never render
+const HIDDEN_PATHS = ['/', '/onboarding', '/auth/callback', '/auth/session'];
+
 export default function NavBar() {
   const router   = useRouter();
   const pathname = usePathname();
@@ -48,10 +51,17 @@ export default function NavBar() {
     else router.push(item.href);
   };
 
-  if (!user) return null; // Don't show nav on logged-out pages
+  // Never show on landing, onboarding, or auth pages
+  if (HIDDEN_PATHS.includes(pathname)) return null;
 
-  // User exists but hasn't finished onboarding (no username yet)
-  const hasPassport = !!user.username;
+  // No session loaded yet
+  if (!user) return null;
+
+  // If user has no username they haven't finished onboarding — redirect them back
+  if (!user.username) {
+    router.push('/onboarding');
+    return null;
+  }
 
   return (
     <>
@@ -81,11 +91,10 @@ export default function NavBar() {
       `}</style>
 
       <div className="nav-shell">
-        {/* Top bar — always visible when user exists (even during onboarding) */}
         <div className="nav-topbar">
           <span className="nav-wordmark">outbound</span>
           <div className="nav-divider" />
-          <div className="nav-avatar" onClick={() => router.push(hasPassport ? '/passport' : '/onboarding')} title={user.username || 'Setup'}>
+          <div className="nav-avatar" onClick={() => router.push('/passport')} title={user.username}>
             {user.avatar_url
               ? <img src={user.avatar_url} alt="avatar" />
               : (user.username?.[0] || '?').toUpperCase()}
@@ -93,29 +102,26 @@ export default function NavBar() {
           <button className="nav-signout" onClick={signOut}>out</button>
         </div>
 
-        {/* Hub tabs — ONLY visible after passport is created (username exists) */}
-        {hasPassport && (
-          <div className="nav-pill-wrapper">
-            <div className="nav-pill">
-              {NAV_ITEMS.map((item, i) => (
-                <>
-                  {i === 5 && <div key="sep1" className="nav-sep" />}
-                  {i === NAV_ITEMS.length - 1 && <div key="sep2" className="nav-sep" />}
-                  <div
-                    key={item.href}
-                    className={`nav-item${pathname === item.href ? ' active' : ''}${item.external ? ' store' : ''}`}
-                    onClick={() => handleNav(item)}
-                  >
-                    <span className="nav-item-icon">{item.icon}</span>
-                    {item.label}
-                  </div>
-                </>
-              ))}
-              <div className="nav-sep" />
-              <button className="nav-upgrade">↑ Pro</button>
-            </div>
+        <div className="nav-pill-wrapper">
+          <div className="nav-pill">
+            {NAV_ITEMS.map((item, i) => (
+              <>
+                {i === 5 && <div key="sep1" className="nav-sep" />}
+                {i === NAV_ITEMS.length - 1 && <div key="sep2" className="nav-sep" />}
+                <div
+                  key={item.href}
+                  className={`nav-item${pathname === item.href ? ' active' : ''}${item.external ? ' store' : ''}`}
+                  onClick={() => handleNav(item)}
+                >
+                  <span className="nav-item-icon">{item.icon}</span>
+                  {item.label}
+                </div>
+              </>
+            ))}
+            <div className="nav-sep" />
+            <button className="nav-upgrade">↑ Pro</button>
           </div>
-        )}
+        </div>
       </div>
     </>
   );
