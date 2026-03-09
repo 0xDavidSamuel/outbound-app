@@ -110,7 +110,6 @@ export default function FeedPage() {
   const [commentInputs, setCommentInputs]       = useState<Record<string, string>>({});
   const [profileBubble, setProfileBubble]       = useState<any>(null);
   const [bubbleLoading, setBubbleLoading]       = useState(false);
-  const [bubblePos, setBubblePos] = useState({x:0,y:0});
 
   useEffect(() => {
     (async () => {
@@ -196,10 +195,7 @@ export default function FeedPage() {
   const filtered = filter === 'All' ? posts : posts.filter(p => p.type === filterMap[filter]);
   const currentPlaceholder = POST_TYPES.find(t => t.key === postType)?.placeholder || '';
 
-  const openProfile = async (uid: string, e: React.MouseEvent) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    // Set position and show bubble synchronously before any async work
-    setBubblePos({ x: rect.left + rect.width / 2, y: rect.top });
+  const openProfile = async (uid: string) => {
     setBubbleLoading(true);
     setProfileBubble({ loading: true });
     const t = token || (await getSession())?.access_token;
@@ -360,11 +356,11 @@ export default function FeedPage() {
                 <div key={post.id} className="post-card">
                   <div className="post-header">
                     <div className="post-author">
-                      <div className="post-avatar" onClick={(e) => openProfile(post.user_id, e)} style={{cursor:'pointer'}}>
+                      <div className="post-avatar" onClick={() => openProfile(post.user_id)} style={{cursor:'pointer'}}>
                         {post.author?.avatar_url ? <img src={post.author.avatar_url} alt="" /> : '✈️'}
                       </div>
                       <div>
-                        <div className="post-username" onClick={(e) => openProfile(post.user_id, e)} style={{cursor:'pointer'}}>@{post.author?.username || 'traveler'}</div>
+                        <div className="post-username" onClick={() => openProfile(post.user_id)} style={{cursor:'pointer'}}>@{post.author?.username || 'traveler'}</div>
                         <div className="post-meta">
                           {(post.city || post.country) && (
                             <span className="post-location">📍 {[post.city, post.country].filter(Boolean).join(', ')}</span>
@@ -427,24 +423,36 @@ export default function FeedPage() {
       </div>
       {profileBubble && (
         <>
-          <div className="profile-overlay" onClick={() => setProfileBubble(null)} />
-          <div className="profile-bubble" style={{top: bubblePos.y - 8, left: bubblePos.x, transform:"translate(-50%, -100%)"}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+          <div onClick={() => setProfileBubble(null)} style={{position:'fixed',inset:0,zIndex:9998,background:'rgba(0,0,0,0.5)'}} />
+          <div style={{
+            position:'fixed',
+            top:'50%',left:'50%',
+            transform:'translate(-50%,-50%)',
+            zIndex:9999,
+            background:'#0d0d0d',
+            border:'1px solid #1a1a1a',
+            borderRadius:12,
+            padding:16,
+            width:240,
+            fontFamily:'DM Sans, sans-serif',
+            boxShadow:'0 8px 32px rgba(0,0,0,0.8)'
+          }}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
               <span style={{fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.3em',color:'#e8553a',textTransform:'uppercase'}}>Profile</span>
-              <button className="bubble-close" onClick={() => setProfileBubble(null)}>×</button>
+              <button onClick={() => setProfileBubble(null)} style={{background:'none',border:'none',color:'#555',cursor:'pointer',fontSize:16,lineHeight:1,padding:0}}>×</button>
             </div>
             {bubbleLoading ? (
-              <div style={{color:'#333',fontFamily:'DM Mono, monospace',fontSize:10}}>Loading...</div>
+              <div style={{color:'#444',fontFamily:'DM Mono, monospace',fontSize:10,textAlign:'center',padding:'12px 0'}}>Loading...</div>
             ) : (
               <div style={{display:'flex',gap:12,alignItems:'center'}}>
-                <div className="bubble-avatar">
-                  {profileBubble.avatar_url ? <img src={profileBubble.avatar_url} alt="" /> : '✈️'}
+                <div style={{width:44,height:44,borderRadius:'50%',border:'1px solid #222',background:'#111',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>
+                  {profileBubble.avatar_url ? <img src={profileBubble.avatar_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} /> : '✈️'}
                 </div>
                 <div>
-                  <div className="bubble-username">@{profileBubble.username || 'traveler'}</div>
+                  <div style={{fontSize:13,fontWeight:500,color:'#fff',marginBottom:4}}>@{profileBubble.username || 'traveler'}</div>
                   {profileBubble.city
-                    ? <div className="bubble-city">📍 {profileBubble.city}</div>
-                    : <div className="bubble-no-city">No location set</div>
+                    ? <div style={{fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#e8553a',textTransform:'uppercase'}}>📍 {profileBubble.city}</div>
+                    : <div style={{fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#333',textTransform:'uppercase'}}>No location set</div>
                   }
                 </div>
               </div>
