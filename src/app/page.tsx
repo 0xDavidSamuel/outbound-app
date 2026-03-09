@@ -45,7 +45,7 @@ export default function HomePage() {
     .grain { position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.3; }
     .ghost-bg { position: fixed; right: -2vw; bottom: -4vw; font-family: 'Bebas Neue', sans-serif; font-size: 28vw; color: rgba(232,85,58,0.03); pointer-events: none; user-select: none; line-height: 1; z-index: 0; }
     .layout { display: grid; grid-template-columns: 1fr 1fr; height: 100vh; overflow: hidden; }
-    .left { display: flex; flex-direction: column; justify-content: space-between; padding: 40px 48px; border-right: 1px solid #111; height: 100vh; position: relative; z-index: 1; }
+    .left { display: flex; flex-direction: column; justify-content: flex-start; padding: 40px 48px; border-right: 1px solid #111; height: 100vh; position: relative; z-index: 1; }
     .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
     .revealed .reveal { opacity: 1; transform: translateY(0); }
     .revealed .d1  { transition-delay: 0s; }
@@ -60,7 +60,7 @@ export default function HomePage() {
     .revealed .d10 { transition-delay: 1.08s; }
     .revealed .d11 { transition-delay: 1.20s; }
     .revealed .d12 { transition-delay: 1.32s; }
-    .wordmark { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.4em; color: #e8553a; text-transform: uppercase; }
+    .wordmark { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.4em; color: #e8553a; text-transform: uppercase; margin-bottom: 48px; }
     .left-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
     .headline { font-family: 'Bebas Neue', sans-serif; font-size: clamp(56px, 6.5vw, 100px); line-height: 0.9; color: #fff; margin-bottom: 24px; text-transform: none; }
     .headline em { color: #e8553a; font-style: normal; }
@@ -121,7 +121,7 @@ export default function HomePage() {
           <button className="btn-enter reveal d4" onClick={handleJoin} disabled={loading}>
             {loading ? 'Connecting...' : '→ Join Outbound'}
           </button>
-          <div className="left-footer reveal d5">
+          <div className="left-footer reveal d5" style={{marginTop: 12}}>
             <span className="beta-pill">Beta · Open</span>
             <a className="shop-link" href="https://outboundwear.com" target="_blank" rel="noopener noreferrer">Shop →</a>
           </div>
