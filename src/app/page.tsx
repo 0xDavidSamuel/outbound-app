@@ -89,6 +89,7 @@ export default function HomePage() {
     .feature-name { font-size: 14px; font-weight: 500; color: #fff; }
     @media (max-width: 768px) {
       html, body { height: auto; overflow: auto; }
+      .left-body { flex: none; }
       .layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
       .left { height: auto; padding: 40px 24px 32px; border-right: none; border-bottom: 1px solid #111; }
       .right { height: auto; overflow: visible; }
