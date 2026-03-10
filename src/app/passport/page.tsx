@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession } from '@/lib/session';
 
@@ -111,6 +111,11 @@ export default function PassportPage() {
   const [token, setToken]                 = useState('');
   const [userId, setUserId]               = useState('');
 
+  // Tab animation
+  const [animating, setAnimating] = useState(false);
+  const [animDir, setAnimDir]     = useState<'up'|'down'>('up');
+  const contentRef = useRef<HTMLDivElement>(null);
+
   // Location — own state vars, not nested on profile
   const [editingLoc, setEditingLoc]     = useState(false);
   const [cityInput, setCityInput]       = useState('');
@@ -122,6 +127,16 @@ export default function PassportPage() {
   const [savingLoc, setSavingLoc]       = useState(false);
 
   const router = useRouter();
+
+  const switchPage = (newPage: number) => {
+    if (newPage === page || animating) return;
+    setAnimDir(newPage > page ? 'up' : 'down');
+    setAnimating(true);
+    setTimeout(() => {
+      setPage(newPage);
+      setTimeout(() => setAnimating(false), 20);
+    }, 180);
+  };
 
   useEffect(() => {
     (async () => {
@@ -235,10 +250,8 @@ export default function PassportPage() {
     let patch: any = {};
 
     if (locLat !== null && locLng !== null && locResolved) {
-      // Came from geolocation — coords already accurate
       patch = { city: locResolved, lat: locLat, lng: locLng };
     } else if (cityInput.trim()) {
-      // Manual input — forward geocode
       try {
         setLocMsg('Geocoding...');
         const res = await fetch(
@@ -316,6 +329,11 @@ export default function PassportPage() {
         .pp-holes { position: absolute; left: 6px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-evenly; z-index: 3; pointer-events: none; }
         .pp-hole { width: 9px; height: 9px; border-radius: 50%; background: #080808; border: 1px solid rgba(232,85,58,0.08); box-shadow: inset 0 1px 3px rgba(0,0,0,0.8); }
         .pp-content { position: relative; z-index: 1; padding: 28px 28px 44px 34px; }
+        .pp-content-inner { transition: opacity 0.18s ease, transform 0.18s ease; }
+        .pp-content-inner.exit-up { opacity: 0; transform: translateY(-14px); }
+        .pp-content-inner.exit-down { opacity: 0; transform: translateY(14px); }
+        .pp-content-inner.enter { opacity: 0; transform: translateY(14px); }
+        .pp-content-inner.visible { opacity: 1; transform: translateY(0); }
         .pp-authority { text-align: center; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid #1a1a1a; position: relative; }
         .pp-authority-sub { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.5em; color: #555; text-transform: uppercase; margin-bottom: 4px; }
         .pp-authority-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: #fff; letter-spacing: 0.08em; }
@@ -417,13 +435,17 @@ export default function PassportPage() {
         <div className="pp-book">
           <div className="pp-tabs">
             {PAGES.map((p, i) => (
-              <button key={p} className={`pp-tab${page===i?' active':''}`} onClick={() => setPage(i)}>{p}</button>
+              <button key={p} className={`pp-tab${page===i?' active':''}`} onClick={() => switchPage(i)}>{p}</button>
             ))}
           </div>
           <div className="pp-page">
             <div className="pp-holes">{[0,1,2,3,4].map(i=><div key={i} className="pp-hole"/>)}</div>
             <div className="pp-watermark">OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND · OUTBOUND</div>
             <div className="pp-content">
+              <div
+                ref={contentRef}
+                className={`pp-content-inner${animating ? (animDir === 'up' ? ' exit-up' : ' exit-down') : ' visible'}`}
+              >
               <div className="pp-authority">
                 <div className="pp-authority-sub">outbound network · traveler registry</div>
                 <div className="pp-authority-title">{['IDENTITY DOCUMENT','ENTRY & EXIT STAMPS','TRAVEL DISTINCTIONS','CURRENT STATUS'][page]}</div>
@@ -558,7 +580,6 @@ export default function PassportPage() {
                         setEditingLoc(!editingLoc);
                         setLocMsg('');
                         setLocResolved(null);
-                        // Reset inputs to current saved values when opening
                         if (!editingLoc) {
                           setCityInput(profile?.city || '');
                           setLocLat(profile?.lat || null);
@@ -612,6 +633,8 @@ export default function PassportPage() {
                   </table>
                 </div>
               </>}
+
+              </div>{/* end pp-content-inner */}
             </div>
 
             <div className="pp-torn">
