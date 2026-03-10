@@ -27,6 +27,7 @@ export default function NavBar() {
   const router   = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<{ avatar_url?: string; username?: string } | null>(null);
+  const [navRevealed, setNavRevealed] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -37,7 +38,10 @@ export default function NavBar() {
         { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` } }
       );
       const rows = await res.json();
-      if (rows?.[0]) setUser(rows[0]);
+      if (rows?.[0]) {
+        setUser(rows[0]);
+        setTimeout(() => setNavRevealed(true), 100);
+      }
     })();
   }, []);
 
@@ -68,7 +72,8 @@ export default function NavBar() {
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
         .nav-shell { position: fixed; bottom: 24px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 500; pointer-events: none; }
-        .nav-topbar { display: flex; align-items: center; gap: 10px; background: rgba(10,10,10,0.9); border: 1px solid #161616; border-radius: 40px; padding: 5px 14px 5px 16px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); pointer-events: all; }
+        .nav-topbar { display: flex; align-items: center; gap: 10px; background: rgba(10,10,10,0.9); border: 1px solid #161616; border-radius: 40px; padding: 5px 14px 5px 16px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); pointer-events: all; opacity: 0; transform: translateY(20px); transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .nav-shell.nav-revealed .nav-topbar { opacity: 1; transform: translateY(0); }
         .nav-wordmark { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.35em; color: #e8553a; text-transform: uppercase; }
         .nav-divider { width: 1px; height: 12px; background: #1a1a1a; }
         .nav-avatar { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #222; background: #111; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; color: #444; transition: border-color 0.2s; flex-shrink: 0; }
@@ -76,7 +81,8 @@ export default function NavBar() {
         .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .nav-signout { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: #2a2a2a; text-transform: uppercase; background: none; border: none; cursor: pointer; transition: color 0.2s; padding: 0 2px; }
         .nav-signout:hover { color: #555; }
-        .nav-pill-wrapper { width: 100%; max-width: 720px; padding: 0 16px; pointer-events: all; }
+        .nav-pill-wrapper { width: 100%; max-width: 720px; padding: 0 16px; pointer-events: all; opacity: 0; transform: translateY(24px); transition: opacity 0.5s ease 0.15s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s; }
+        .nav-shell.nav-revealed .nav-pill-wrapper { opacity: 1; transform: translateY(0); }
         .nav-pill { display: flex; align-items: center; gap: 2px; background: rgba(10,10,10,0.92); border: 1px solid #161616; border-radius: 40px; padding: 5px 6px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0,0,0,0.7); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .nav-pill::-webkit-scrollbar { display: none; }
         .nav-item { display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 32px; cursor: pointer; transition: background 0.18s, color 0.18s; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; color: #383838; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
@@ -90,7 +96,7 @@ export default function NavBar() {
         .nav-upgrade:hover { background: rgba(232,85,58,0.12); }
       `}</style>
 
-      <div className="nav-shell">
+      <div className={`nav-shell${navRevealed ? ' nav-revealed' : ''}`}>
         <div className="nav-topbar">
           <span className="nav-wordmark">outbound</span>
           <div className="nav-divider" />
