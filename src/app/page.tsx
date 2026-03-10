@@ -75,7 +75,7 @@ export default function HomePage() {
     .right { height: 100vh; overflow-y: auto; scrollbar-width: none; }
     .right::-webkit-scrollbar { display: none; }
     .section { padding: 48px; border-bottom: 1px solid #0f0f0f; }
-    .section-label { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.4em; color: #666; text-transform: uppercase; margin-bottom: 32px; }
+    .section-label { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.4em; color: #666; text-transform: uppercase; margin-bottom: 8px; }
     .scenario { display: flex; gap: 20px; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid #0f0f0f; }
     .scenario:first-of-type { border-top: 1px solid #0f0f0f; }
     .scenario:last-of-type { border-bottom: none; }
