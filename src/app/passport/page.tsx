@@ -116,6 +116,9 @@ export default function PassportPage() {
   const [animDir, setAnimDir]     = useState<'up'|'down'>('up');
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Entrance animation
+  const [revealed, setRevealed] = useState(false);
+
   // Location — own state vars, not nested on profile
   const [editingLoc, setEditingLoc]     = useState(false);
   const [cityInput, setCityInput]       = useState('');
@@ -170,6 +173,8 @@ export default function PassportPage() {
       if (data?.lat) setLocLat(data.lat);
       if (data?.lng) setLocLng(data.lng);
       setLoading(false);
+      // Trigger entrance animation after a brief frame
+      setTimeout(() => setRevealed(true), 80);
     })();
   }, []);
 
@@ -319,6 +324,12 @@ export default function PassportPage() {
         body { background: #080808; color: #fff; font-family: 'DM Sans', sans-serif; }
         .pp-wrap { min-height: 100vh; padding: 80px 16px 140px; display: flex; flex-direction: column; align-items: center; }
         .pp-book { width: 100%; max-width: 560px; }
+        .pp-entrance { opacity: 0; transform: translateY(40px) scale(0.97); transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .pp-entrance.revealed { opacity: 1; transform: translateY(0) scale(1); }
+        .pp-entrance .pp-tabs { opacity: 0; transform: translateY(10px); transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s; }
+        .pp-entrance.revealed .pp-tabs { opacity: 1; transform: translateY(0); }
+        .pp-entrance .pp-page { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease 0.15s, transform 0.5s ease 0.15s; }
+        .pp-entrance.revealed .pp-page { opacity: 1; transform: translateY(0); }
         .pp-tabs { display: flex; gap: 0; padding-left: 20px; margin-bottom: -1px; position: relative; z-index: 2; }
         .pp-tab { padding: 7px 18px 10px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #444; background: #080808; border: 1px solid #161616; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; transition: color 0.15s; }
         .pp-tab:hover:not(.active) { color: #555; }
@@ -432,7 +443,7 @@ export default function PassportPage() {
       `}</style>
 
       <div className="pp-wrap">
-        <div className="pp-book">
+        <div className={`pp-book pp-entrance${revealed ? ' revealed' : ''}`}>
           <div className="pp-tabs">
             {PAGES.map((p, i) => (
               <button key={p} className={`pp-tab${page===i?' active':''}`} onClick={() => switchPage(i)}>{p}</button>
