@@ -105,6 +105,7 @@ export default function MapPage() {
   }, []);
 
   return (
+    <PageReveal>
     <div className="h-screen flex flex-col" style={{ background: '#0a0a0a' }}>
       <div className="flex-1 relative">
         <MapView
@@ -115,5 +116,6 @@ export default function MapPage() {
         />
       </div>
     </div>
+    </PageReveal>
   );
 }

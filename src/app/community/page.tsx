@@ -348,6 +348,7 @@ export default function CommunityPage() {
   }
 
   return (
+    <PageReveal>
     <>
       <style suppressHydrationWarning>{`
         ${commonStyles}
@@ -435,5 +436,6 @@ export default function CommunityPage() {
         )}
       </div>
     </>
+    </PageReveal>
   );
 }

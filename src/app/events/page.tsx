@@ -50,6 +50,7 @@ export default function EventsPage() {
   }, [activeCategory]);
 
   return (
+    <PageReveal>
     <>
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
@@ -130,5 +131,6 @@ export default function EventsPage() {
         )}
       </div>
     </>
+    </PageReveal>
   );
 }
