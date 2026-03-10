@@ -85,7 +85,7 @@ export default function NavBar() {
         .nav-shell.nav-revealed .nav-pill-wrapper { opacity: 1; transform: translateY(0); }
         .nav-pill { display: flex; align-items: center; gap: 2px; background: rgba(10,10,10,0.92); border: 1px solid #161616; border-radius: 40px; padding: 5px 6px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0,0,0,0.7); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .nav-pill::-webkit-scrollbar { display: none; }
-        .nav-item { display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 32px; cursor: pointer; transition: background 0.18s, color 0.18s; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; color: #383838; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+        .nav-item { display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 32px; cursor: pointer; transition: background 0.18s, color 0.18s; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; color: #555; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
         .nav-item:hover { color: #666; background: rgba(255,255,255,0.03); }
         .nav-item.active { color: #080808; background: #e8553a; }
         .nav-item.store { color: #e8553a; }
