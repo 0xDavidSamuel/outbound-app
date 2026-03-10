@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PageReveal from '@/components/ui/PageReveal';
 
 const CURRENCIES = ['USD','EUR','GBP','JPY','AUD','CAD','CHF','CNY','SEK','NZD','MXN','SGD','HKD','NOK','KRW','TRY','INR','RUB','BRL','ZAR','THB','IDR','MYR','PHP','AED','SAR','COP','PEN','CLP','NGN','KES','GHS','EGP','MAD','TWD','VND','PKR','BDT','ILS','PLN'];
 

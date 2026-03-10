@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { getSession } from '@/lib/session';
 import { Profile, Event } from '@/types';
 import { useRouter } from 'next/navigation';
+import PageReveal from '@/components/ui/PageReveal';
 
 const MapView = dynamic(() => import('@/components/map/MapView'), { ssr: false });
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { getSession } from '@/lib/session';
+import PageReveal from '@/components/ui/PageReveal';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -134,6 +135,7 @@ export default function CitiesPage() {
   }, [cities, activeFilter, search]);
 
   return (
+    <PageReveal>
     <>
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
@@ -321,5 +323,6 @@ export default function CitiesPage() {
         )}
       </div>
     </>
+    </PageReveal>
   );
 }

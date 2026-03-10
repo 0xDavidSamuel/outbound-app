@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PageReveal from '@/components/ui/PageReveal';
 
 const SOURCES = [
   { label: 'All',      query: 'all' },

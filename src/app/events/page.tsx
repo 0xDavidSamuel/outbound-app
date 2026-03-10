@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageReveal from '@/components/ui/PageReveal';
 
 interface DevEvent {
   name: string;
