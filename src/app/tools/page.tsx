@@ -332,8 +332,217 @@ function parseVisa(v: string): { type: string; days: string; color: string; labe
   return { type: 'required', days: '', color: '#ff6b6b', label: 'Visa Required' };
 }
 
+// ── SIM card data ──────────────────────────────────────────────────────────
+interface SimInfo {
+  carriers: { name: string; type: string; data: string; price: string; note?: string }[];
+  esim: boolean;
+  tip: string;
+  buyAt: string;
+}
+
+const SIM_DATA: Record<string, SimInfo> = {
+  'Thailand': {
+    carriers: [
+      { name: 'AIS', type: 'Tourist SIM', data: '30GB / 15 days', price: '~$9', note: 'Best coverage nationwide' },
+      { name: 'TrueMove H', type: 'Tourist SIM', data: '30GB / 15 days', price: '~$9', note: 'Good in cities, weaker rural' },
+      { name: 'DTAC', type: 'Happy Tourist', data: '15GB / 8 days', price: '~$6', note: 'Budget option' },
+    ],
+    esim: true, tip: 'Buy at airport 7-Eleven or carrier booth on arrival. Passport required.', buyAt: 'Airport, 7-Eleven, carrier stores',
+  },
+  'Indonesia': {
+    carriers: [
+      { name: 'Telkomsel', type: 'Tourist SIM', data: '25GB / 30 days', price: '~$7', note: 'Best coverage including islands' },
+      { name: 'XL Axiata', type: 'Prepaid', data: '20GB / 30 days', price: '~$5', note: 'Good in Java & Bali' },
+      { name: 'Indosat', type: 'Prepaid', data: '20GB / 30 days', price: '~$5', note: 'Decent urban coverage' },
+    ],
+    esim: true, tip: 'Must register SIM with passport at point of sale. Telkomsel is king for Bali.', buyAt: 'Airport counters, Indomaret/Alfamart',
+  },
+  'Vietnam': {
+    carriers: [
+      { name: 'Viettel', type: 'Tourist SIM', data: '30GB / 30 days', price: '~$5', note: 'Best nationwide coverage' },
+      { name: 'Mobifone', type: 'Tourist SIM', data: '30GB / 30 days', price: '~$5', note: 'Good in cities' },
+      { name: 'Vinaphone', type: 'Prepaid', data: '20GB / 30 days', price: '~$4', note: 'Budget pick' },
+    ],
+    esim: true, tip: 'Extremely cheap data. Buy at airport or any phone shop. Passport required.', buyAt: 'Airport booths, phone shops everywhere',
+  },
+  'Japan': {
+    carriers: [
+      { name: 'IIJmio', type: 'Travel SIM', data: '20GB / 15 days', price: '~$25', note: 'Data only, no calls' },
+      { name: 'Mobal', type: 'Japan SIM', data: '10GB / 30 days', price: '~$30', note: 'Includes JP phone number' },
+      { name: 'Ubigi (eSIM)', type: 'eSIM', data: '10GB / 30 days', price: '~$16', note: 'No physical SIM needed' },
+    ],
+    esim: true, tip: 'Japan SIMs are pricier. eSIM or pocket WiFi often better value. Buy at airport.', buyAt: 'Airport vending machines, BIC Camera, online pre-order',
+  },
+  'South Korea': {
+    carriers: [
+      { name: 'KT', type: 'Prepaid SIM', data: 'Unlimited / 5 days', price: '~$18', note: 'Major carrier, best LTE' },
+      { name: 'SK Telecom', type: 'Tourist SIM', data: 'Unlimited / 5 days', price: '~$20', note: 'Premium network' },
+      { name: 'LG U+', type: 'Prepaid', data: '5GB/day / 10 days', price: '~$22', note: 'Good 5G coverage' },
+    ],
+    esim: true, tip: 'Unlimited data SIMs available at Incheon Airport. Reserve online for pickup.', buyAt: 'Incheon/Gimpo Airport, online pre-order',
+  },
+  'Colombia': {
+    carriers: [
+      { name: 'Claro', type: 'Prepaid', data: '12GB / 30 days', price: '~$8', note: 'Best national coverage' },
+      { name: 'Movistar', type: 'Prepaid', data: '10GB / 15 days', price: '~$6', note: 'Good in cities' },
+      { name: 'Tigo', type: 'Prepaid', data: '10GB / 15 days', price: '~$6', note: 'Strong in Medellín' },
+    ],
+    esim: false, tip: 'Buy at any Éxito supermarket or carrier store. Passport copy needed.', buyAt: 'Carrier stores, Éxito supermarkets, airport',
+  },
+  'Mexico': {
+    carriers: [
+      { name: 'Telcel', type: 'Amigo SIM', data: '10GB / 30 days', price: '~$10', note: 'Dominant carrier, best coverage' },
+      { name: 'AT&T Mexico', type: 'Prepaid', data: '8GB / 30 days', price: '~$8', note: 'Good in cities, US roaming deals' },
+      { name: 'Movistar', type: 'Prepaid', data: '6GB / 30 days', price: '~$6', note: 'Budget option' },
+    ],
+    esim: true, tip: 'Telcel dominates outside cities. OXXO convenience stores sell top-ups.', buyAt: 'OXXO, carrier stores, Walmart, airport',
+  },
+  'Portugal': {
+    carriers: [
+      { name: 'Vodafone', type: 'Tourist SIM', data: '30GB / 30 days', price: '~€15', note: 'Best coverage, EU roaming included' },
+      { name: 'MEO', type: 'Prepaid', data: '15GB / 30 days', price: '~€10', note: 'Good value' },
+      { name: 'NOS', type: 'Prepaid', data: '10GB / 15 days', price: '~€10', note: 'Decent urban coverage' },
+    ],
+    esim: true, tip: 'EU roaming means your SIM works across all EU countries. Buy at airport or carrier shop.', buyAt: 'Airport, carrier stores, electronics shops',
+  },
+  'Spain': {
+    carriers: [
+      { name: 'Vodafone', type: 'Prepaid', data: '25GB / 28 days', price: '~€15', note: 'EU roaming included' },
+      { name: 'Orange', type: 'Holiday SIM', data: '20GB / 14 days', price: '~€10', note: 'Tourist-friendly' },
+      { name: 'Movistar', type: 'Prepaid', data: '15GB / 28 days', price: '~€15', note: 'Largest network' },
+    ],
+    esim: true, tip: 'Any EU SIM works across Europe. Tobacco shops (estancos) sell SIMs and top-ups.', buyAt: 'Airport, estancos, carrier stores, El Corte Inglés',
+  },
+  'Germany': {
+    carriers: [
+      { name: 'Telekom', type: 'Prepaid', data: '6GB / 28 days', price: '~€15', note: 'Best network, EU roaming' },
+      { name: 'Vodafone', type: 'CallYa', data: '8GB / 28 days', price: '~€10', note: 'Good value' },
+      { name: 'ALDI Talk', type: 'Prepaid', data: '7GB / 28 days', price: '~€8', note: 'Budget via O2 network' },
+    ],
+    esim: true, tip: 'German law requires video ID verification for SIM activation — can take hours. Buy at airport for faster process.', buyAt: 'Airport, ALDI/LIDL, carrier stores',
+  },
+  'United Kingdom': {
+    carriers: [
+      { name: 'Three', type: 'Pay As You Go', data: '12GB / 30 days', price: '~£10', note: 'Good 5G, some EU roaming' },
+      { name: 'Giffgaff', type: 'Goodybag', data: '15GB / 30 days', price: '~£10', note: 'Order online, arrives free' },
+      { name: 'Vodafone', type: 'Pay As You Go', data: '10GB / 30 days', price: '~£10', note: 'Widest coverage' },
+    ],
+    esim: true, tip: 'Giffgaff can be ordered to your UK address before arrival. No contract, cancel anytime.', buyAt: 'Airport, supermarkets, carrier stores, online',
+  },
+  'India': {
+    carriers: [
+      { name: 'Jio', type: 'Prepaid', data: '2GB/day / 28 days', price: '~$4', note: 'Cheapest, huge 4G network' },
+      { name: 'Airtel', type: 'Tourist SIM', data: '1.5GB/day / 28 days', price: '~$7', note: 'Best for tourists, English support' },
+      { name: 'Vi (Vodafone Idea)', type: 'Prepaid', data: '1.5GB/day / 28 days', price: '~$5', note: 'Good urban coverage' },
+    ],
+    esim: true, tip: 'Tourist SIMs require passport + photo + local address (hotel works). Activation can take 24h.', buyAt: 'Airport (recommended), carrier stores',
+  },
+  'Morocco': {
+    carriers: [
+      { name: 'Maroc Telecom', type: 'Prepaid', data: '20GB / 30 days', price: '~$5', note: 'Best coverage, even rural' },
+      { name: 'Orange', type: 'Prepaid', data: '15GB / 30 days', price: '~$4', note: 'Good in cities' },
+      { name: 'inwi', type: 'Prepaid', data: '10GB / 30 days', price: '~$3', note: 'Budget pick' },
+    ],
+    esim: false, tip: 'Incredibly cheap data. Buy at any corner shop or carrier store. No ID needed.', buyAt: 'Airport, corner shops, carrier stores',
+  },
+  'Egypt': {
+    carriers: [
+      { name: 'Vodafone Egypt', type: 'Tourist SIM', data: '20GB / 30 days', price: '~$8', note: 'Best coverage' },
+      { name: 'Orange', type: 'Prepaid', data: '15GB / 30 days', price: '~$6', note: 'Good value' },
+      { name: 'Etisalat', type: 'Prepaid', data: '12GB / 30 days', price: '~$5', note: 'Decent urban' },
+    ],
+    esim: true, tip: 'Buy at Cairo Airport on arrival. Passport required for registration.', buyAt: 'Airport counters, carrier stores',
+  },
+  'Kenya': {
+    carriers: [
+      { name: 'Safaricom', type: 'Prepaid', data: '10GB / 30 days', price: '~$8', note: 'Dominant carrier, M-Pesa payments' },
+      { name: 'Airtel Kenya', type: 'Prepaid', data: '10GB / 30 days', price: '~$5', note: 'Good alternative' },
+    ],
+    esim: true, tip: 'Safaricom M-Pesa is used everywhere for payments — get it. Passport needed.', buyAt: 'Airport, Safaricom shops',
+  },
+  'South Africa': {
+    carriers: [
+      { name: 'Vodacom', type: 'Prepaid', data: '10GB / 30 days', price: '~$8', note: 'Best coverage' },
+      { name: 'MTN', type: 'Prepaid', data: '10GB / 30 days', price: '~$7', note: 'Good alternative' },
+      { name: 'Cell C', type: 'Prepaid', data: '15GB / 30 days', price: '~$6', note: 'Budget option' },
+    ],
+    esim: true, tip: 'RICA registration required (passport + SA address). Buy at airport for easiest process.', buyAt: 'Airport, Pick n Pay, carrier stores',
+  },
+  'UAE': {
+    carriers: [
+      { name: 'du', type: 'Tourist SIM', data: '5GB / 14 days', price: '~$14', note: 'Tourist-focused plans' },
+      { name: 'Etisalat', type: 'Visitor Line', data: '4GB / 14 days', price: '~$14', note: 'Wide coverage' },
+    ],
+    esim: true, tip: 'VoIP apps (WhatsApp calls, FaceTime) are blocked. You need a VPN.', buyAt: 'Airport, carrier stores, malls',
+  },
+  'Australia': {
+    carriers: [
+      { name: 'Telstra', type: 'Prepaid', data: '40GB / 28 days', price: '~A$30', note: 'Best rural coverage by far' },
+      { name: 'Optus', type: 'Prepaid', data: '50GB / 28 days', price: '~A$30', note: 'Good in cities' },
+      { name: 'Vodafone', type: 'Prepaid', data: '30GB / 28 days', price: '~A$20', note: 'Budget option, urban only' },
+    ],
+    esim: true, tip: 'Telstra is the only option with reliable outback coverage. Buy at airport.', buyAt: 'Airport, JB Hi-Fi, supermarkets, carrier stores',
+  },
+  'Brazil': {
+    carriers: [
+      { name: 'Claro', type: 'Prepaid', data: '15GB / 30 days', price: '~$6', note: 'Best overall coverage' },
+      { name: 'Vivo', type: 'Prepaid', data: '12GB / 30 days', price: '~$6', note: 'Strong in São Paulo' },
+      { name: 'TIM', type: 'Prepaid', data: '10GB / 30 days', price: '~$4', note: 'Budget, good 4G' },
+    ],
+    esim: true, tip: 'CPF (tax number) technically required but airports sell tourist SIMs with passport only.', buyAt: 'Airport, carrier stores, newsstands',
+  },
+  'Costa Rica': {
+    carriers: [
+      { name: 'Kölbi (ICE)', type: 'Prepaid', data: '8GB / 30 days', price: '~$8', note: 'State carrier, best coverage' },
+      { name: 'Claro', type: 'Prepaid', data: '5GB / 15 days', price: '~$5', note: 'Decent in populated areas' },
+      { name: 'Movistar', type: 'Prepaid', data: '4GB / 15 days', price: '~$4', note: 'Budget option' },
+    ],
+    esim: false, tip: 'Kölbi has the best mountain/rural coverage. Buy at airport or any supermarket.', buyAt: 'Airport, supermarkets, carrier stores',
+  },
+  'Peru': {
+    carriers: [
+      { name: 'Claro', type: 'Prepaid', data: '10GB / 30 days', price: '~$5', note: 'Best coverage including mountains' },
+      { name: 'Movistar', type: 'Prepaid', data: '8GB / 30 days', price: '~$5', note: 'Good in Lima' },
+      { name: 'Entel', type: 'Prepaid', data: '6GB / 15 days', price: '~$4', note: 'Growing network' },
+    ],
+    esim: false, tip: 'Coverage is spotty in remote Andes/Amazon areas regardless of carrier.', buyAt: 'Airport, carrier stores, markets',
+  },
+  'Cambodia': {
+    carriers: [
+      { name: 'Smart', type: 'Tourist SIM', data: '30GB / 30 days', price: '~$3', note: 'Best coverage' },
+      { name: 'Metfone', type: 'Prepaid', data: '30GB / 30 days', price: '~$3', note: 'Good alternative' },
+      { name: 'CellCard', type: 'Prepaid', data: '20GB / 30 days', price: '~$2', note: 'Cheapest' },
+    ],
+    esim: false, tip: 'Some of the cheapest mobile data in the world. Buy at airport or any phone shop.', buyAt: 'Airport, phone shops, guesthouses',
+  },
+  'Philippines': {
+    carriers: [
+      { name: 'Globe', type: 'Prepaid', data: '12GB / 30 days', price: '~$5', note: 'Best in Manila and tourist areas' },
+      { name: 'Smart', type: 'Prepaid', data: '12GB / 30 days', price: '~$5', note: 'Better island coverage' },
+      { name: 'DITO', type: 'Prepaid', data: '15GB / 30 days', price: '~$4', note: 'New carrier, growing fast' },
+    ],
+    esim: true, tip: 'Island coverage varies wildly. Smart edges Globe outside Manila.', buyAt: 'Airport, sari-sari stores, malls',
+  },
+  'Georgia': {
+    carriers: [
+      { name: 'Magti', type: 'Prepaid', data: '20GB / 30 days', price: '~$4', note: 'Best coverage' },
+      { name: 'Geocell', type: 'Prepaid', data: '15GB / 30 days', price: '~$3', note: 'Good value' },
+      { name: 'Beeline', type: 'Prepaid', data: '10GB / 30 days', price: '~$2', note: 'Budget' },
+    ],
+    esim: false, tip: 'Very cheap. Buy at Tbilisi Airport or any carrier store. Passport needed.', buyAt: 'Airport, carrier stores, supermarkets',
+  },
+};
+
+// ── Global eSIM providers ─────────────────────────────────────────────────
+const ESIM_PROVIDERS = [
+  { name: 'Airalo', desc: 'Largest eSIM marketplace. 200+ countries, buy before you land.', url: 'https://www.airalo.com/', price: 'From $5' },
+  { name: 'Holafly', desc: 'Unlimited data eSIMs. Popular for Europe and Asia.', url: 'https://www.holafly.com/', price: 'From $6/day' },
+  { name: 'Nomad eSIM', desc: 'Multi-country plans for nomads. Good regional bundles.', url: 'https://www.esim.net/', price: 'From $5' },
+  { name: 'Google Fi', desc: 'Works in 200+ countries. Pause/resume anytime. US number.', url: 'https://fi.google.com/', price: '$20/mo base' },
+];
+
 // ── Tab types ──────────────────────────────────────────────────────────────
-type Tab = 'currency' | 'translate' | 'timezone' | 'weather' | 'plugs' | 'visa';
+type Tab = 'currency' | 'translate' | 'timezone' | 'weather' | 'plugs' | 'visa' | 'sim';
 
 const TABS: { key: Tab; icon: string; label: string }[] = [
   { key: 'currency',  icon: '💱', label: 'Currency' },
@@ -341,7 +550,8 @@ const TABS: { key: Tab; icon: string; label: string }[] = [
   { key: 'timezone',  icon: '⏰', label: 'Time Zones' },
   { key: 'weather',   icon: '🌤', label: 'Weather' },
   { key: 'plugs',     icon: '🔌', label: 'Plugs' },
-  { key: 'visa',      icon: '🛂', label: 'Visa Check' },
+  { key: 'visa',      icon: '🛂', label: 'Visa' },
+  { key: 'sim',       icon: '📶', label: 'SIM Cards' },
 ];
 
 export default function ToolsPage() {
@@ -381,6 +591,9 @@ export default function ToolsPage() {
   // ── Visa state ──────────────────────────────────────────────────────
   const [visaPassport, setVisaPassport] = useState('United States');
   const [visaSearch, setVisaSearch]     = useState('');
+
+  // ── SIM state ─────────────────────────────────────────────────────
+  const [simCountry, setSimCountry] = useState('Thailand');
 
   // Clock tick
   useEffect(() => {
@@ -556,6 +769,30 @@ export default function ToolsPage() {
         .visa-item-country { color: #ccc; }
         .visa-item-days { font-size: 9px; color: #555; }
         .visa-disclaimer { font-family: 'DM Mono', monospace; font-size: 8px; color: #222; letter-spacing: 0.1em; line-height: 1.6; margin-top: 20px; padding-top: 16px; border-top: 1px solid #1a1a1a; }
+        .sim-select { width: 100%; background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 14px 18px; color: #fff; font-family: 'DM Mono', monospace; font-size: 13px; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; margin-bottom: 20px; }
+        .sim-carriers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .sim-carrier { background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .sim-carrier-top { display: flex; justify-content: space-between; align-items: center; }
+        .sim-carrier-name { font-family: 'DM Mono', monospace; font-size: 13px; color: #fff; font-weight: 500; }
+        .sim-carrier-price { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #e8553a; line-height: 1; }
+        .sim-carrier-type { font-family: 'DM Mono', monospace; font-size: 9px; color: #555; letter-spacing: 0.1em; text-transform: uppercase; }
+        .sim-carrier-data { font-family: 'DM Mono', monospace; font-size: 12px; color: #ccc; }
+        .sim-carrier-note { font-family: 'DM Mono', monospace; font-size: 9px; color: #444; line-height: 1.5; }
+        .sim-info-row { display: flex; gap: 12px; margin-bottom: 20px; }
+        .sim-info-card { flex: 1; background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 12px; }
+        .sim-info-label { font-family: 'DM Mono', monospace; font-size: 8px; color: #333; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 4px; }
+        .sim-info-value { font-family: 'DM Mono', monospace; font-size: 12px; color: #ccc; }
+        .sim-tip { background: rgba(232,85,58,0.04); border: 1px solid rgba(232,85,58,0.1); border-radius: 8px; padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 10px; color: #888; line-height: 1.6; margin-bottom: 20px; }
+        .sim-tip::before { content: '💡 '; }
+        .esim-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid #1a1a1a; }
+        .esim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .esim-card { background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 4px; text-decoration: none; transition: border-color 0.2s; cursor: pointer; }
+        .esim-card:hover { border-color: #333; }
+        .esim-name { font-family: 'DM Mono', monospace; font-size: 11px; color: #fff; font-weight: 500; }
+        .esim-desc { font-size: 10px; color: #444; line-height: 1.5; }
+        .esim-price { font-family: 'DM Mono', monospace; font-size: 9px; color: #e8553a; margin-top: auto; }
+        .esim-arrow { font-family: 'DM Mono', monospace; font-size: 8px; color: #2a2a2a; margin-top: 4px; transition: color 0.2s; }
+        .esim-card:hover .esim-arrow { color: #e8553a; }
         @media (max-width: 600px) {
           .tools-page { padding: 64px 16px 140px; }
           .currency-row { flex-wrap: wrap; }
@@ -828,6 +1065,69 @@ export default function ToolsPage() {
             </div>
           );
         })()}
+
+        {/* ── SIM Cards ─────────────────────────────────────────────── */}
+        {activeTab === 'sim' && (
+          <div className="tool-card">
+            <div className="tool-label">Select country</div>
+            <select className="sim-select" value={simCountry} onChange={e => setSimCountry(e.target.value)}>
+              {Object.keys(SIM_DATA).sort().map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+
+            {SIM_DATA[simCountry] && (() => {
+              const sim = SIM_DATA[simCountry];
+              return (
+                <>
+                  <div className="sim-carriers">
+                    {sim.carriers.map((c, i) => (
+                      <div key={i} className="sim-carrier">
+                        <div className="sim-carrier-top">
+                          <div>
+                            <div className="sim-carrier-name">{c.name}</div>
+                            <div className="sim-carrier-type">{c.type}</div>
+                          </div>
+                          <div className="sim-carrier-price">{c.price}</div>
+                        </div>
+                        <div className="sim-carrier-data">{c.data}</div>
+                        {c.note && <div className="sim-carrier-note">{c.note}</div>}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="sim-info-row">
+                    <div className="sim-info-card">
+                      <div className="sim-info-label">eSIM Support</div>
+                      <div className="sim-info-value">{sim.esim ? '✓ Available' : '✕ Not available'}</div>
+                    </div>
+                    <div className="sim-info-card">
+                      <div className="sim-info-label">Where to Buy</div>
+                      <div className="sim-info-value">{sim.buyAt}</div>
+                    </div>
+                  </div>
+
+                  <div className="sim-tip">{sim.tip}</div>
+                </>
+              );
+            })()}
+
+            <div className="esim-section">
+              <div className="tool-label">Global eSIM Providers</div>
+              <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#444', marginBottom: 14, lineHeight: 1.6 }}>
+                Skip the airport queue — buy an eSIM before you land. Works on iPhone XS+ and most modern Androids.
+              </div>
+              <div className="esim-grid">
+                {ESIM_PROVIDERS.map(p => (
+                  <a key={p.name} className="esim-card" href={p.url} target="_blank" rel="noopener noreferrer">
+                    <div className="esim-name">{p.name}</div>
+                    <div className="esim-desc">{p.desc}</div>
+                    <div className="esim-price">{p.price}</div>
+                    <div className="esim-arrow">Visit →</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
     </PageReveal>
