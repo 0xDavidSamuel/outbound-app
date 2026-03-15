@@ -188,17 +188,6 @@ export default function CitiesPage() {
         .city-list-score { display: flex; flex-direction: column; align-items: center; gap: 2px; }
         .city-list-score-label { font-family: 'DM Mono', monospace; font-size: 7px; color: #333; letter-spacing: 0.1em; text-transform: uppercase; }
         .city-list-score-val { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; }
-        .visa-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 32px; }
-        .visa-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px; text-decoration: none; transition: border-color 0.2s; }
-        .visa-card:hover { border-color: #333; }
-        .visa-icon { font-size: 20px; }
-        .visa-name { font-size: 12px; font-weight: 500; color: #fff; }
-        .visa-desc { font-size: 11px; color: #444; line-height: 1.5; font-weight: 300; }
-        .visa-arrow { font-family: 'DM Mono', monospace; font-size: 9px; color: #2a2a2a; margin-top: auto; transition: color 0.2s; }
-        .visa-card:hover .visa-arrow { color: #e8553a; }
-        .section-divider { display: flex; align-items: center; gap: 16px; margin: 32px 0 20px; }
-        .section-divider-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.4em; color: #222; text-transform: uppercase; white-space: nowrap; }
-        .section-divider-line { flex: 1; height: 1px; background: #111; }
         .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #333; letter-spacing: 0.2em; }
         .loading-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
@@ -211,31 +200,6 @@ export default function CitiesPage() {
         <div className="cities-header">
           <p className="cities-eyebrow">Live · Work · Explore</p>
           <h1 className="cities-title">Find your<br /><em>next city.</em></h1>
-        </div>
-
-        <div className="section-divider"><span className="section-divider-label">Travel Tools</span><div className="section-divider-line" /></div>
-        <div className="visa-strip">
-          {[
-            { icon: '🛂', name: 'Visa Requirements', desc: 'Check entry requirements for any country.', url: 'https://www.sherpa.com/', arrow: 'Sherpa →' },
-            { icon: '📋', name: 'Visa Applications', desc: 'Apply for visas and travel documents online.', url: 'https://www.ivisa.com/', arrow: 'iVisa →' },
-            { icon: '🌐', name: 'Digital Nomad Visas', desc: 'Countries offering remote work visas.', url: 'https://nomadlist.com/digital-nomad-visa', arrow: 'Nomad List →' },
-            { icon: '✈️', name: 'Flight Tracker', desc: 'Track flights and find cheap routes.', url: 'https://www.flightaware.com/', arrow: 'FlightAware →' },
-            { icon: '🏠', name: 'Monthly Rentals', desc: 'Find furnished apartments by the month.', url: 'https://www.furnished.com/', arrow: 'Furnished →' },
-            { icon: '💰', name: 'Cost Calculator', desc: 'Compare cost of living across cities.', url: 'https://www.numbeo.com/cost-of-living/', arrow: 'Numbeo →' },
-          ].map(tool => (
-            <a key={tool.name} className="visa-card" href={tool.url} target="_blank" rel="noopener noreferrer">
-              <div className="visa-icon">{tool.icon}</div>
-              <div className="visa-name">{tool.name}</div>
-              <div className="visa-desc">{tool.desc}</div>
-              <div className="visa-arrow">{tool.arrow}</div>
-            </a>
-          ))}
-        </div>
-
-        <div className="section-divider">
-          <span className="section-divider-label">Cities</span>
-          <div className="section-divider-line" />
-          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#222', letterSpacing: '0.2em', whiteSpace: 'nowrap' }}>{filtered.length} cities</span>
         </div>
 
         <div className="controls">
