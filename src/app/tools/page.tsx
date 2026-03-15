@@ -133,15 +133,215 @@ const PLUG_DESCRIPTIONS: Record<string, string> = {
   'O': 'Three round pins (Thailand)',
 };
 
+// ── Visa data ──────────────────────────────────────────────────────────────
+// Format: 'VF:days' = visa free, 'VOA:days' = visa on arrival, 'EV' = e-visa, 'VR' = visa required
+type VisaReq = string;
+const VISA_PASSPORTS = [
+  'United States','United Kingdom','Canada','Australia','Germany','France','Netherlands',
+  'Spain','Italy','Japan','South Korea','Brazil','Mexico','India','Colombia','Argentina',
+  'South Africa','Nigeria','Philippines','Thailand','Singapore','New Zealand','Ireland',
+  'Sweden','Portugal','Poland','Turkey','Israel','Chile','Indonesia',
+];
+
+const VISA_DESTINATIONS = [
+  'Thailand','Indonesia','Vietnam','Cambodia','Philippines','Malaysia','Singapore','Japan',
+  'South Korea','Taiwan','India','Nepal','Sri Lanka','China','Mongolia',
+  'Mexico','Colombia','Costa Rica','Panama','Ecuador','Peru','Brazil','Argentina','Chile','Bolivia',
+  'Portugal','Spain','France','Germany','Netherlands','Italy','Greece','Croatia','Czech Republic',
+  'Hungary','Poland','Romania','Turkey','Georgia','Sweden','Norway','Denmark','Switzerland','Ireland','United Kingdom',
+  'Morocco','Egypt','South Africa','Kenya','Tanzania','Ghana','Nigeria','Ethiopia',
+  'UAE','Saudi Arabia','Jordan','Israel','Oman',
+  'Australia','New Zealand','Fiji',
+  'United States','Canada',
+];
+
+const VISA_DB: Record<string, Record<string, VisaReq>> = {
+  'United States': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:90',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'EV','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VR',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:30','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'EV','Fiji':'VF:120',
+    'Canada':'VF:180',
+  },
+  'United Kingdom': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:30',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VR',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:30','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:180','Fiji':'VF:120','United States':'EV','Canada':'EV',
+  },
+  'Canada': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:30',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'EV','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VR',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:30','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'VF:180',
+  },
+  'Germany': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:30',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VF:90',
+    'Portugal':'VF:∞','Spain':'VF:∞','France':'VF:∞','Netherlands':'VF:∞','Italy':'VF:∞','Greece':'VF:∞','Croatia':'VF:∞','Czech Republic':'VF:∞',
+    'Hungary':'VF:∞','Poland':'VF:∞','Romania':'VF:∞','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:∞','Norway':'VF:∞','Denmark':'VF:∞','Switzerland':'VF:∞','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:90','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'EV','Canada':'EV',
+  },
+  'France': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:30',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VF:90',
+    'Portugal':'VF:∞','Spain':'VF:∞','Germany':'VF:∞','Netherlands':'VF:∞','Italy':'VF:∞','Greece':'VF:∞','Croatia':'VF:∞','Czech Republic':'VF:∞',
+    'Hungary':'VF:∞','Poland':'VF:∞','Romania':'VF:∞','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:∞','Norway':'VF:∞','Denmark':'VF:∞','Switzerland':'VF:∞','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:90','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'EV','Canada':'EV',
+  },
+  'Australia': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:30',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'EV','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VR',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:30','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'New Zealand':'VF:90','Fiji':'VF:120','United States':'EV','Canada':'EV',
+  },
+  'Japan': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'VF:15','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90',
+    'South Korea':'VF:90','Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:30',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VR',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:30','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'EV','Canada':'EV',
+  },
+  'Brazil': {
+    'Thailand':'VF:90','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:30','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'EV','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:90',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VF:90',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'VF:90','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:90','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'EV','Canada':'EV',
+  },
+  'Colombia': {
+    'Thailand':'VR','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:30','Japan':'VR',
+    'South Korea':'VR','Taiwan':'EV','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VR',
+    'Mexico':'VF:180','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VF:90',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'VF:90','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VR',
+    'Morocco':'VR','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VR','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'EV','Fiji':'VF:120','United States':'VR','Canada':'EV',
+  },
+  'India': {
+    'Thailand':'VOA:15','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'EV','Singapore':'VR','Japan':'VR',
+    'South Korea':'VR','Taiwan':'EV','Nepal':'VF:∞','Sri Lanka':'EV','China':'VR','Mongolia':'VR',
+    'Mexico':'VR','Colombia':'VR','Costa Rica':'VR','Panama':'VR','Ecuador':'VR','Peru':'VR','Brazil':'VR','Argentina':'VR','Chile':'VR','Bolivia':'VR',
+    'Portugal':'VR','Spain':'VR','France':'VR','Germany':'VR','Netherlands':'VR','Italy':'VR','Greece':'VR','Croatia':'VR','Czech Republic':'VR',
+    'Hungary':'VR','Poland':'VR','Romania':'VR','Turkey':'EV','Georgia':'EV','Sweden':'VR','Norway':'VR','Denmark':'VR','Switzerland':'VR','Ireland':'VR','United Kingdom':'VR',
+    'Morocco':'VOA:90','Egypt':'VOA:30','South Africa':'VR','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VR','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VR','Oman':'EV',
+    'Australia':'EV','New Zealand':'VR','Fiji':'VF:120','United States':'VR','Canada':'VR',
+  },
+  'Nigeria': {
+    'Thailand':'VOA:15','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VR','Singapore':'VR','Japan':'VR',
+    'South Korea':'VR','Taiwan':'VR','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VR',
+    'Mexico':'VR','Colombia':'VR','Costa Rica':'VR','Panama':'VR','Ecuador':'VR','Peru':'VR','Brazil':'VR','Argentina':'VR','Chile':'VR','Bolivia':'VR',
+    'Portugal':'VR','Spain':'VR','France':'VR','Germany':'VR','Netherlands':'VR','Italy':'VR','Greece':'VR','Croatia':'VR','Czech Republic':'VR',
+    'Hungary':'VR','Poland':'VR','Romania':'VR','Turkey':'EV','Georgia':'EV','Sweden':'VR','Norway':'VR','Denmark':'VR','Switzerland':'VR','Ireland':'VR','United Kingdom':'VR',
+    'Morocco':'VR','Egypt':'VOA:30','South Africa':'VR','Kenya':'EV','Tanzania':'EV','Ghana':'VF:90','Ethiopia':'EV',
+    'UAE':'VR','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VR','Oman':'EV',
+    'Australia':'VR','New Zealand':'VR','Fiji':'VF:120','United States':'VR','Canada':'VR',
+  },
+  'Mexico': {
+    'Thailand':'VR','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:30','Japan':'VR',
+    'South Korea':'VR','Taiwan':'EV','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VR',
+    'Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VR',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VR','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'VR','Canada':'EV',
+  },
+  'South Korea': {
+    'Thailand':'VF:90','Indonesia':'VF:30','Vietnam':'VF:15','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:90','Japan':'VF:90',
+    'Taiwan':'VF:90','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:30',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Argentina':'VF:90','Chile':'VF:90','Bolivia':'VR',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'EV','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:30','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:30','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'EV','Canada':'EV',
+  },
+  'Argentina': {
+    'Thailand':'VR','Indonesia':'VF:30','Vietnam':'EV','Cambodia':'VOA:30','Philippines':'VF:30','Malaysia':'VF:90','Singapore':'VF:30','Japan':'VF:90',
+    'South Korea':'VF:90','Taiwan':'EV','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VF:90',
+    'Mexico':'VF:180','Colombia':'VF:90','Costa Rica':'VF:90','Panama':'VF:180','Ecuador':'VF:90','Peru':'VF:183','Brazil':'VF:90','Chile':'VF:90','Bolivia':'VF:90',
+    'Portugal':'VF:90','Spain':'VF:90','France':'VF:90','Germany':'VF:90','Netherlands':'VF:90','Italy':'VF:90','Greece':'VF:90','Croatia':'VF:90','Czech Republic':'VF:90',
+    'Hungary':'VF:90','Poland':'VF:90','Romania':'VF:90','Turkey':'VF:90','Georgia':'VF:365','Sweden':'VF:90','Norway':'VF:90','Denmark':'VF:90','Switzerland':'VF:90','Ireland':'VF:90','United Kingdom':'VF:180',
+    'Morocco':'VF:90','Egypt':'VOA:30','South Africa':'VF:90','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VF:90','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VF:90','Oman':'EV',
+    'Australia':'EV','New Zealand':'VF:90','Fiji':'VF:120','United States':'VR','Canada':'EV',
+  },
+  'Philippines': {
+    'Thailand':'VF:30','Indonesia':'VF:30','Vietnam':'VF:21','Cambodia':'VOA:30','Malaysia':'VF:30','Singapore':'VF:30','Japan':'VR',
+    'South Korea':'VR','Taiwan':'EV','India':'EV','Nepal':'VOA:30','Sri Lanka':'EV','China':'VR','Mongolia':'VR',
+    'Mexico':'VR','Colombia':'VR','Costa Rica':'VR','Panama':'VR','Ecuador':'VR','Peru':'VR','Brazil':'VF:90','Argentina':'VR','Chile':'VR','Bolivia':'VR',
+    'Portugal':'VR','Spain':'VR','France':'VR','Germany':'VR','Netherlands':'VR','Italy':'VR','Greece':'VR','Croatia':'VR','Czech Republic':'VR',
+    'Hungary':'VR','Poland':'VR','Romania':'VR','Turkey':'EV','Georgia':'EV','Sweden':'VR','Norway':'VR','Denmark':'VR','Switzerland':'VR','Ireland':'VR','United Kingdom':'VR',
+    'Morocco':'VR','Egypt':'VOA:30','South Africa':'VR','Kenya':'EV','Tanzania':'EV','Ghana':'VR','Nigeria':'VR','Ethiopia':'EV',
+    'UAE':'VR','Saudi Arabia':'EV','Jordan':'VOA:30','Israel':'VR','Oman':'EV',
+    'Australia':'VR','New Zealand':'VR','Fiji':'VF:120','United States':'VR','Canada':'VR',
+  },
+};
+
+// Copy EU data for similar passports
+['Netherlands','Spain','Italy','Sweden','Portugal','Poland','Ireland'].forEach(p => {
+  if (!VISA_DB[p]) VISA_DB[p] = { ...VISA_DB['Germany'] };
+});
+['New Zealand'].forEach(p => { if (!VISA_DB[p]) VISA_DB[p] = { ...VISA_DB['Australia'] }; });
+['Singapore'].forEach(p => { if (!VISA_DB[p]) VISA_DB[p] = { ...VISA_DB['Japan'] }; });
+['Chile'].forEach(p => { if (!VISA_DB[p]) VISA_DB[p] = { ...VISA_DB['Argentina'] }; });
+['Turkey'].forEach(p => {
+  if (!VISA_DB[p]) VISA_DB[p] = { ...VISA_DB['Mexico'] };
+});
+['South Africa'].forEach(p => { if (!VISA_DB[p]) VISA_DB[p] = { ...VISA_DB['Colombia'] }; });
+['Thailand','Indonesia'].forEach(p => { if (!VISA_DB[p]) VISA_DB[p] = { ...VISA_DB['Philippines'] }; });
+
+function parseVisa(v: string): { type: string; days: string; color: string; label: string } {
+  if (v.startsWith('VF:')) {
+    const d = v.slice(3);
+    return { type: 'visa_free', days: d === '∞' ? 'Unlimited' : `${d} days`, color: '#47ff8c', label: 'Visa Free' };
+  }
+  if (v.startsWith('VOA:')) return { type: 'voa', days: `${v.slice(4)} days`, color: '#47d4ff', label: 'Visa on Arrival' };
+  if (v === 'EV') return { type: 'evisa', days: '', color: '#ffb74d', label: 'e-Visa' };
+  return { type: 'required', days: '', color: '#ff6b6b', label: 'Visa Required' };
+}
+
 // ── Tab types ──────────────────────────────────────────────────────────────
-type Tab = 'currency' | 'translate' | 'timezone' | 'weather' | 'plugs';
+type Tab = 'currency' | 'translate' | 'timezone' | 'weather' | 'plugs' | 'visa';
 
 const TABS: { key: Tab; icon: string; label: string }[] = [
   { key: 'currency',  icon: '💱', label: 'Currency' },
   { key: 'translate', icon: '🌐', label: 'Translate' },
   { key: 'timezone',  icon: '⏰', label: 'Time Zones' },
   { key: 'weather',   icon: '🌤', label: 'Weather' },
-  { key: 'plugs',     icon: '🔌', label: 'Plug Types' },
+  { key: 'plugs',     icon: '🔌', label: 'Plugs' },
+  { key: 'visa',      icon: '🛂', label: 'Visa Check' },
 ];
 
 export default function ToolsPage() {
@@ -177,6 +377,10 @@ export default function ToolsPage() {
 
   // ── Plug type state ───────────────────────────────────────────────────
   const [plugCountry, setPlugCountry] = useState('United States');
+
+  // ── Visa state ──────────────────────────────────────────────────────
+  const [visaPassport, setVisaPassport] = useState('United States');
+  const [visaSearch, setVisaSearch]     = useState('');
 
   // Clock tick
   useEffect(() => {
@@ -338,6 +542,20 @@ export default function ToolsPage() {
         .plug-spec-label { font-family: 'DM Mono', monospace; font-size: 8px; color: #333; letter-spacing: 0.2em; text-transform: uppercase; }
         .plug-spec-value { font-family: 'DM Mono', monospace; font-size: 14px; color: #ccc; }
         .plug-note { font-family: 'DM Mono', monospace; font-size: 9px; color: #333; letter-spacing: 0.1em; margin-top: 16px; line-height: 1.6; }
+        .visa-select { width: 100%; background: #111; border: 1px solid #1a1a1a; border-radius: 10px; padding: 14px 18px; color: #fff; font-family: 'DM Mono', monospace; font-size: 13px; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; margin-bottom: 12px; }
+        .visa-search { width: 100%; background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 10px 14px; color: #fff; font-family: 'DM Mono', monospace; font-size: 11px; outline: none; margin-bottom: 20px; }
+        .visa-search:focus { border-color: #333; }
+        .visa-search::placeholder { color: #2a2a2a; }
+        .visa-group { margin-bottom: 24px; }
+        .visa-group-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .visa-group-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .visa-group-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
+        .visa-group-count { font-family: 'DM Mono', monospace; font-size: 9px; color: #333; margin-left: auto; }
+        .visa-list { display: flex; flex-wrap: wrap; gap: 6px; }
+        .visa-item { display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid #1a1a1a; border-radius: 6px; padding: 6px 10px; font-family: 'DM Mono', monospace; font-size: 10px; }
+        .visa-item-country { color: #ccc; }
+        .visa-item-days { font-size: 9px; color: #555; }
+        .visa-disclaimer { font-family: 'DM Mono', monospace; font-size: 8px; color: #222; letter-spacing: 0.1em; line-height: 1.6; margin-top: 20px; padding-top: 16px; border-top: 1px solid #1a1a1a; }
         @media (max-width: 600px) {
           .tools-page { padding: 64px 16px 140px; }
           .currency-row { flex-wrap: wrap; }
@@ -558,6 +776,58 @@ export default function ToolsPage() {
             )}
           </div>
         )}
+
+        {/* ── Visa Check ────────────────────────────────────────────── */}
+        {activeTab === 'visa' && (() => {
+          const data = VISA_DB[visaPassport] || {};
+          const entries = Object.entries(data)
+            .filter(([country]) => !visaSearch || country.toLowerCase().includes(visaSearch.toLowerCase()))
+            .map(([country, req]) => ({ country, ...parseVisa(req) }));
+          const groups = [
+            { key: 'visa_free', label: 'Visa Free', color: '#47ff8c' },
+            { key: 'voa', label: 'Visa on Arrival', color: '#47d4ff' },
+            { key: 'evisa', label: 'e-Visa Available', color: '#ffb74d' },
+            { key: 'required', label: 'Visa Required', color: '#ff6b6b' },
+          ];
+          return (
+            <div className="tool-card">
+              <div className="tool-label">Your passport</div>
+              <select className="visa-select" value={visaPassport} onChange={e => setVisaPassport(e.target.value)}>
+                {VISA_PASSPORTS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <input className="visa-search" placeholder="Search destination..." value={visaSearch} onChange={e => setVisaSearch(e.target.value)} />
+              {groups.map(g => {
+                const items = entries.filter(e => e.type === g.key);
+                if (items.length === 0) return null;
+                return (
+                  <div key={g.key} className="visa-group">
+                    <div className="visa-group-header">
+                      <div className="visa-group-dot" style={{ background: g.color }} />
+                      <span className="visa-group-label" style={{ color: g.color }}>{g.label}</span>
+                      <span className="visa-group-count">{items.length}</span>
+                    </div>
+                    <div className="visa-list">
+                      {items.sort((a, b) => a.country.localeCompare(b.country)).map(item => (
+                        <div key={item.country} className="visa-item">
+                          <span className="visa-item-country">{item.country}</span>
+                          {item.days && <span className="visa-item-days">{item.days}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {entries.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 0', fontFamily: 'DM Mono, monospace', fontSize: 11, color: '#222', letterSpacing: '0.2em' }}>
+                  {visaSearch ? 'No matching destinations' : 'No data available for this passport'}
+                </div>
+              )}
+              <div className="visa-disclaimer">
+                This is a general reference only. Requirements change frequently and may vary based on purpose of travel, length of stay, and entry point. Always verify with the destination country's embassy or consulate before traveling.
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </>
     </PageReveal>
