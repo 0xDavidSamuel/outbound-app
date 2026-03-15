@@ -106,7 +106,9 @@ export default function PassportPage() {
   const [editingBio, setEditingBio]       = useState(false);
   const [bioText, setBioText]             = useState('');
   const [addingCountry, setAddingCountry] = useState(false);
-  const [search, setSearch]               = useState('');
+  const [stampDetecting, setStampDetecting] = useState(false);
+  const [stampDetected, setStampDetected]   = useState<{ code: string; name: string } | null>(null);
+  const [stampError, setStampError]         = useState('');
   const [page, setPage]                   = useState(0);
   const [token, setToken]                 = useState('');
   const [userId, setUserId]               = useState('');
@@ -207,12 +209,43 @@ export default function PassportPage() {
     setProfile({ ...profile, current_vibe: vibe });
   };
 
-  const addCountry = async (code: string) => {
-    const updated = [...(profile.countries_visited || []), code];
+  const detectStampLocation = () => {
+    if (!navigator.geolocation) { setStampError('Geolocation not supported by your browser'); return; }
+    setStampDetecting(true);
+    setStampDetected(null);
+    setStampError('');
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          const data = await res.json();
+          const cc = data.address?.country_code?.toUpperCase();
+          if (!cc) { setStampError('Could not determine your country'); setStampDetecting(false); return; }
+          const name = COUNTRY_NAMES[cc] || data.address?.country || cc;
+          if ((profile?.countries_visited || []).includes(cc)) {
+            setStampError(`You already have a stamp for ${name}`);
+            setStampDetecting(false);
+            return;
+          }
+          setStampDetected({ code: cc, name });
+        } catch { setStampError('Location lookup failed — try again'); }
+        setStampDetecting(false);
+      },
+      () => { setStampError('Location access denied — enable location services to stamp'); setStampDetecting(false); }
+    );
+  };
+
+  const confirmStamp = async () => {
+    if (!stampDetected) return;
+    const updated = [...(profile.countries_visited || []), stampDetected.code];
     await dbPatch({ countries_visited: updated });
     setProfile({ ...profile, countries_visited: updated });
     setAddingCountry(false);
-    setSearch('');
+    setStampDetected(null);
+    setStampError('');
   };
 
   const removeCountry = async (code: string) => {
@@ -311,9 +344,6 @@ export default function PassportPage() {
   const earnedBadges = getEarnedBadges(profile);
   const countries    = profile?.countries_visited || [];
   const mrzLines     = mrz(profile?.full_name || profile?.username || '', profile?.id?.slice(0,8) || '');
-  const filtered     = Object.entries(COUNTRY_NAMES).filter(([code, name]) =>
-    !countries.includes(code) && name.toLowerCase().includes(search.toLowerCase())
-  );
   const PAGES = ['IDENTITY', 'STAMPS', 'BADGES', 'STATUS'];
 
   return (
@@ -388,12 +418,6 @@ export default function PassportPage() {
         .pp-stamps-empty { grid-column: 1/-1; text-align: center; padding: 56px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: #1e1e1e; letter-spacing: 0.2em; border: 1px dashed #141414; border-radius: 4px; }
         .pp-add-btn { margin-top: 18px; font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #e8553a; background: rgba(232,85,58,0.05); border: 1px solid rgba(232,85,58,0.15); border-radius: 2px; padding: 8px 18px; cursor: pointer; transition: all 0.2s; display: inline-block; }
         .pp-add-btn:hover { background: rgba(232,85,58,0.1); border-color: rgba(232,85,58,0.35); }
-        .pp-search { background: #111; border: 1px solid #1e1e1e; border-radius: 3px; padding: 8px 12px; font-family: 'DM Mono', monospace; font-size: 11px; color: #ccc; outline: none; width: 100%; margin-top: 12px; margin-bottom: 8px; transition: border-color 0.2s; }
-        .pp-search:focus { border-color: #555; }
-        .pp-search::placeholder { color: #444; }
-        .pp-results { display: flex; flex-wrap: wrap; gap: 5px; max-height: 150px; overflow-y: auto; }
-        .pp-opt { display: flex; align-items: center; gap: 4px; background: #111; border: 1px solid #1a1a1a; border-radius: 2px; padding: 4px 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 9.5px; color: #555; transition: all 0.12s; }
-        .pp-opt:hover { border-color: rgba(232,85,58,0.3); color: #ccc; }
         .pp-badge-list { display: flex; flex-direction: column; gap: 8px; }
         .pp-badge-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #141414; border-radius: 3px; background: rgba(255,255,255,0.01); transition: border-color 0.15s; }
         .pp-badge-row.earned { border-color: rgba(232,85,58,0.15); background: rgba(232,85,58,0.03); }
@@ -518,7 +542,7 @@ export default function PassportPage() {
 
               {page===1 && <>
                 {countries.length===0
-                  ? <div className="pp-stamps-grid"><div className="pp-stamps-empty">no entry stamps yet<br/>add the countries you've visited</div></div>
+                  ? <div className="pp-stamps-grid"><div className="pp-stamps-empty">no entry stamps yet<br/>travel to a country and stamp your passport</div></div>
                   : <div className="pp-stamps-grid">
                       {countries.map((code:string,i:number)=>{
                         const clr=stampColor(code); const tilt=((i*137)%16)-8;
@@ -534,19 +558,47 @@ export default function PassportPage() {
                       })}
                     </div>
                 }
-                <button className="pp-add-btn" onClick={()=>setAddingCountry(!addingCountry)}>
-                  {addingCountry?'✕  close':'+ add entry stamp'}
+                <button className="pp-add-btn" onClick={() => {
+                  if (addingCountry) {
+                    setAddingCountry(false); setStampDetected(null); setStampError('');
+                  } else {
+                    setAddingCountry(true); detectStampLocation();
+                  }
+                }}>
+                  {addingCountry ? '✕  close' : '+ add entry stamp'}
                 </button>
-                {addingCountry && <>
-                  <input className="pp-search" placeholder="Search country..." value={search} onChange={e=>setSearch(e.target.value)} autoFocus/>
-                  <div className="pp-results">
-                    {filtered.slice(0,40).map(([code,name])=>(
-                      <div key={code} className="pp-opt" onClick={()=>addCountry(code)}>
-                        <span>{COUNTRY_EMOJIS[code]||'🏳'}</span><span>{name}</span>
+                {addingCountry && (
+                  <div style={{ marginTop: 14, background: '#111', border: '1px solid #1a1a1a', borderRadius: 8, padding: 16 }}>
+                    {stampDetecting && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 14, height: 14, border: '2px solid #1a1a1a', borderTop: '2px solid #e8553a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#555', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Detecting your location...</span>
                       </div>
-                    ))}
+                    )}
+                    {stampError && (
+                      <div>
+                        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#ff6b6b', letterSpacing: '0.1em', marginBottom: 10 }}>{stampError}</div>
+                        <button className="pp-btn-ghost" onClick={detectStampLocation}>Try again</button>
+                      </div>
+                    )}
+                    {stampDetected && (
+                      <div>
+                        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#555', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>You're in:</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                          <span style={{ fontSize: 32 }}>{COUNTRY_EMOJIS[stampDetected.code] || '🏳'}</span>
+                          <div>
+                            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 24, color: '#fff', lineHeight: 1 }}>{stampDetected.name}</div>
+                            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8553a', letterSpacing: '0.15em', marginTop: 2 }}>{stampDetected.code}</div>
+                          </div>
+                        </div>
+                        <div className="pp-row-btns">
+                          <button className="pp-btn-y" onClick={confirmStamp}>Stamp My Passport</button>
+                          <button className="pp-btn-ghost" onClick={() => { setAddingCountry(false); setStampDetected(null); }}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </>}
+                )}
               </>}
 
               {page===2 && (
