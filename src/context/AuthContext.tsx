@@ -61,10 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async () => {
     setLoading(true);
-    // Safety timeout — reset loading after 30s if nothing happens
     const timeout = setTimeout(() => setLoading(false), 30000);
     try {
-      const { createWeb3Auth } = await import('@/lib/web3auth');
+      const { createWeb3Auth, getWalletAddress } = await import('@/lib/web3auth');
       const web3auth = await createWeb3Auth();
 
       // If stale connected instance from previous session, disconnect first
@@ -73,7 +72,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       await web3auth.connect();
-      // On success Web3Auth redirects — loading stays true intentionally
+
+      // v10 popup mode — connect() resolves here, handle post-login directly
+      if (!web3auth.connected) {
+        setLoading(false);
+        clearTimeout(timeout);
+        return;
+      }
+
+      const [userInfo, walletAddress] = await Promise.all([
+        web3auth.getUserInfo(),
+        getWalletAddress(web3auth),
+      ]);
+
+      const idToken = (userInfo as any).idToken ?? '';
+      if (!walletAddress) throw new Error('No wallet address');
+
+      // Create/find Supabase user via our API
+      const res = await fetch('/api/auth/web3auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, walletAddress, userInfo }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Auth failed');
+      if (!data.actionLink) throw new Error('No action link returned');
+
+      clearTimeout(timeout);
+      // Redirect to Supabase magic link — sets session then goes to /auth/session → /passport or /onboarding
+      window.location.href = data.actionLink;
+
     } catch (err: any) {
       clearTimeout(timeout);
       const msg = err?.message || '';
