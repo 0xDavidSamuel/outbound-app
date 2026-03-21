@@ -1,54 +1,49 @@
-import { Web3Auth } from '@web3auth/modal';
-import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
-import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
-import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
-import { UX_MODE } from '@web3auth/openlogin-adapter';
+import { Web3Auth, WEB3AUTH_NETWORK, WALLET_CONNECTORS } from '@web3auth/modal';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!;
 
-const chainConfig = {
-  chainNamespace: CHAIN_NAMESPACES.EIP155,
-  chainId: '0x2105',
-  rpcTarget: 'https://mainnet.base.org',
-  displayName: 'Base',
-  blockExplorerUrl: 'https://basescan.org',
-  ticker: 'ETH',
-  tickerName: 'Ethereum',
-};
+let instance: Web3Auth | null = null;
 
 export async function createWeb3Auth() {
-  
+  // Reuse existing instance if already initialized
+  if (instance) return instance;
 
-  const privateKeyProvider = new EthereumPrivateKeyProvider({
-    config: { chainConfig },
-  });
-
-  const instance = new Web3Auth({
+  instance = new Web3Auth({
     clientId: CLIENT_ID,
     web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-    privateKeyProvider: privateKeyProvider as any,
     uiConfig: {
       appName: 'Outbound',
       mode: 'dark',
       theme: { primary: '#e8ff47', onPrimary: '#080808' },
       loginMethodsOrder: ['google', 'email_passwordless'],
     },
-  });
-
-  const openloginAdapter = new OpenloginAdapter({
-    adapterSettings: {
-      // REDIRECT MODE — same as RemiliaVillage, no popup, no iframe issues
-      uxMode: UX_MODE.REDIRECT,
-      redirectUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
-      whiteLabel: {
-        appName: 'Outbound',
-        theme: { primary: '#e8ff47' },
+    modalConfig: {
+      connectors: {
+        [WALLET_CONNECTORS.AUTH]: {
+          label: 'auth',
+          showOnModal: true,
+          loginMethods: {
+            google: { name: 'Google', showOnModal: true },
+            email_passwordless: { name: 'Email', showOnModal: true },
+            facebook: { name: 'Facebook', showOnModal: false },
+            twitter: { name: 'Twitter', showOnModal: false },
+            reddit: { name: 'Reddit', showOnModal: false },
+            discord: { name: 'Discord', showOnModal: false },
+            twitch: { name: 'Twitch', showOnModal: false },
+            apple: { name: 'Apple', showOnModal: false },
+            line: { name: 'Line', showOnModal: false },
+            github: { name: 'GitHub', showOnModal: false },
+            linkedin: { name: 'LinkedIn', showOnModal: false },
+            farcaster: { name: 'Farcaster', showOnModal: false },
+            sms_passwordless: { name: 'SMS', showOnModal: false },
+          },
+        },
       },
+      hideWalletDiscovery: true, // hide external wallet options
     },
   });
 
-  instance.configureAdapter(openloginAdapter);
-  await instance.initModal();
+  await instance.init();
   return instance;
 }
 

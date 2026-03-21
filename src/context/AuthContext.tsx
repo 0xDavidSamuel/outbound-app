@@ -1,6 +1,4 @@
-// src/context/AuthContext.tsx
 'use client';
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { getSession, clearSession } from '@/lib/session';
 
@@ -63,10 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async () => {
     setLoading(true);
-
     // Safety timeout — reset loading after 30s if nothing happens
     const timeout = setTimeout(() => setLoading(false), 30000);
-
     try {
       const { createWeb3Auth } = await import('@/lib/web3auth');
       const web3auth = await createWeb3Auth();
@@ -85,7 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         msg.includes('redirect') ||
         msg.includes('user closed') ||
         msg.includes('Modal is already open') ||
-        msg.includes('User closed the modal')
+        msg.includes('User closed the modal') ||
+        msg.includes('user_cancelled')
       ) {
         setLoading(false);
         return;
