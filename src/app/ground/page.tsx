@@ -221,7 +221,6 @@ export default function GroundPage() {
   const [joined, setJoined] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'home' | { country: Community } | { city: string; country: string }>('home');
-  const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [profileBubble, setProfileBubble] = useState<any>(null);
   const [bubbleLoading, setBubbleLoading] = useState(false);
@@ -281,7 +280,6 @@ export default function GroundPage() {
   const globalPosts = useMemo(() => { let list = posts; if (filter !== 'All') list = list.filter(p => p.type === filterMap[filter]); return list.slice(0, 40); }, [posts, filter]);
   const cityPosts = useMemo(() => { if (typeof view !== 'object' || !('city' in view)) return []; return posts.filter(p => p.city?.toLowerCase() === (view as any).city.toLowerCase()).slice(0, 40); }, [posts, view]);
   const countryPosts = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; return posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).slice(0, 40); }, [posts, view]);
-  const filteredCommunities = useMemo(() => { if (!search) return communities; const q = search.toLowerCase(); return communities.filter(c => c.name.toLowerCase().includes(q) || c.country.toLowerCase().includes(q)); }, [communities, search]);
   const citiesInCountry = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; const fromPosts = new Set(posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).map(p => p.city).filter(Boolean)); return [...fromPosts].sort() as string[]; }, [view, posts]);
   const currentCityScore = useMemo(() => { if (typeof view !== 'object' || !('city' in view)) return null; return cityScores.find(c => c.name.toLowerCase().includes((view as any).city.toLowerCase())) || null; }, [view, cityScores]);
 
@@ -304,9 +302,22 @@ export default function GroundPage() {
           .g-title em { color: #e8553a; font-style: normal; }
           .g-back { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: #444; background: none; border: none; cursor: pointer; text-transform: uppercase; margin-bottom: 20px; padding: 0; }
           .g-back:hover { color: #888; }
-          .g-search { width: 100%; background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-          .g-search input { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; }
-          .g-search input::placeholder { color: #2a2a2a; }
+          .g-cities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 32px; }
+          .g-city-browse { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; display: flex; flex-direction: column; }
+          .g-city-browse:hover { border-color: #2a2a2a; transform: translateY(-2px); }
+          .g-city-browse-img { position: relative; height: 130px; overflow: hidden; background: #111; }
+          .g-city-browse-img img { width: 100%; height: 100%; object-fit: cover; }
+          .g-city-browse-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: rgba(232,85,58,0.06); letter-spacing: 0.1em; background: linear-gradient(135deg, #0e0e0e, #111); }
+          .g-city-browse-rank { position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; background: rgba(8,8,8,0.8); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; color: #888; }
+          .g-city-browse-score { position: absolute; bottom: 8px; left: 8px; background: rgba(8,8,8,0.85); border-radius: 6px; padding: 3px 7px; font-family: 'DM Mono', monospace; font-size: 10px; color: #e8553a; }
+          .g-city-browse-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+          .g-city-browse-name { font-size: 14px; font-weight: 500; color: #fff; }
+          .g-city-browse-scores { display: flex; flex-direction: column; gap: 4px; }
+          .g-city-browse-score-row { display: flex; align-items: center; }
+          .g-city-browse-score-label { font-family: 'DM Mono', monospace; font-size: 8px; color: #333; letter-spacing: 0.1em; text-transform: uppercase; width: 42px; flex-shrink: 0; }
+          .g-city-browse-bar { flex: 1; height: 2px; background: #111; margin: 0 8px; border-radius: 2px; overflow: hidden; }
+          .g-city-browse-fill { height: 100%; border-radius: 2px; }
+          .g-city-browse-score-val { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; width: 28px; text-align: right; flex-shrink: 0; }
           .g-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
           .g-filter { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; border: 1px solid #1a1a1a; color: #444; cursor: pointer; background: transparent; transition: all 0.2s; }
           .g-filter:hover { color: #888; border-color: #333; }
@@ -377,7 +388,7 @@ export default function GroundPage() {
           .g-loading { display: flex; flex-direction: column; align-items: center; padding: 60px 0; gap: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #333; letter-spacing: 0.2em; }
           .g-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.2s ease-in-out infinite; }
           @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
-          @media (max-width: 600px) { .g-page { padding: 64px 16px 140px; } .g-grid { grid-template-columns: 1fr 1fr; } .g-stats { grid-template-columns: 1fr 1fr; } }
+          @media (max-width: 600px) { .g-page { padding: 64px 16px 140px; } .g-grid { grid-template-columns: 1fr 1fr; } .g-cities-grid { grid-template-columns: 1fr 1fr; } .g-stats { grid-template-columns: 1fr 1fr; } }
         `}</style>
 
         <div className="g-page">
@@ -385,29 +396,46 @@ export default function GroundPage() {
           {view === 'home' && <>
             <p className="g-eyebrow">Real-time · Local · Global</p>
             <h1 className="g-title">On the<br /><em>ground.</em></h1>
-            <div className="g-search">
-              <span style={{ fontSize: 14, color: '#333' }}>🔍</span>
-              <input placeholder="Search a country or city..." value={search} onChange={e => setSearch(e.target.value)} />
+            {userId && <ComposeBox userProfile={userProfile} onPost={handlePost} />}
+            <div className="g-filters">
+              {['All', 'Moments', 'Tips', 'Questions', 'Looking For'].map(f => (
+                <button key={f} className={`g-filter${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
+              ))}
             </div>
-            {!search && userId && <ComposeBox userProfile={userProfile} onPost={handlePost} />}
-            {!search && <>
-              <div className="g-filters">
-                {['All', 'Moments', 'Tips', 'Questions', 'Looking For'].map(f => (
-                  <button key={f} className={`g-filter${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
-                ))}
-              </div>
-              <div className="g-section">Recent<div className="g-section-line" /></div>
-              {loading ? <div className="g-loading"><div className="g-dot" />loading...</div> : renderPostList(globalPosts, 'no posts yet. be the first to share.')}
-              <div className="g-section" style={{ marginTop: 32 }}>Browse communities<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{communities.length}</span></div>
-            </>}
-            {search && <div className="g-section">Results<div className="g-section-line" /></div>}
-            <div className="g-grid">
-              {filteredCommunities.slice(0, search ? 60 : 30).map(c => (
-                <div key={c.slug} className={`g-country-card${joined.includes(c.slug) ? ' joined' : ''}`} onClick={() => { setView({ country: c }); setSearch(''); }}>
-                  <span className="g-country-flag">{c.emoji}</span>
-                  <div className="g-country-name">{c.name}</div>
-                  <div className="g-country-meta">{c.member_count > 0 ? `${c.member_count} members` : 'Be first'}</div>
-                  <div className="g-country-arrow">Enter →</div>
+            <div className="g-section">Recent<div className="g-section-line" /></div>
+            {loading ? <div className="g-loading"><div className="g-dot" />loading...</div> : renderPostList(globalPosts, 'no posts yet. be the first to share.')}
+
+            <div className="g-section" style={{ marginTop: 32 }}>Browse cities<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{cityScores.length} cities</span></div>
+            <div className="g-cities-grid">
+              {cityScores.slice(0, 30).map((city, i) => (
+                <div key={city.slug} className="g-city-browse" onClick={() => {
+                  const name = city.name;
+                  const parts = name.split(',');
+                  const cityName = parts[0]?.trim() || name;
+                  const countryName = parts[1]?.trim() || '';
+                  setView({ city: cityName, country: countryName });
+                }}>
+                  <div className="g-city-browse-img">
+                    {city.image ? <img src={city.image} alt={city.name} /> : <div className="g-city-browse-placeholder">{city.name.slice(0,2).toUpperCase()}</div>}
+                    <div className="g-city-browse-rank">{i + 1}</div>
+                    {city.overall && <div className="g-city-browse-score">★ {(city.overall / 10).toFixed(1)}</div>}
+                  </div>
+                  <div className="g-city-browse-body">
+                    <div className="g-city-browse-name">{city.name}</div>
+                    <div className="g-city-browse-scores">
+                      {['Internet Access', 'Cost of Living', 'Safety'].map(key => {
+                        const val = city.scores[key];
+                        if (!val) return null;
+                        return (
+                          <div key={key} className="g-city-browse-score-row">
+                            <span className="g-city-browse-score-label">{SCORE_LABELS[key] || key}</span>
+                            <div className="g-city-browse-bar"><div className="g-city-browse-fill" style={{ width: `${val * 10}%`, background: scoreColor(val) }} /></div>
+                            <span className="g-city-browse-score-val" style={{ color: scoreColor(val) }}>{val.toFixed(1)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
