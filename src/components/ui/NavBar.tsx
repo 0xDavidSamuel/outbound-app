@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 const NAV_ITEMS = [
   { label: 'Passport',  href: '/passport',  icon: '◉' },
+  { label: 'Ground',    href: '/ground',    icon: '⚑' },
   { label: 'Cities',    href: '/cities',    icon: '⬡' },
   { label: 'Stays',     href: '/stays',     icon: '⌂' },
   { label: 'Feed',      href: '/feed',      icon: '≡' },
@@ -80,12 +81,12 @@ export default function NavBar() {
         .nav-avatar:hover { border-color: #e8553a; }
         .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .nav-signout { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: #2a2a2a; text-transform: uppercase; background: none; border: none; cursor: pointer; transition: color 0.2s; padding: 0 2px; }
-        .nav-signout:hover { color: #666; }
+        .nav-signout:hover { color: #555; }
         .nav-pill-wrapper { width: 100%; max-width: 720px; padding: 0 16px; pointer-events: all; opacity: 0; transform: translateY(24px); transition: opacity 0.5s ease 0.15s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s; }
         .nav-shell.nav-revealed .nav-pill-wrapper { opacity: 1; transform: translateY(0); }
         .nav-pill { display: flex; align-items: center; gap: 2px; background: rgba(10,10,10,0.92); border: 1px solid #161616; border-radius: 40px; padding: 5px 6px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0,0,0,0.7); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .nav-pill::-webkit-scrollbar { display: none; }
-        .nav-item { display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 32px; cursor: pointer; transition: background 0.18s, color 0.18s; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; color: #777; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+        .nav-item { display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 32px; cursor: pointer; transition: background 0.18s, color 0.18s; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; color: #383838; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
         .nav-item:hover { color: #666; background: rgba(255,255,255,0.03); }
         .nav-item.active { color: #080808; background: #e8553a; }
         .nav-item.store { color: #e8553a; }
