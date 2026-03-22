@@ -7,10 +7,7 @@ import { useEffect, useState } from 'react';
 const NAV_ITEMS = [
   { label: 'Passport',  href: '/passport',  icon: '◉' },
   { label: 'Ground',    href: '/ground',    icon: '⚑' },
-  { label: 'Cities',    href: '/cities',    icon: '⬡' },
   { label: 'Stays',     href: '/stays',     icon: '⌂' },
-  { label: 'Feed',      href: '/feed',      icon: '≡' },
-  { label: 'Community', href: '/community', icon: '◈' },
   { label: 'Events',    href: '/events',    icon: '◇' },
   { label: 'Jobs',      href: '/jobs',      icon: '□' },
   { label: 'Tools',     href: '/tools',     icon: '⊞' },
