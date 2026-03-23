@@ -26,7 +26,7 @@ export default function HomePage() {
   useEffect(() => {
     (async () => {
       const session = await getSession();
-      if (session) { window.location.href = '/passport'; return; }
+      if (session) { window.location.href = '/ground'; return; }
     })();
     const t = setTimeout(() => setRevealed(true), 80);
     return () => clearTimeout(t);
@@ -34,7 +34,7 @@ export default function HomePage() {
 
   const handleJoin = async () => {
     const session = await getSession();
-    if (session) { window.location.href = '/passport'; return; }
+    if (session) { window.location.href = '/ground'; return; }
     login();
   };
 

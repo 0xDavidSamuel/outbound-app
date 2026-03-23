@@ -192,7 +192,7 @@ export default function OnboardingPage() {
     if (!res.ok) {
       console.error('[onboarding] patch failed', res.status, await res.text());
     }
-    window.location.href = '/passport';
+    window.location.href = '/ground';
   };
 
   const walletShort = profile?.wallet_address

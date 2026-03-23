@@ -36,8 +36,8 @@ const POST_TYPES = [
 ];
 
 const SCORE_LABELS: Record<string, string> = {
-  'Internet Access': 'WiFi', 'Cost of Living': 'Cost', 'Safety': 'Safety',
-  'Outdoors & Adventure': 'Outdoors', 'Startup Culture': 'Startups',
+  'Culture & Entertainment': 'Culture', 'Outdoors & Adventure': 'Outdoors', 'Safety': 'Safety',
+  'Internet Access': 'WiFi', 'Cost of Living': 'Cost', 'Startup Culture': 'Startups',
 };
 
 function timeAgo(date: string) {
@@ -405,7 +405,7 @@ export default function GroundPage() {
             <div className="g-section">Recent<div className="g-section-line" /></div>
             {loading ? <div className="g-loading"><div className="g-dot" />loading...</div> : renderPostList(globalPosts, 'no posts yet. be the first to share.')}
 
-            <div className="g-section" style={{ marginTop: 32 }}>Browse cities<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{cityScores.length} cities</span></div>
+            <div className="g-section" style={{ marginTop: 32 }}>Browse communities<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{cityScores.length} cities</span></div>
             <div className="g-cities-grid">
               {cityScores.slice(0, 30).map((city, i) => (
                 <div key={city.slug} className="g-city-browse" onClick={() => {
@@ -423,7 +423,7 @@ export default function GroundPage() {
                   <div className="g-city-browse-body">
                     <div className="g-city-browse-name">{city.name}</div>
                     <div className="g-city-browse-scores">
-                      {['Internet Access', 'Cost of Living', 'Safety'].map(key => {
+                      {['Culture & Entertainment', 'Outdoors & Adventure', 'Safety'].map(key => {
                         const val = city.scores[key];
                         if (!val) return null;
                         return (
