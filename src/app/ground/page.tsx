@@ -321,9 +321,10 @@ function ComposeBox({ userProfile, city, country, onPost }: {
 }
 
 // ── Profile Bubble — Mini Passport ──────────────────────────────────────────
-function ProfileBubble({ profile, loading, onClose, onSignal }: {
+function ProfileBubble({ profile, loading, onClose, onSignal, signalCounts }: {
   profile: any; loading: boolean; onClose: () => void;
   onSignal: (uid: string, message: string) => void;
+  signalCounts: Record<string, number>;
 }) {
   const [sent, setSent] = useState<string | null>(null);
 
@@ -333,9 +334,10 @@ function ProfileBubble({ profile, loading, onClose, onSignal }: {
   const type = TRAVELER_TYPES[profile.traveler_type] || null;
   const status = profile.current_vibe && STATUSES[profile.current_vibe] ? STATUSES[profile.current_vibe] : null;
   const sColor = (i: number) => ['#e8553a','#47d4ff','#ff8c47','#c847ff','#47ff8c','#f0ff6a'][i % 6];
-  const signals = profile.current_vibe && SIGNAL_ACTIONS[profile.current_vibe] ? SIGNAL_ACTIONS[profile.current_vibe] : DEFAULT_SIGNALS;
+  const signalOptions = profile.current_vibe && SIGNAL_ACTIONS[profile.current_vibe] ? SIGNAL_ACTIONS[profile.current_vibe] : DEFAULT_SIGNALS;
+  const totalSignals = Object.values(signalCounts).reduce((a, b) => a + b, 0);
 
-  const handleSignal = (label: string, emoji: string) => {
+  const doSignal = (label: string, emoji: string) => {
     if (profile.id) onSignal(profile.id, `${emoji} ${label}`);
     setSent(label); setTimeout(() => setSent(null), 2500);
   };
@@ -419,23 +421,35 @@ function ProfileBubble({ profile, loading, onClose, onSignal }: {
 
             {/* Quick Signals — contextual to their status */}
             <div style={{ borderTop:'1px solid #141414',paddingTop:12 }}>
-              <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:8 }}>
-                {status ? 'React to their status' : 'Send a signal'}
+              <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8 }}>
+                <span style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase' }}>
+                  {status ? 'React to their status' : 'Send a signal'}
+                </span>
+                {totalSignals > 0 && (
+                  <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#e8553a',letterSpacing:'0.1em' }}>
+                    {totalSignals} signal{totalSignals !== 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
               {sent ? (
                 <div style={{ fontFamily:'DM Mono, monospace',fontSize:10,color:'#47ff8c',textAlign:'center',padding:'10px 0',letterSpacing:'0.15em' }}>✓ Sent "{sent}"</div>
               ) : (
                 <div style={{ display:'flex',flexWrap:'wrap',gap:5 }}>
-                  {signals.map(s => (
-                    <button key={s.label} onClick={() => handleSignal(s.label, s.emoji)} style={{
-                      background:'rgba(255,255,255,0.03)',border:'1px solid #1a1a1a',borderRadius:6,padding:'7px 10px',
-                      fontFamily:'DM Mono, monospace',fontSize:9,color:'#888',cursor:'pointer',transition:'all 0.15s',
-                      display:'flex',alignItems:'center',gap:4,
-                    }}
-                    onMouseOver={e => { (e.target as HTMLElement).style.borderColor = '#333'; (e.target as HTMLElement).style.color = '#ccc'; }}
-                    onMouseOut={e => { (e.target as HTMLElement).style.borderColor = '#1a1a1a'; (e.target as HTMLElement).style.color = '#888'; }}
-                    >{s.emoji} {s.label}</button>
-                  ))}
+                  {signalOptions.map(s => {
+                    const key = `${s.emoji} ${s.label}`;
+                    const count = signalCounts[key] || 0;
+                    return (
+                      <button key={s.label} onClick={() => doSignal(s.label, s.emoji)} style={{
+                        background: count > 0 ? 'rgba(232,85,58,0.06)' : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${count > 0 ? 'rgba(232,85,58,0.2)' : '#1a1a1a'}`,
+                        borderRadius:6,padding:'7px 10px',
+                        fontFamily:'DM Mono, monospace',fontSize:9,color: count > 0 ? '#e8553a' : '#888',
+                        cursor:'pointer',transition:'all 0.15s',display:'flex',alignItems:'center',gap:4,
+                      }}>
+                        {s.emoji} {s.label}{count > 0 && <span style={{ fontSize:8,opacity:0.7,marginLeft:2 }}>({count})</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -522,20 +536,35 @@ export default function GroundPage() {
     setBubbleLoading(false);
   };
 
-  const handleSignal = async (targetUid: string, message: string) => {
-    if (!userId || !token) return;
-    try {
-      await rawPost('posts', token, {
-        user_id: userId, content: `@${profileBubble?.username || 'someone'} ${message}`,
-        type: 'moment', likes: [],
-        city: userProfile?.city?.split(',')[0]?.trim() || null,
-        country: userProfile?.city?.split(',')[1]?.trim() || null,
-      });
-    } catch {}
+  // Signals are lightweight — local state, not posts. Tracks per-user signal counts.
+  const [signals, setSignals] = useState<Record<string, Record<string, number>>>({});
+
+  const handleSignal = (targetUid: string, message: string) => {
+    setSignals(prev => {
+      const userSignals = { ...(prev[targetUid] || {}) };
+      userSignals[message] = (userSignals[message] || 0) + 1;
+      return { ...prev, [targetUid]: userSignals };
+    });
   };
 
   const filterMap: Record<string, string> = { Plans: 'plan', Now: 'moment', Intel: 'tip', Questions: 'question', 'Looking For': 'looking' };
-  const globalPosts = useMemo(() => { let list = posts; if (filter !== 'All') list = list.filter(p => p.type === filterMap[filter]); return list.slice(0, 40); }, [posts, filter]);
+  // Global feed: plans always show, other posts need engagement (3+ likes) or are recent tips/warnings
+  const globalPosts = useMemo(() => {
+    let list = posts;
+    if (filter !== 'All') {
+      list = list.filter(p => p.type === filterMap[filter]);
+    } else {
+      list = list.filter(p =>
+        p.type === 'plan' ||
+        p.type === 'warning' ||
+        p.likes.length >= 3 ||
+        (p.type === 'tip' && p.likes.length >= 1) ||
+        // Show recent posts (< 2 hours) regardless
+        (Date.now() - new Date(p.created_at).getTime() < 7200000)
+      );
+    }
+    return list.slice(0, 40);
+  }, [posts, filter]);
   const cityPosts = useMemo(() => { if (typeof view !== 'object' || !('city' in view)) return []; return posts.filter(p => p.city?.toLowerCase() === (view as any).city.toLowerCase()).slice(0, 40); }, [posts, view]);
   const countryPosts = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; return posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).slice(0, 40); }, [posts, view]);
   const citiesInCountry = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; const fromPosts = new Set(posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).map(p => p.city).filter(Boolean)); return [...fromPosts].sort() as string[]; }, [view, posts]);
@@ -811,7 +840,7 @@ export default function GroundPage() {
         </div>
       </>
     </PageReveal>
-    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onSignal={handleSignal} />
+    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onSignal={handleSignal} signalCounts={profileBubble?.id ? (signals[profileBubble.id] || {}) : {}} />
     </>
   );
 }
