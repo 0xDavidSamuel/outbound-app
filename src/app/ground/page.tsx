@@ -501,7 +501,25 @@ export default function GroundPage() {
       ]);
       setPosts(Array.isArray(postsData) ? postsData : []);
       setCommunities(Array.isArray(commData) ? commData : []);
-      setNearbyUsers(Array.isArray(activeUsers) ? activeUsers : []);
+      const nearby = Array.isArray(activeUsers) ? activeUsers : [];
+      setNearbyUsers(nearby);
+
+      // Batch-load signal counts for all active users
+      if (nearby.length > 0) {
+        try {
+          const uids = nearby.map((u: any) => u.id).join(',');
+          const allSignals = await rawGet(`signals?to_user_id=in.(${uids})&select=to_user_id,message`, tok);
+          if (Array.isArray(allSignals)) {
+            const grouped: Record<string, Record<string, number>> = {};
+            allSignals.forEach((s: any) => {
+              if (!grouped[s.to_user_id]) grouped[s.to_user_id] = {};
+              grouped[s.to_user_id][s.message] = (grouped[s.to_user_id][s.message] || 0) + 1;
+            });
+            setSignals(grouped);
+          }
+        } catch {}
+      }
+
       try { const res = await fetch('/api/cities'); const data = await res.json(); setCityScores(data.cities || []); } catch {}
       setLoading(false);
     })();
@@ -531,21 +549,41 @@ export default function GroundPage() {
     setLastBubbleId(uid);
     setBubbleLoading(true); setProfileBubble({ loading: true });
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=id,username,avatar_url,city,current_vibe,traveler_type,countries_visited,bio,created_at`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
-      const rows = await res.json(); setProfileBubble(rows?.[0] || null);
+      const [profileRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=id,username,avatar_url,city,current_vibe,traveler_type,countries_visited,bio,created_at`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } }),
+        loadSignalsFor(uid),
+      ]);
+      const rows = await profileRes.json(); setProfileBubble(rows?.[0] || null);
     } catch { setProfileBubble(null); }
     setBubbleLoading(false);
   };
 
-  // Signals are lightweight — local state, not posts. Tracks per-user signal counts.
+  // Signals — persisted in Supabase
   const [signals, setSignals] = useState<Record<string, Record<string, number>>>({});
 
-  const handleSignal = (targetUid: string, message: string) => {
+  const loadSignalsFor = async (uid: string) => {
+    try {
+      const rows = await rawGet(`signals?to_user_id=eq.${uid}&select=message`, token || SUPABASE_KEY);
+      if (!Array.isArray(rows)) return {};
+      const counts: Record<string, number> = {};
+      rows.forEach((r: any) => { counts[r.message] = (counts[r.message] || 0) + 1; });
+      setSignals(prev => ({ ...prev, [uid]: counts }));
+      return counts;
+    } catch { return {}; }
+  };
+
+  const handleSignal = async (targetUid: string, message: string) => {
+    if (!userId || !token) return;
+    // Optimistic update
     setSignals(prev => {
       const userSignals = { ...(prev[targetUid] || {}) };
       userSignals[message] = (userSignals[message] || 0) + 1;
       return { ...prev, [targetUid]: userSignals };
     });
+    // Persist
+    try {
+      await rawPost('signals', token, { from_user_id: userId, to_user_id: targetUid, message });
+    } catch {}
   };
 
   const filterMap: Record<string, string> = { Plans: 'plan', Now: 'moment', Intel: 'tip', Questions: 'question', 'Looking For': 'looking' };
