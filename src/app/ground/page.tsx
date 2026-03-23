@@ -28,7 +28,7 @@ interface CityScore {
 
 const POST_TYPES = [
   { key: 'plan',     label: '⚡ Plan',        color: '#f0ff6a', placeholder: "What's the plan? (e.g. Dinner at 8, Beach day tomorrow...)" },
-  { key: 'moment',   label: '📸 Now',          color: '#e8553a', placeholder: 'Share what you're doing right now...' },
+  { key: 'moment',   label: '📸 Now',          color: '#e8553a', placeholder: 'Share what youre doing right now...' },
   { key: 'tip',      label: '💡 Intel',        color: '#47d4ff', placeholder: 'Drop some local intel or a hidden gem...' },
   { key: 'question', label: '🙋 Ask',          color: '#ff8c47', placeholder: 'Ask the people on the ground...' },
   { key: 'looking',  label: '🔍 Looking For',  color: '#c847ff', placeholder: 'Looking for a gym buddy, coworking spot, roommate...' },
