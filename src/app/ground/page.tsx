@@ -431,27 +431,26 @@ function ProfileBubble({ profile, loading, onClose, onSignal, signalCounts }: {
                   </span>
                 )}
               </div>
-              {sent ? (
-                <div style={{ fontFamily:'DM Mono, monospace',fontSize:10,color:'#47ff8c',textAlign:'center',padding:'10px 0',letterSpacing:'0.15em' }}>✓ Sent "{sent}"</div>
-              ) : (
-                <div style={{ display:'flex',flexWrap:'wrap',gap:5 }}>
-                  {signalOptions.map(s => {
-                    const key = `${s.emoji} ${s.label}`;
-                    const count = signalCounts[key] || 0;
-                    return (
-                      <button key={s.label} onClick={() => doSignal(s.label, s.emoji)} style={{
-                        background: count > 0 ? 'rgba(232,85,58,0.06)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${count > 0 ? 'rgba(232,85,58,0.2)' : '#1a1a1a'}`,
-                        borderRadius:6,padding:'7px 10px',
-                        fontFamily:'DM Mono, monospace',fontSize:9,color: count > 0 ? '#e8553a' : '#888',
-                        cursor:'pointer',transition:'all 0.15s',display:'flex',alignItems:'center',gap:4,
-                      }}>
-                        {s.emoji} {s.label}{count > 0 && <span style={{ fontSize:8,opacity:0.7,marginLeft:2 }}>({count})</span>}
-                      </button>
-                    );
-                  })}
-                </div>
+              {sent && (
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#47ff8c',textAlign:'center',padding:'4px 0 6px',letterSpacing:'0.15em' }}>✓ Sent "{sent}"</div>
               )}
+              <div style={{ display:'flex',flexWrap:'wrap',gap:5 }}>
+                {signalOptions.map(s => {
+                  const key = `${s.emoji} ${s.label}`;
+                  const count = signalCounts[key] || 0;
+                  return (
+                    <button key={s.label} onClick={() => doSignal(s.label, s.emoji)} style={{
+                      background: count > 0 ? 'rgba(232,85,58,0.06)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${count > 0 ? 'rgba(232,85,58,0.2)' : '#1a1a1a'}`,
+                      borderRadius:6,padding:'7px 10px',
+                      fontFamily:'DM Mono, monospace',fontSize:9,color: count > 0 ? '#e8553a' : '#888',
+                      cursor:'pointer',transition:'all 0.15s',display:'flex',alignItems:'center',gap:4,
+                    }}>
+                      {s.emoji} {s.label}{count > 0 && <span style={{ fontSize:8,opacity:0.7,marginLeft:2 }}>({count})</span>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Footer */}
@@ -481,6 +480,7 @@ export default function GroundPage() {
   const [filter, setFilter] = useState('All');
   const [profileBubble, setProfileBubble] = useState<any>(null);
   const [bubbleLoading, setBubbleLoading] = useState(false);
+  const [lastBubbleId, setLastBubbleId]   = useState<string>('');
   const [nearbyUsers, setNearbyUsers] = useState<any[]>([]);
 
   useEffect(() => {
@@ -528,6 +528,7 @@ export default function GroundPage() {
   };
 
   const openProfile = async (uid: string) => {
+    setLastBubbleId(uid);
     setBubbleLoading(true); setProfileBubble({ loading: true });
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=id,username,avatar_url,city,current_vibe,traveler_type,countries_visited,bio,created_at`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
@@ -736,6 +737,11 @@ export default function GroundPage() {
                         </div>
                         <div className="g-nearby-name">@{u.username || '?'}</div>
                         {s && <div className="g-nearby-status">{s.icon} {s.label}</div>}
+                        {signals[u.id] && Object.values(signals[u.id]).reduce((a: number, b: number) => a + b, 0) > 0 && (
+                          <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,color:'#e8553a',letterSpacing:'0.1em' }}>
+                            {Object.values(signals[u.id]).reduce((a: number, b: number) => a + b, 0)} signal{Object.values(signals[u.id]).reduce((a: number, b: number) => a + b, 0) !== 1 ? 's' : ''}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -840,7 +846,7 @@ export default function GroundPage() {
         </div>
       </>
     </PageReveal>
-    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onSignal={handleSignal} signalCounts={profileBubble?.id ? (signals[profileBubble.id] || {}) : {}} />
+    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onSignal={handleSignal} signalCounts={lastBubbleId ? (signals[lastBubbleId] || {}) : {}} />
     </>
   );
 }

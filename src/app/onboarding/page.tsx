@@ -134,7 +134,14 @@ export default function OnboardingPage() {
     return () => clearTimeout(timer);
   }, [username, accessToken]);
 
-  useEffect(() => { setResolved(null); setCountryCode(null); setCountryName(null); setStampDone(false); }, [cityInput]);
+  // Only reset stamp when user manually edits the input — not when detection fills it
+  const [manualEdit, setManualEdit] = useState(false);
+  useEffect(() => {
+    if (manualEdit) {
+      setResolved(null); setCountryCode(null); setCountryName(null); setStampDone(false); setStampAnimating(false);
+      setManualEdit(false);
+    }
+  }, [manualEdit]);
 
   const detectLocation = () => {
     if (!navigator.geolocation) { setLocMsg('Geolocation not supported — enter location manually'); return; }
@@ -387,7 +394,7 @@ export default function OnboardingPage() {
               style={{ width: '100%', marginBottom: 8 }}
               placeholder="Or type: City, Country (e.g. Tokyo, Japan)"
               value={cityInput}
-              onChange={e => setCityInput(e.target.value)}
+              onChange={e => { setCityInput(e.target.value); setManualEdit(true); }}
               onBlur={geocodeManual}
             />
 
