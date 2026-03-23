@@ -341,7 +341,7 @@ function ProfileBubble({ profile, loading, onClose, onPoke }: {
         background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:14,width:300,maxHeight:'80vh',overflowY:'auto',
         fontFamily:'DM Sans, sans-serif',boxShadow:'0 12px 48px rgba(0,0,0,0.9)',
       }}>
-        <div style={{ background:'rgba(232,85,58,0.04)',borderBottom:'1px solid #1a1a1a',padding:'8px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:1,background:'#0d0d0d' }}>
+        <div style={{ background:'#0d0d0d',borderBottom:'1px solid #1a1a1a',padding:'8px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:1 }}>
           <span style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.4em',color:'#e8553a',textTransform:'uppercase' }}>Outbound Passport</span>
           <button onClick={onClose} style={{ background:'none',border:'none',color:'#444',cursor:'pointer',fontSize:14,lineHeight:1,padding:0 }}>×</button>
         </div>
