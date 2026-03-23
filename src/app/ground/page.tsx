@@ -52,11 +52,6 @@ const STATUSES: Record<string, { label: string; icon: string }> = {
   'just_landed':  { label: 'Just landed',          icon: '✈️' },
   'chilling':     { label: 'Taking it easy',       icon: '🌊' },
   'need_recs':    { label: 'Need recommendations', icon: '💡' },
-  // Legacy compat
-  'settling':     { label: 'Settling in',          icon: '🏠' },
-  'socializing':  { label: 'Down to meet up',      icon: '🤝' },
-  'moving':       { label: 'Just landed',          icon: '✈️' },
-  'recharging':   { label: 'Taking it easy',       icon: '🌊' },
 };
 
 function timeAgo(date: string) {
