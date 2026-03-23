@@ -5,11 +5,11 @@ import { clearSession, getSession } from '@/lib/session';
 import { useEffect, useState } from 'react';
 
 const NAV_ITEMS = [
-  { label: 'Passport',  href: '/passport',  icon: '◉' },
   { label: 'Ground',    href: '/ground',    icon: '⚑' },
-  { label: 'Stays',     href: '/stays',     icon: '⌂' },
   { label: 'Events',    href: '/events',    icon: '◇' },
   { label: 'Jobs',      href: '/jobs',      icon: '□' },
+  { label: 'Stays',     href: '/stays',     icon: '⌂' },
+  { label: 'Passport',  href: '/passport',  icon: '◉' },
   { label: 'Tools',     href: '/tools',     icon: '⊞' },
   { label: 'Map',       href: '/map',       icon: '◎' },
   { label: 'Store',     href: 'https://outboundwear.com', icon: '◻', external: true },

@@ -40,7 +40,7 @@ export default function SessionPage() {
       const rows = await res.json();
       const isNewUser = !rows?.[0]?.username;
 
-      window.location.href = isNewUser ? '/onboarding' : '/passport';
+      window.location.href = isNewUser ? '/onboarding' : '/ground';
     })();
   }, []);
 
