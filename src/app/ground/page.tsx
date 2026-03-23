@@ -423,9 +423,8 @@ export default function GroundPage() {
                   <div className="g-city-browse-body">
                     <div className="g-city-browse-name">{city.name}</div>
                     <div className="g-city-browse-scores">
-                      {['Culture & Entertainment', 'Outdoors & Adventure', 'Safety'].map(key => {
+                      {['Outdoors & Adventure', 'Culture & Entertainment', 'Safety', 'Internet Access', 'Cost of Living'].filter(key => city.scores[key]).slice(0, 3).map(key => {
                         const val = city.scores[key];
-                        if (!val) return null;
                         return (
                           <div key={key} className="g-city-browse-score-row">
                             <span className="g-city-browse-score-label">{SCORE_LABELS[key] || key}</span>
