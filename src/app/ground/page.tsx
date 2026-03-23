@@ -28,7 +28,7 @@ interface CityScore {
 
 const POST_TYPES = [
   { key: 'plan',     label: '⚡ Plan',        color: '#f0ff6a', placeholder: "What's the plan? (e.g. Dinner at 8, Beach day tomorrow...)" },
-  { key: 'moment',   label: '📸 Now',          color: '#e8553a', placeholder: 'Share what youre doing right now...' },
+  { key: 'moment',   label: '📸 Now',          color: '#e8553a', placeholder: 'Share what you're doing right now...' },
   { key: 'tip',      label: '💡 Intel',        color: '#47d4ff', placeholder: 'Drop some local intel or a hidden gem...' },
   { key: 'question', label: '🙋 Ask',          color: '#ff8c47', placeholder: 'Ask the people on the ground...' },
   { key: 'looking',  label: '🔍 Looking For',  color: '#c847ff', placeholder: 'Looking for a gym buddy, coworking spot, roommate...' },
@@ -61,6 +61,18 @@ const COUNTRY_EMOJIS: Record<string, string> = {
   'EG':'🇪🇬','GH':'🇬🇭','KE':'🇰🇪','MA':'🇲🇦','NZ':'🇳🇿','CH':'🇨🇭','AT':'🇦🇹','BE':'🇧🇪','DK':'🇩🇰','GR':'🇬🇷',
   'HR':'🇭🇷','CZ':'🇨🇿','HU':'🇭🇺','RO':'🇷🇴','GE':'🇬🇪','TW':'🇹🇼','MY':'🇲🇾','NP':'🇳🇵','KH':'🇰🇭','EC':'🇪🇨',
   'CR':'🇨🇷','PA':'🇵🇦','PE':'🇵🇪','CN':'🇨🇳',
+};
+
+const COUNTRY_NAMES: Record<string, string> = {
+  'US':'USA','GB':'UK','JP':'Japan','FR':'France','DE':'Germany','BR':'Brazil','MX':'Mexico',
+  'CA':'Canada','AU':'Australia','IN':'India','KR':'S. Korea','ES':'Spain','IT':'Italy',
+  'PT':'Portugal','NL':'Netherlands','SE':'Sweden','NO':'Norway','SG':'Singapore','AE':'UAE',
+  'AR':'Argentina','CL':'Chile','CO':'Colombia','PL':'Poland','TR':'Turkey','TH':'Thailand',
+  'VN':'Vietnam','ID':'Indonesia','PH':'Philippines','ZA':'S. Africa','NG':'Nigeria',
+  'EG':'Egypt','GH':'Ghana','KE':'Kenya','MA':'Morocco','NZ':'New Zealand','CH':'Switzerland',
+  'AT':'Austria','BE':'Belgium','DK':'Denmark','GR':'Greece','HR':'Croatia','CZ':'Czechia',
+  'HU':'Hungary','RO':'Romania','GE':'Georgia','TW':'Taiwan','MY':'Malaysia','NP':'Nepal',
+  'KH':'Cambodia','EC':'Ecuador','CR':'Costa Rica','PA':'Panama','PE':'Peru','CN':'China',
 };
 
 const TRAVELER_TYPES: Record<string, string> = {
@@ -294,23 +306,42 @@ function ComposeBox({ userProfile, city, country, onPost }: {
 }
 
 // ── Profile Bubble — Mini Passport ──────────────────────────────────────────
-function ProfileBubble({ profile, loading, onClose }: { profile: any; loading: boolean; onClose: () => void }) {
+function ProfileBubble({ profile, loading, onClose, onPoke }: {
+  profile: any; loading: boolean; onClose: () => void;
+  onPoke: (uid: string, message: string) => void;
+}) {
+  const [showNote, setShowNote] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [poked, setPoked] = useState(false);
+  const [noteSent, setNoteSent] = useState(false);
+
   if (!profile) return null;
-  const stamps = profile.countries_visited || [];
+  const stamps: string[] = profile.countries_visited || [];
   const badges = getEarnedBadgeIds(profile);
   const type = TRAVELER_TYPES[profile.traveler_type] || null;
   const status = profile.current_vibe && STATUSES[profile.current_vibe] ? STATUSES[profile.current_vibe] : null;
+  const sColor = (i: number) => ['#e8553a','#47d4ff','#ff8c47','#c847ff','#47ff8c','#f0ff6a'][i % 6];
+
+  const handlePoke = () => {
+    if (profile.id) onPoke(profile.id, '👋 poked you!');
+    setPoked(true); setTimeout(() => setPoked(false), 2000);
+  };
+  const handleNote = () => {
+    if (!noteText.trim() || !profile.id) return;
+    onPoke(profile.id, noteText.trim());
+    setNoteSent(true); setNoteText('');
+    setTimeout(() => { setNoteSent(false); setShowNote(false); }, 2000);
+  };
 
   return (
     <>
       <div onClick={onClose} style={{ position:'fixed',inset:0,zIndex:9998,background:'rgba(0,0,0,0.6)' }} />
       <div style={{
         position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:9999,
-        background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:14,width:280,
-        fontFamily:'DM Sans, sans-serif',boxShadow:'0 12px 48px rgba(0,0,0,0.9)',overflow:'hidden',
+        background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:14,width:300,maxHeight:'80vh',overflowY:'auto',
+        fontFamily:'DM Sans, sans-serif',boxShadow:'0 12px 48px rgba(0,0,0,0.9)',
       }}>
-        {/* Header bar */}
-        <div style={{ background:'rgba(232,85,58,0.04)',borderBottom:'1px solid #1a1a1a',padding:'8px 14px',display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+        <div style={{ background:'rgba(232,85,58,0.04)',borderBottom:'1px solid #1a1a1a',padding:'8px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:1,background:'#0d0d0d' }}>
           <span style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.4em',color:'#e8553a',textTransform:'uppercase' }}>Outbound Passport</span>
           <button onClick={onClose} style={{ background:'none',border:'none',color:'#444',cursor:'pointer',fontSize:14,lineHeight:1,padding:0 }}>×</button>
         </div>
@@ -319,7 +350,7 @@ function ProfileBubble({ profile, loading, onClose }: { profile: any; loading: b
           <div style={{ color:'#444',fontFamily:'DM Mono, monospace',fontSize:10,textAlign:'center',padding:'32px 0' }}>Loading...</div>
         ) : (
           <div style={{ padding:'16px' }}>
-            {/* Identity row */}
+            {/* Identity */}
             <div style={{ display:'flex',gap:12,alignItems:'center',marginBottom:14 }}>
               <div style={{ width:48,height:48,borderRadius:'50%',border:'2px solid #1a1a1a',background:'#111',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0 }}>
                 {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width:'100%',height:'100%',objectFit:'cover' }} /> : '✈️'}
@@ -343,50 +374,68 @@ function ProfileBubble({ profile, loading, onClose }: { profile: any; loading: b
               <div style={{ fontSize:11,color:'#555',lineHeight:1.5,fontWeight:300,marginBottom:12,fontStyle:'italic' }}>"{profile.bio}"</div>
             )}
 
-            {/* Stamps */}
-            {stamps.length > 0 && (
-              <div style={{ marginBottom:12 }}>
-                <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:6 }}>
-                  Stamps · {stamps.length} {stamps.length === 1 ? 'country' : 'countries'}
-                </div>
-                <div style={{ display:'flex',flexWrap:'wrap',gap:4 }}>
-                  {stamps.slice(0, 12).map((code: string) => (
-                    <span key={code} style={{ fontSize:18,lineHeight:1 }} title={code}>{COUNTRY_EMOJIS[code] || '🏳'}</span>
-                  ))}
-                  {stamps.length > 12 && <span style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#444',alignSelf:'center' }}>+{stamps.length - 12}</span>}
-                </div>
-              </div>
-            )}
-
             {/* Badges */}
             {badges.length > 0 && (
-              <div style={{ marginBottom:8 }}>
-                <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:6 }}>
-                  Distinctions · {badges.length}
-                </div>
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:6 }}>Badges</div>
                 <div style={{ display:'flex',flexWrap:'wrap',gap:4 }}>
                   {badges.map(id => {
-                    const b = BADGE_LABELS[id];
-                    if (!b) return null;
-                    return (
-                      <span key={id} style={{
-                        fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.08em',
-                        padding:'3px 7px',borderRadius:3,
-                        background:'rgba(232,85,58,0.06)',border:'1px solid rgba(232,85,58,0.15)',color:'#e8553a',
-                      }}>{b.icon} {b.label}</span>
-                    );
+                    const b = BADGE_LABELS[id]; if (!b) return null;
+                    return <span key={id} style={{ fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.08em',padding:'3px 7px',borderRadius:3,background:'rgba(232,85,58,0.06)',border:'1px solid rgba(232,85,58,0.15)',color:'#e8553a' }}>{b.icon} {b.label}</span>;
                   })}
                 </div>
               </div>
             )}
 
-            {/* Footer stats */}
-            <div style={{ borderTop:'1px solid #141414',paddingTop:10,marginTop:4,display:'flex',justifyContent:'space-between' }}>
-              <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#222',letterSpacing:'0.1em' }}>
-                {stamps.length} stamps · {badges.length} badges
-              </span>
-              <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#222',letterSpacing:'0.1em' }}>
-                {profile.created_at ? `Since ${new Date(profile.created_at).toLocaleDateString('en-US', { month:'short', year:'numeric' })}` : ''}
+            {/* Stamps — visual icons */}
+            <div style={{ marginBottom:14 }}>
+              <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:8 }}>
+                Stamps{stamps.length > 0 ? ` · ${stamps.length}` : ''}
+              </div>
+              {stamps.length > 0 ? (
+                <div style={{ display:'flex',flexWrap:'wrap',gap:6 }}>
+                  {stamps.slice(0, 16).map((code: string, i: number) => (
+                    <div key={code} style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'#111',border:'1px solid #1a1a1a',borderRadius:6,padding:'6px 4px',width:52 }}>
+                      <div style={{ width:28,height:28,borderRadius:'50%',border:`1.5px solid ${sColor(i)}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>{COUNTRY_EMOJIS[code] || '🏳'}</div>
+                      <span style={{ fontFamily:'DM Mono, monospace',fontSize:6,color:sColor(i),letterSpacing:'0.05em',textTransform:'uppercase',textAlign:'center',lineHeight:1.2 }}>{COUNTRY_NAMES[code] || code}</span>
+                    </div>
+                  ))}
+                  {stamps.length > 16 && <div style={{ display:'flex',alignItems:'center',justifyContent:'center',width:52,fontFamily:'DM Mono, monospace',fontSize:9,color:'#444' }}>+{stamps.length - 16}</div>}
+                </div>
+              ) : (
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#222',letterSpacing:'0.1em' }}>No stamps yet</div>
+              )}
+            </div>
+
+            {/* Interaction — Poke + Note */}
+            <div style={{ borderTop:'1px solid #141414',paddingTop:12,display:'flex',gap:6 }}>
+              <button onClick={handlePoke} disabled={poked} style={{
+                flex:1,background:poked?'rgba(232,85,58,0.08)':'rgba(232,85,58,0.05)',border:'1px solid rgba(232,85,58,0.15)',borderRadius:6,padding:'8px 0',
+                fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.1em',textTransform:'uppercase',color:poked?'#e8553a':'#888',cursor:poked?'default':'pointer',transition:'all 0.2s',
+              }}>{poked ? '👋 Poked!' : '👋 Poke'}</button>
+              <button onClick={() => setShowNote(!showNote)} style={{
+                flex:1,background:showNote?'rgba(71,212,255,0.08)':'rgba(71,212,255,0.05)',border:'1px solid rgba(71,212,255,0.15)',borderRadius:6,padding:'8px 0',
+                fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.1em',textTransform:'uppercase',color:showNote?'#47d4ff':'#888',cursor:'pointer',transition:'all 0.2s',
+              }}>💬 Note</button>
+            </div>
+            {showNote && (
+              <div style={{ marginTop:8 }}>
+                {noteSent ? (
+                  <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#47d4ff',textAlign:'center',padding:'8px 0',letterSpacing:'0.15em' }}>✓ Note sent!</div>
+                ) : (
+                  <div style={{ display:'flex',gap:6 }}>
+                    <input value={noteText} onChange={e => setNoteText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleNote()}
+                      placeholder="Say something..." autoFocus style={{ flex:1,background:'#111',border:'1px solid #1a1a1a',borderRadius:6,padding:'8px 10px',color:'#fff',fontFamily:'DM Mono, monospace',fontSize:10,outline:'none' }} />
+                    <button onClick={handleNote} disabled={!noteText.trim()} style={{ background:'#47d4ff',color:'#080808',border:'none',borderRadius:6,padding:'8px 12px',fontFamily:'DM Mono, monospace',fontSize:9,cursor:'pointer',fontWeight:500,opacity:noteText.trim()?1:0.4 }}>→</button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div style={{ marginTop:10,textAlign:'right' }}>
+              <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#1a1a1a',letterSpacing:'0.1em' }}>
+                {profile.created_at ? `Member since ${new Date(profile.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'})}` : ''}
               </span>
             </div>
           </div>
@@ -456,10 +505,23 @@ export default function GroundPage() {
   const openProfile = async (uid: string) => {
     setBubbleLoading(true); setProfileBubble({ loading: true });
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city,current_vibe,traveler_type,countries_visited,bio,created_at`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=id,username,avatar_url,city,current_vibe,traveler_type,countries_visited,bio,created_at`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
       const rows = await res.json(); setProfileBubble(rows?.[0] || null);
     } catch { setProfileBubble(null); }
     setBubbleLoading(false);
+  };
+
+  const handlePoke = async (targetUid: string, message: string) => {
+    if (!userId || !token) return;
+    // Create a post as a poke/note — tagged to the user
+    try {
+      await rawPost('posts', token, {
+        user_id: userId, content: `@${profileBubble?.username || 'someone'} ${message}`,
+        type: 'moment', likes: [],
+        city: userProfile?.city?.split(',')[0]?.trim() || null,
+        country: userProfile?.city?.split(',')[1]?.trim() || null,
+      });
+    } catch {}
   };
 
   const filterMap: Record<string, string> = { Plans: 'plan', Now: 'moment', Intel: 'tip', Questions: 'question', 'Looking For': 'looking' };
@@ -694,7 +756,7 @@ export default function GroundPage() {
         </div>
       </>
     </PageReveal>
-    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} />
+    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onPoke={handlePoke} />
     </>
   );
 }
