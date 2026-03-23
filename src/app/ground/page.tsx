@@ -376,6 +376,7 @@ export default function GroundPage() {
   );
 
   return (
+    <>
     <PageReveal>
       <>
         <style suppressHydrationWarning>{`
@@ -591,8 +592,9 @@ export default function GroundPage() {
           })()}
 
         </div>
-        <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} />
       </>
     </PageReveal>
+    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} />
+    </>
   );
 }
