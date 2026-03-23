@@ -54,6 +54,39 @@ const STATUSES: Record<string, { label: string; icon: string }> = {
   'need_recs':    { label: 'Need recommendations', icon: '💡' },
 };
 
+const COUNTRY_EMOJIS: Record<string, string> = {
+  'US':'🇺🇸','GB':'🇬🇧','JP':'🇯🇵','FR':'🇫🇷','DE':'🇩🇪','BR':'🇧🇷','MX':'🇲🇽','CA':'🇨🇦','AU':'🇦🇺','IN':'🇮🇳',
+  'KR':'🇰🇷','ES':'🇪🇸','IT':'🇮🇹','PT':'🇵🇹','NL':'🇳🇱','SE':'🇸🇪','NO':'🇳🇴','SG':'🇸🇬','AE':'🇦🇪','AR':'🇦🇷',
+  'CL':'🇨🇱','CO':'🇨🇴','PL':'🇵🇱','TR':'🇹🇷','TH':'🇹🇭','VN':'🇻🇳','ID':'🇮🇩','PH':'🇵🇭','ZA':'🇿🇦','NG':'🇳🇬',
+  'EG':'🇪🇬','GH':'🇬🇭','KE':'🇰🇪','MA':'🇲🇦','NZ':'🇳🇿','CH':'🇨🇭','AT':'🇦🇹','BE':'🇧🇪','DK':'🇩🇰','GR':'🇬🇷',
+  'HR':'🇭🇷','CZ':'🇨🇿','HU':'🇭🇺','RO':'🇷🇴','GE':'🇬🇪','TW':'🇹🇼','MY':'🇲🇾','NP':'🇳🇵','KH':'🇰🇭','EC':'🇪🇨',
+  'CR':'🇨🇷','PA':'🇵🇦','PE':'🇵🇪','CN':'🇨🇳',
+};
+
+const TRAVELER_TYPES: Record<string, string> = {
+  'nomad': 'Digital Nomad', 'expat': 'Expat', 'solo': 'Solo Traveler',
+  'remote': 'Remote Worker', 'explorer': 'Adventure Seeker', 'slow': 'Slow Traveler',
+};
+
+const BADGE_LABELS: Record<string, { icon: string; label: string }> = {
+  'founding_member': { icon: '⟐', label: 'Founding' },
+  'first_stamp':     { icon: '⊙', label: '1st Stamp' },
+  'globe_trotter':   { icon: '◉', label: 'Globe Trotter' },
+  'nomad_certified': { icon: '◈', label: 'Nomad Certified' },
+  'local_legend':    { icon: '⚑', label: 'Local Legend' },
+  'early_bird':      { icon: '◎', label: 'Early Bird' },
+};
+
+function getEarnedBadgeIds(profile: any): string[] {
+  const earned = ['founding_member', 'early_bird'];
+  const c = profile?.countries_visited || [];
+  if (c.length >= 1) earned.push('first_stamp');
+  if (c.length >= 5) earned.push('globe_trotter');
+  if (c.length >= 10) earned.push('nomad_certified');
+  if (profile?.lat && profile?.lng) earned.push('local_legend');
+  return earned;
+}
+
 function timeAgo(date: string) {
   const diff = Date.now() - new Date(date).getTime();
   const m = Math.floor(diff/60000), h = Math.floor(diff/3600000), d = Math.floor(diff/86400000);
@@ -260,34 +293,101 @@ function ComposeBox({ userProfile, city, country, onPost }: {
   );
 }
 
-// ── Profile Bubble ─────────────────────────────────────────────────────────
+// ── Profile Bubble — Mini Passport ──────────────────────────────────────────
 function ProfileBubble({ profile, loading, onClose }: { profile: any; loading: boolean; onClose: () => void }) {
   if (!profile) return null;
+  const stamps = profile.countries_visited || [];
+  const badges = getEarnedBadgeIds(profile);
+  const type = TRAVELER_TYPES[profile.traveler_type] || null;
+  const status = profile.current_vibe && STATUSES[profile.current_vibe] ? STATUSES[profile.current_vibe] : null;
+
   return (
     <>
-      <div onClick={onClose} style={{ position:'fixed',inset:0,zIndex:9998,background:'rgba(0,0,0,0.5)' }} />
-      <div style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:9999,background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:12,padding:16,width:240,fontFamily:'DM Sans, sans-serif',boxShadow:'0 8px 32px rgba(0,0,0,0.8)' }}>
-        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12 }}>
-          <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.3em',color:'#e8553a',textTransform:'uppercase' }}>Profile</span>
-          <button onClick={onClose} style={{ background:'none',border:'none',color:'#555',cursor:'pointer',fontSize:16,lineHeight:1,padding:0 }}>×</button>
+      <div onClick={onClose} style={{ position:'fixed',inset:0,zIndex:9998,background:'rgba(0,0,0,0.6)' }} />
+      <div style={{
+        position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:9999,
+        background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:14,width:280,
+        fontFamily:'DM Sans, sans-serif',boxShadow:'0 12px 48px rgba(0,0,0,0.9)',overflow:'hidden',
+      }}>
+        {/* Header bar */}
+        <div style={{ background:'rgba(232,85,58,0.04)',borderBottom:'1px solid #1a1a1a',padding:'8px 14px',display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+          <span style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.4em',color:'#e8553a',textTransform:'uppercase' }}>Outbound Passport</span>
+          <button onClick={onClose} style={{ background:'none',border:'none',color:'#444',cursor:'pointer',fontSize:14,lineHeight:1,padding:0 }}>×</button>
         </div>
+
         {loading ? (
-          <div style={{ color:'#444',fontFamily:'DM Mono, monospace',fontSize:10,textAlign:'center',padding:'12px 0' }}>Loading...</div>
+          <div style={{ color:'#444',fontFamily:'DM Mono, monospace',fontSize:10,textAlign:'center',padding:'32px 0' }}>Loading...</div>
         ) : (
-          <div style={{ display:'flex',gap:12,alignItems:'center' }}>
-            <div style={{ width:44,height:44,borderRadius:'50%',border:'1px solid #222',background:'#111',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0 }}>
-              {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width:'100%',height:'100%',objectFit:'cover' }} /> : '✈️'}
+          <div style={{ padding:'16px' }}>
+            {/* Identity row */}
+            <div style={{ display:'flex',gap:12,alignItems:'center',marginBottom:14 }}>
+              <div style={{ width:48,height:48,borderRadius:'50%',border:'2px solid #1a1a1a',background:'#111',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0 }}>
+                {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width:'100%',height:'100%',objectFit:'cover' }} /> : '✈️'}
+              </div>
+              <div style={{ flex:1,minWidth:0 }}>
+                <div style={{ fontSize:14,fontWeight:500,color:'#fff',marginBottom:2 }}>@{profile.username || 'traveler'}</div>
+                {profile.city && <div style={{ fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.15em',color:'#e8553a',textTransform:'uppercase' }}>📍 {profile.city}</div>}
+                {type && <div style={{ fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.1em',color:'#444',marginTop:2 }}>{type}</div>}
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize:13,fontWeight:500,color:'#fff',marginBottom:4 }}>@{profile.username || 'traveler'}</div>
-              {profile.city
-                ? <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#e8553a',textTransform:'uppercase' }}>📍 {profile.city}</div>
-                : <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#333',textTransform:'uppercase' }}>No location set</div>}
-              {profile.current_vibe && STATUSES[profile.current_vibe] && (
-                <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.1em',color:'#888',marginTop:4 }}>
-                  {STATUSES[profile.current_vibe].icon} {STATUSES[profile.current_vibe].label}
+
+            {/* Status */}
+            {status && (
+              <div style={{ background:'rgba(232,85,58,0.05)',border:'1px solid rgba(232,85,58,0.12)',borderRadius:6,padding:'6px 10px',marginBottom:12,fontFamily:'DM Mono, monospace',fontSize:10,color:'#ccc',display:'flex',alignItems:'center',gap:6 }}>
+                <span>{status.icon}</span> {status.label}
+              </div>
+            )}
+
+            {/* Bio */}
+            {profile.bio && (
+              <div style={{ fontSize:11,color:'#555',lineHeight:1.5,fontWeight:300,marginBottom:12,fontStyle:'italic' }}>"{profile.bio}"</div>
+            )}
+
+            {/* Stamps */}
+            {stamps.length > 0 && (
+              <div style={{ marginBottom:12 }}>
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:6 }}>
+                  Stamps · {stamps.length} {stamps.length === 1 ? 'country' : 'countries'}
                 </div>
-              )}
+                <div style={{ display:'flex',flexWrap:'wrap',gap:4 }}>
+                  {stamps.slice(0, 12).map((code: string) => (
+                    <span key={code} style={{ fontSize:18,lineHeight:1 }} title={code}>{COUNTRY_EMOJIS[code] || '🏳'}</span>
+                  ))}
+                  {stamps.length > 12 && <span style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#444',alignSelf:'center' }}>+{stamps.length - 12}</span>}
+                </div>
+              </div>
+            )}
+
+            {/* Badges */}
+            {badges.length > 0 && (
+              <div style={{ marginBottom:8 }}>
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:6 }}>
+                  Distinctions · {badges.length}
+                </div>
+                <div style={{ display:'flex',flexWrap:'wrap',gap:4 }}>
+                  {badges.map(id => {
+                    const b = BADGE_LABELS[id];
+                    if (!b) return null;
+                    return (
+                      <span key={id} style={{
+                        fontFamily:'DM Mono, monospace',fontSize:8,letterSpacing:'0.08em',
+                        padding:'3px 7px',borderRadius:3,
+                        background:'rgba(232,85,58,0.06)',border:'1px solid rgba(232,85,58,0.15)',color:'#e8553a',
+                      }}>{b.icon} {b.label}</span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Footer stats */}
+            <div style={{ borderTop:'1px solid #141414',paddingTop:10,marginTop:4,display:'flex',justifyContent:'space-between' }}>
+              <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#222',letterSpacing:'0.1em' }}>
+                {stamps.length} stamps · {badges.length} badges
+              </span>
+              <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#222',letterSpacing:'0.1em' }}>
+                {profile.created_at ? `Since ${new Date(profile.created_at).toLocaleDateString('en-US', { month:'short', year:'numeric' })}` : ''}
+              </span>
             </div>
           </div>
         )}
@@ -356,8 +456,8 @@ export default function GroundPage() {
   const openProfile = async (uid: string) => {
     setBubbleLoading(true); setProfileBubble({ loading: true });
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city,current_vibe`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
-      const rows = await res.json(); setProfileBubble(rows?.[0] || { username: null, avatar_url: null, city: null, current_vibe: null });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city,current_vibe,traveler_type,countries_visited,bio,created_at`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      const rows = await res.json(); setProfileBubble(rows?.[0] || null);
     } catch { setProfileBubble(null); }
     setBubbleLoading(false);
   };
