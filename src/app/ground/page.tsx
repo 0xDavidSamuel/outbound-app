@@ -36,8 +36,9 @@ const POST_TYPES = [
 ];
 
 const SCORE_LABELS: Record<string, string> = {
-  'Culture & Entertainment': 'Culture', 'Outdoors & Adventure': 'Outdoors', 'Safety': 'Safety',
-  'Internet Access': 'WiFi', 'Cost of Living': 'Cost', 'Startup Culture': 'Startups',
+  'Outdoors & Adventure': 'Outdoors', 'Safety': 'Safety', 'Travel Connectivity': 'Transit',
+  'Cost of Living': 'Cost', 'Internet Access': 'WiFi', 'Startup Culture': 'Startups',
+  'Culture & Entertainment': 'Culture', 'Healthcare': 'Health',
 };
 
 function timeAgo(date: string) {
@@ -423,7 +424,7 @@ export default function GroundPage() {
                   <div className="g-city-browse-body">
                     <div className="g-city-browse-name">{city.name}</div>
                     <div className="g-city-browse-scores">
-                      {['Outdoors & Adventure', 'Culture & Entertainment', 'Safety', 'Internet Access', 'Cost of Living'].filter(key => city.scores[key]).slice(0, 3).map(key => {
+                      {['Outdoors & Adventure', 'Safety', 'Travel Connectivity', 'Cost of Living', 'Internet Access'].filter(key => city.scores[key]).slice(0, 3).map(key => {
                         const val = city.scores[key];
                         return (
                           <div key={key} className="g-city-browse-score-row">
@@ -479,8 +480,8 @@ export default function GroundPage() {
                 <div className="g-section">City Stats<div className="g-section-line" /></div>
                 <div className="g-stats">
                   {currentCityScore.overall && <div className="g-stat"><div className="g-stat-label">Overall</div><div className="g-stat-value" style={{ color: '#e8553a' }}>★ {(currentCityScore.overall / 10).toFixed(1)}</div></div>}
-                  {Object.entries(currentCityScore.scores).slice(0, 5).map(([key, val]) => (
-                    <div key={key} className="g-stat"><div className="g-stat-label">{SCORE_LABELS[key] || key}</div><div className="g-stat-value" style={{ color: scoreColor(val) }}>{val.toFixed(1)}</div></div>
+                  {['Outdoors & Adventure', 'Safety', 'Travel Connectivity', 'Cost of Living', 'Internet Access', 'Healthcare', 'Startup Culture'].filter(k => currentCityScore.scores[k]).map(key => (
+                    <div key={key} className="g-stat"><div className="g-stat-label">{SCORE_LABELS[key] || key}</div><div className="g-stat-value" style={{ color: scoreColor(currentCityScore.scores[key]) }}>{currentCityScore.scores[key].toFixed(1)}</div></div>
                   ))}
                 </div>
               </>}
