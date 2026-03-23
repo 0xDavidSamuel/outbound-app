@@ -138,9 +138,10 @@ async function rawDelete(path: string, token: string) {
 }
 
 // ── Post Card ──────────────────────────────────────────────────────────────
-function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenProfile }: {
+function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenProfile, onNotify }: {
   post: Post; userId: string; token: string; userProfile: any;
   onLike: (post: Post) => void; onDelete: (id: string) => void; onOpenProfile: (uid: string) => void;
+  onNotify: (targetUid: string, type: string, message: string, postId?: string) => void;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText]   = useState('');
@@ -153,7 +154,15 @@ function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenPr
     if (!commentText.trim() || !userId) return;
     const rows = await rawPost('comments', token, { post_id: post.id, user_id: userId, content: commentText.trim() });
     const nc = rows?.[0];
-    if (nc) { nc.author = { username: userProfile?.username, avatar_url: userProfile?.avatar_url }; setComments(prev => [...prev, nc]); setCommentText(''); }
+    if (nc) {
+      nc.author = { username: userProfile?.username, avatar_url: userProfile?.avatar_url };
+      setComments(prev => [...prev, nc]);
+      // Notify post author
+      if (post.user_id !== userId) {
+        onNotify(post.user_id, 'comment', `@${userProfile?.username || 'someone'} commented on your post`, post.id);
+      }
+      setCommentText('');
+    }
   };
 
   return (
@@ -538,6 +547,24 @@ export default function GroundPage() {
     const newLikes = liked ? post.likes.filter(id => id !== userId) : [...post.likes, userId];
     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, likes: newLikes } : p));
     await rawPatch(`posts?id=eq.${post.id}`, token, { likes: newLikes });
+    // Notify on like/join (not on unlike)
+    if (!liked && post.user_id !== userId) {
+      const msg = post.type === 'plan'
+        ? `@${userProfile?.username || 'someone'} joined your plan`
+        : `@${userProfile?.username || 'someone'} liked your post`;
+      const type = post.type === 'plan' ? 'plan_join' : 'like';
+      notify(post.user_id, type, msg, post.id);
+    }
+  };
+
+  const notify = async (targetUid: string, type: string, message: string, postId?: string) => {
+    if (!userId || !token || targetUid === userId) return;
+    try {
+      await rawPost('notifications', token, {
+        user_id: targetUid, from_user_id: userId, type, message,
+        post_id: postId || null,
+      });
+    } catch {}
   };
 
   const handleDelete = async (id: string) => {
@@ -574,15 +601,15 @@ export default function GroundPage() {
 
   const handleSignal = async (targetUid: string, message: string) => {
     if (!userId || !token) return;
-    // Optimistic update
     setSignals(prev => {
       const userSignals = { ...(prev[targetUid] || {}) };
       userSignals[message] = (userSignals[message] || 0) + 1;
       return { ...prev, [targetUid]: userSignals };
     });
-    // Persist
     try {
       await rawPost('signals', token, { from_user_id: userId, to_user_id: targetUid, message });
+      // Notify the target
+      notify(targetUid, 'signal', `@${userProfile?.username || 'someone'} sent you a signal: ${message}`);
     } catch {}
   };
 
@@ -611,7 +638,7 @@ export default function GroundPage() {
 
   const renderPostList = (postList: Post[], emptyMsg: string) => (
     postList.length === 0 ? <div className="g-empty">{emptyMsg}</div> : (
-      <div className="g-posts">{postList.map(post => <PostCard key={post.id} post={post} userId={userId} token={token} userProfile={userProfile} onLike={handleLike} onDelete={handleDelete} onOpenProfile={openProfile} />)}</div>
+      <div className="g-posts">{postList.map(post => <PostCard key={post.id} post={post} userId={userId} token={token} userProfile={userProfile} onLike={handleLike} onDelete={handleDelete} onOpenProfile={openProfile} onNotify={notify} />)}</div>
     )
   );
 
