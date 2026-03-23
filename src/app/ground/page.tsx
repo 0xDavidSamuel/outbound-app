@@ -156,17 +156,61 @@ function ComposeBox({ userProfile, city, country, onPost }: {
   onPost: (data: { content: string; image_url: string; type: string; city: string; country: string }) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState('moment');
+  const [type, setType] = useState('plan');
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [postCity, setPostCity] = useState(city || userProfile?.city?.split(',')[0]?.trim() || '');
-  const [postCountry, setPostCountry] = useState(country || userProfile?.city?.split(',')[1]?.trim() || '');
+  const [locationInput, setLocationInput] = useState(city ? `${city}${country ? ', ' + country : ''}` : userProfile?.city || '');
+  const [resolvedCity, setResolvedCity] = useState(city || '');
+  const [resolvedCountry, setResolvedCountry] = useState(country || '');
+  const [resolvedDisplay, setResolvedDisplay] = useState('');
+  const [geoLoading, setGeoLoading] = useState(false);
   const [posting, setPosting] = useState(false);
+
+  // When in a city room, location is locked
+  const isLocked = !!(city && country);
+
+  const geocodeLocation = async () => {
+    if (!locationInput.trim() || isLocked) return;
+    setGeoLoading(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationInput)}&format=json&addressdetails=1&limit=1`,
+        { headers: { 'Accept-Language': 'en' } }
+      );
+      const data = await res.json();
+      if (data?.[0]) {
+        const r = data[0];
+        const c = r.address?.city || r.address?.town || r.address?.village || locationInput;
+        const co = r.address?.country || '';
+        setResolvedCity(c);
+        setResolvedCountry(co);
+        setResolvedDisplay(`${c}, ${co}`);
+        setLocationInput(`${c}, ${co}`);
+      }
+    } catch {}
+    setGeoLoading(false);
+  };
 
   const handlePost = async () => {
     if (!content.trim()) return;
     setPosting(true);
-    await onPost({ content: content.trim(), image_url: imageUrl.trim(), type, city: postCity.trim(), country: postCountry.trim() });
+    // If location wasn't geocoded yet and not locked, try now
+    let finalCity = resolvedCity || city || '';
+    let finalCountry = resolvedCountry || country || '';
+    if (!isLocked && locationInput.trim() && !resolvedCity) {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationInput)}&format=json&addressdetails=1&limit=1`,
+          { headers: { 'Accept-Language': 'en' } }
+        );
+        const data = await res.json();
+        if (data?.[0]) {
+          finalCity = data[0].address?.city || data[0].address?.town || data[0].address?.village || locationInput;
+          finalCountry = data[0].address?.country || '';
+        }
+      } catch {}
+    }
+    await onPost({ content: content.trim(), image_url: imageUrl.trim(), type, city: finalCity, country: finalCountry });
     setContent(''); setImageUrl(''); setOpen(false); setPosting(false);
   };
 
@@ -187,10 +231,27 @@ function ComposeBox({ userProfile, city, country, onPost }: {
       </div>
       <textarea className="g-compose-text" placeholder={POST_TYPES.find(t => t.key === type)?.placeholder || ''} value={content} onChange={e => setContent(e.target.value)} autoFocus />
       <input className="g-compose-extra" placeholder="📷 Image URL (optional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-        <input className="g-compose-extra" placeholder="📍 City" value={postCity} onChange={e => setPostCity(e.target.value)} style={{ marginBottom: 0 }} />
-        <input className="g-compose-extra" placeholder="🌍 Country" value={postCountry} onChange={e => setPostCountry(e.target.value)} style={{ marginBottom: 0 }} />
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+        <input
+          className="g-compose-extra"
+          placeholder="📍 Location (e.g. Lisbon, Portugal)"
+          value={locationInput}
+          onChange={e => { setLocationInput(e.target.value); setResolvedCity(''); setResolvedCountry(''); setResolvedDisplay(''); }}
+          onBlur={geocodeLocation}
+          disabled={isLocked}
+          style={{ flex: 1, marginBottom: 0, opacity: isLocked ? 0.6 : 1 }}
+        />
+        {!isLocked && !resolvedDisplay && locationInput.trim() && (
+          <button className="g-btn-ghost" onClick={geocodeLocation} disabled={geoLoading} style={{ padding: '8px 10px', fontSize: 8, whiteSpace: 'nowrap' }}>
+            {geoLoading ? '...' : '✓ Verify'}
+          </button>
+        )}
       </div>
+      {resolvedDisplay && !isLocked && (
+        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8553a', background: 'rgba(232,85,58,0.05)', border: '1px solid rgba(232,85,58,0.15)', borderRadius: 4, padding: '5px 10px', marginBottom: 12, letterSpacing: '0.1em' }}>
+          📍 {resolvedDisplay}
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         <button className="g-btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
         <button className="g-btn-primary" onClick={handlePost} disabled={!content.trim() || posting}>{posting ? 'Posting...' : 'Post →'}</button>
@@ -460,7 +521,7 @@ export default function GroundPage() {
                     {city.overall && <div className="g-city-browse-score">★ {(city.overall / 10).toFixed(1)}</div>}
                   </div>
                   <div className="g-city-browse-body">
-                    <div className="g-city-browse-name">{city.name}</div>
+                    <div className="g-city-browse-name">{city.name} Room</div>
                     <div className="g-city-browse-scores">
                       {['Outdoors & Adventure', 'Safety', 'Travel Connectivity', 'Cost of Living', 'Internet Access'].filter(key => city.scores[key]).slice(0, 3).map(key => {
                         const val = city.scores[key];
