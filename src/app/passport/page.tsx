@@ -17,12 +17,14 @@ const TRAVELER_TYPES = [
 ];
 
 const VIBES = [
-  { id: 'settling',    label: 'Settling In',   icon: '🏠' },
-  { id: 'exploring',  label: 'Exploring',      icon: '🗺' },
-  { id: 'working',    label: 'Deep Work',      icon: '⚡' },
-  { id: 'socializing',label: 'Meeting People', icon: '🤝' },
-  { id: 'moving',     label: 'In Transit',     icon: '✈' },
-  { id: 'recharging', label: 'Recharging',     icon: '🌊' },
+  { id: 'going_out',    label: 'Going out tonight',   icon: '🌙' },
+  { id: 'exploring',    label: 'Exploring the city',   icon: '🗺' },
+  { id: 'working',      label: 'Working from café',    icon: '⚡' },
+  { id: 'down_to_meet', label: 'Down to meet up',      icon: '🤝' },
+  { id: 'looking_food', label: 'Looking for food',     icon: '🍜' },
+  { id: 'just_landed',  label: 'Just landed',          icon: '✈️' },
+  { id: 'chilling',     label: 'Taking it easy',       icon: '🌊' },
+  { id: 'need_recs',    label: 'Need recommendations', icon: '💡' },
 ];
 
 const COUNTRY_EMOJIS: Record<string, string> = {
@@ -621,7 +623,7 @@ export default function PassportPage() {
 
               {page===3 && <>
                 <div>
-                  <div className="pp-section-head">Current Situation</div>
+                  <div className="pp-section-head">What are you up to?</div>
                   <div className="pp-vibe-row">
                     {VIBES.map(v=>(
                       <button key={v.id} className={`pp-vibe-btn${profile?.current_vibe===v.id?' on':''}`} onClick={()=>setVibe(v.id)}>
@@ -690,7 +692,7 @@ export default function PassportPage() {
                       <tr><td>Distinctions Earned</td><td>{earnedBadges.length} / {ALL_BADGES.length}</td></tr>
                       <tr><td>Member Since</td><td>{fmtDate(profile?.created_at)}</td></tr>
                       <tr><td>Classification</td><td>{TRAVELER_TYPES.find(t=>t.id===profile?.traveler_type)?.label||'—'}</td></tr>
-                      <tr><td>Current Vibe</td><td>{VIBES.find(v=>v.id===profile?.current_vibe)?.label||'—'}</td></tr>
+                      <tr><td>Status</td><td>{VIBES.find(v=>v.id===profile?.current_vibe)?.label||'—'}</td></tr>
                       <tr><td>Base Location</td><td>{profile?.city||'—'}</td></tr>
                     </tbody>
                   </table>

@@ -14,12 +14,14 @@ const STEPS = [
 ];
 
 const VIBES = [
-  { id: 'settling',    label: 'Settling In',   icon: '🏠' },
-  { id: 'exploring',   label: 'Exploring',     icon: '🗺' },
-  { id: 'working',     label: 'Deep Work',     icon: '⚡' },
-  { id: 'socializing', label: 'Meeting People', icon: '🤝' },
-  { id: 'moving',      label: 'In Transit',    icon: '✈' },
-  { id: 'recharging',  label: 'Recharging',    icon: '🌊' },
+  { id: 'going_out',    label: 'Going out tonight',   icon: '🌙' },
+  { id: 'exploring',    label: 'Exploring the city',   icon: '🗺' },
+  { id: 'working',      label: 'Working from café',    icon: '⚡' },
+  { id: 'down_to_meet', label: 'Down to meet up',      icon: '🤝' },
+  { id: 'looking_food', label: 'Looking for food',     icon: '🍜' },
+  { id: 'just_landed',  label: 'Just landed',          icon: '✈️' },
+  { id: 'chilling',     label: 'Taking it easy',       icon: '🌊' },
+  { id: 'need_recs',    label: 'Need recommendations', icon: '💡' },
 ];
 
 const TRAVELER_TYPES = [
@@ -336,7 +338,7 @@ export default function OnboardingPage() {
 
             <div style={{ marginBottom: 16 }}>
               <div className="ob-section-head">
-                Current Situation
+                What are you up to?
                 <span className="ob-optional">· optional</span>
               </div>
               <div className="ob-vibe-row">

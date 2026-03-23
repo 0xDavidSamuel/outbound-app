@@ -27,18 +27,36 @@ interface CityScore {
 }
 
 const POST_TYPES = [
-  { key: 'moment',   label: '📸 Moment',     color: '#e8553a', placeholder: 'Share where you are right now...' },
-  { key: 'tip',      label: '💡 Tip',         color: '#47d4ff', placeholder: 'Share a travel tip or local secret...' },
-  { key: 'question', label: '🙋 Ask',         color: '#ff8c47', placeholder: 'Ask the community anything...' },
-  { key: 'looking',  label: '🔍 Looking For', color: '#c847ff', placeholder: 'Looking for recommendations, coworking, roommates...' },
-  { key: 'warning',  label: '⚠️ Heads Up',   color: '#ff4747', placeholder: 'Safety update or warning...' },
-  { key: 'recommend',label: '⭐ Recommend',   color: '#47ff8c', placeholder: 'Recommend a place, service, or experience...' },
+  { key: 'plan',     label: '⚡ Plan',        color: '#f0ff6a', placeholder: "What's the plan? (e.g. Dinner at 8, Beach day tomorrow...)" },
+  { key: 'moment',   label: '📸 Now',          color: '#e8553a', placeholder: 'Share what youre doing right now...' },
+  { key: 'tip',      label: '💡 Intel',        color: '#47d4ff', placeholder: 'Drop some local intel or a hidden gem...' },
+  { key: 'question', label: '🙋 Ask',          color: '#ff8c47', placeholder: 'Ask the people on the ground...' },
+  { key: 'looking',  label: '🔍 Looking For',  color: '#c847ff', placeholder: 'Looking for a gym buddy, coworking spot, roommate...' },
+  { key: 'warning',  label: '⚠️ Alert',       color: '#ff4747', placeholder: 'Safety update, scam warning, power outage...' },
+  { key: 'recommend',label: '⭐ Spot',         color: '#47ff8c', placeholder: 'Recommend a place worth checking out...' },
 ];
 
 const SCORE_LABELS: Record<string, string> = {
   'Outdoors & Adventure': 'Outdoors', 'Safety': 'Safety', 'Travel Connectivity': 'Transit',
   'Cost of Living': 'Cost', 'Internet Access': 'WiFi', 'Startup Culture': 'Startups',
   'Culture & Entertainment': 'Culture', 'Healthcare': 'Health',
+};
+
+// Intent-based statuses (replaces old vibes)
+const STATUSES: Record<string, { label: string; icon: string }> = {
+  'going_out':    { label: 'Going out tonight',   icon: '🌙' },
+  'exploring':    { label: 'Exploring the city',   icon: '🗺' },
+  'working':      { label: 'Working from café',    icon: '⚡' },
+  'down_to_meet': { label: 'Down to meet up',      icon: '🤝' },
+  'looking_food': { label: 'Looking for food',     icon: '🍜' },
+  'just_landed':  { label: 'Just landed',          icon: '✈️' },
+  'chilling':     { label: 'Taking it easy',       icon: '🌊' },
+  'need_recs':    { label: 'Need recommendations', icon: '💡' },
+  // Legacy compat
+  'settling':     { label: 'Settling in',          icon: '🏠' },
+  'socializing':  { label: 'Down to meet up',      icon: '🤝' },
+  'moving':       { label: 'Just landed',          icon: '✈️' },
+  'recharging':   { label: 'Taking it easy',       icon: '🌊' },
 };
 
 function timeAgo(date: string) {
@@ -104,7 +122,13 @@ function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenPr
       {post.content && <div className="g-post-body">{post.content}</div>}
       {post.image_url && <img className="g-post-img" src={post.image_url} alt="" />}
       <div className="g-post-actions">
-        <button className={`g-action${liked ? ' liked' : ''}`} onClick={() => onLike(post)}>{liked ? '♥' : '♡'} {post.likes.length > 0 && post.likes.length}</button>
+        {post.type === 'plan' ? (
+          <button className={`g-action g-join${liked ? ' joined' : ''}`} onClick={() => onLike(post)}>
+            {liked ? '✓ Going' : '→ I\'m in'} {post.likes.length > 0 && <span className="g-join-count">{post.likes.length} going</span>}
+          </button>
+        ) : (
+          <button className={`g-action${liked ? ' liked' : ''}`} onClick={() => onLike(post)}>{liked ? '♥' : '♡'} {post.likes.length > 0 && post.likes.length}</button>
+        )}
         <button className="g-action" onClick={() => setShowComments(!showComments)}>💬 {comments.length > 0 && comments.length}</button>
       </div>
       {showComments && (
@@ -203,6 +227,11 @@ function ProfileBubble({ profile, loading, onClose }: { profile: any; loading: b
               {profile.city
                 ? <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#e8553a',textTransform:'uppercase' }}>📍 {profile.city}</div>
                 : <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.2em',color:'#333',textTransform:'uppercase' }}>No location set</div>}
+              {profile.current_vibe && STATUSES[profile.current_vibe] && (
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.1em',color:'#888',marginTop:4 }}>
+                  {STATUSES[profile.current_vibe].icon} {STATUSES[profile.current_vibe].label}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -271,13 +300,13 @@ export default function GroundPage() {
   const openProfile = async (uid: string) => {
     setBubbleLoading(true); setProfileBubble({ loading: true });
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
-      const rows = await res.json(); setProfileBubble(rows?.[0] || { username: null, avatar_url: null, city: null });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${uid}&select=username,avatar_url,city,current_vibe`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } });
+      const rows = await res.json(); setProfileBubble(rows?.[0] || { username: null, avatar_url: null, city: null, current_vibe: null });
     } catch { setProfileBubble(null); }
     setBubbleLoading(false);
   };
 
-  const filterMap: Record<string, string> = { Moments: 'moment', Tips: 'tip', Questions: 'question', 'Looking For': 'looking' };
+  const filterMap: Record<string, string> = { Plans: 'plan', Now: 'moment', Intel: 'tip', Questions: 'question', 'Looking For': 'looking' };
   const globalPosts = useMemo(() => { let list = posts; if (filter !== 'All') list = list.filter(p => p.type === filterMap[filter]); return list.slice(0, 40); }, [posts, filter]);
   const cityPosts = useMemo(() => { if (typeof view !== 'object' || !('city' in view)) return []; return posts.filter(p => p.city?.toLowerCase() === (view as any).city.toLowerCase()).slice(0, 40); }, [posts, view]);
   const countryPosts = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; return posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).slice(0, 40); }, [posts, view]);
@@ -363,6 +392,12 @@ export default function GroundPage() {
           .g-action { display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px 10px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 10px; color: #333; transition: all 0.15s; }
           .g-action:hover { background: rgba(255,255,255,0.03); color: #666; }
           .g-action.liked { color: #e8553a; }
+          .g-join { color: #f0ff6a; font-weight: 500; }
+          .g-join.joined { color: #e8553a; }
+          .g-join-count { font-size: 9px; color: #555; font-weight: 400; margin-left: 4px; }
+          .g-activity-bar { display: flex; align-items: center; gap: 8px; background: rgba(232,85,58,0.04); border: 1px solid rgba(232,85,58,0.1); border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; font-family: 'DM Mono', monospace; font-size: 10px; color: #888; letter-spacing: 0.08em; }
+          .g-activity-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.5s ease-in-out infinite; flex-shrink: 0; }
+          .g-activity-plans { margin-left: auto; color: #f0ff6a; }
           .g-comments { border-top: 1px solid #111; padding: 12px 16px; }
           .g-comment { display: flex; gap: 8px; margin-bottom: 10px; }
           .g-comment-bubble { background: #111; border-radius: 8px; padding: 8px 12px; flex: 1; }
@@ -397,16 +432,24 @@ export default function GroundPage() {
           {view === 'home' && <>
             <p className="g-eyebrow">Real-time · Local · Global</p>
             <h1 className="g-title">On the<br /><em>ground.</em></h1>
+
+            {/* Live activity pulse */}
+            <div className="g-activity-bar">
+              <div className="g-activity-dot" />
+              <span>{posts.length > 0 ? `${new Set(posts.slice(0, 20).map(p => p.user_id)).size}+ people active` : 'Be the first on the ground'}</span>
+              {posts.length > 0 && <span className="g-activity-plans">{posts.filter(p => p.type === 'plan').length} plans live</span>}
+            </div>
+
             {userId && <ComposeBox userProfile={userProfile} onPost={handlePost} />}
             <div className="g-filters">
-              {['All', 'Moments', 'Tips', 'Questions', 'Looking For'].map(f => (
+              {['All', 'Plans', 'Now', 'Intel', 'Questions', 'Looking For'].map(f => (
                 <button key={f} className={`g-filter${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
               ))}
             </div>
-            <div className="g-section">Recent<div className="g-section-line" /></div>
+            <div className="g-section">What's happening<div className="g-section-line" /></div>
             {loading ? <div className="g-loading"><div className="g-dot" />loading...</div> : renderPostList(globalPosts, 'no posts yet. be the first to share.')}
 
-            <div className="g-section" style={{ marginTop: 32 }}>Browse communities<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{cityScores.length} cities</span></div>
+            <div className="g-section" style={{ marginTop: 32 }}>Destination rooms<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{cityScores.length} cities</span></div>
             <div className="g-cities-grid">
               {cityScores.slice(0, 30).map((city, i) => (
                 <div key={city.slug} className="g-city-browse" onClick={() => {
@@ -454,7 +497,7 @@ export default function GroundPage() {
                 </div>
               </div>
               {citiesInCountry.length > 0 && <>
-                <div className="g-section">Cities<div className="g-section-line" /></div>
+                <div className="g-section">City rooms<div className="g-section-line" /></div>
                 <div className="g-city-list">
                   {citiesInCountry.map(city => (
                     <div key={city} className="g-city-card" onClick={() => setView({ city, country: community.name })}>
@@ -465,7 +508,7 @@ export default function GroundPage() {
                 </div>
               </>}
               {userId && <ComposeBox userProfile={userProfile} country={community.name} onPost={handlePost} />}
-              <div className="g-section">Feed<div className="g-section-line" /></div>
+              <div className="g-section">What's happening<div className="g-section-line" /></div>
               {renderPostList(countryPosts, `no posts from ${community.name} yet. be the first.`)}
             </>;
           })()}
@@ -486,7 +529,7 @@ export default function GroundPage() {
                 </div>
               </>}
               {userId && <ComposeBox userProfile={userProfile} city={city} country={country} onPost={handlePost} />}
-              <div className="g-section">Feed<div className="g-section-line" /></div>
+              <div className="g-section">What's happening<div className="g-section-line" /></div>
               {renderPostList(cityPosts, `no posts from ${city} yet. be the first to share.`)}
             </>;
           })()}
