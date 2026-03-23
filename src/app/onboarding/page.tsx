@@ -22,6 +22,7 @@ const VIBES = [
   { id: 'just_landed',  label: 'Just landed',          icon: '✈️' },
   { id: 'chilling',     label: 'Taking it easy',       icon: '🌊' },
   { id: 'need_recs',    label: 'Need recommendations', icon: '💡' },
+  { id: 'landing_soon', label: 'Tap in',               icon: '🤝' },
 ];
 
 const TRAVELER_TYPES = [
