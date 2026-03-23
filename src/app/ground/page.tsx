@@ -52,7 +52,22 @@ const STATUSES: Record<string, { label: string; icon: string }> = {
   'just_landed':  { label: 'Just landed',          icon: '✈️' },
   'chilling':     { label: 'Taking it easy',       icon: '🌊' },
   'need_recs':    { label: 'Need recommendations', icon: '💡' },
+  'landing_soon': { label: 'Landing soon',         icon: '🛬' },
 };
+
+// Contextual quick signal actions per status
+const SIGNAL_ACTIONS: Record<string, { label: string; emoji: string }[]> = {
+  'going_out':    [{ label: "I'm down", emoji: '🙌' }, { label: 'Where?', emoji: '📍' }, { label: 'Invite me', emoji: '🎟' }],
+  'exploring':    [{ label: 'Same!', emoji: '🗺' }, { label: 'Check this out', emoji: '💡' }, { label: 'Want company?', emoji: '🚶' }],
+  'working':      [{ label: 'Same', emoji: '💻' }, { label: 'Which café?', emoji: '☕' }, { label: 'Want company?', emoji: '🪑' }],
+  'down_to_meet': [{ label: "I'm around", emoji: '📍' }, { label: 'Where are you?', emoji: '🔎' }, { label: "Let's go", emoji: '🚀' }],
+  'looking_food': [{ label: 'Same!', emoji: '🍜' }, { label: 'I know a spot', emoji: '⭐' }, { label: 'Join me', emoji: '🪑' }],
+  'just_landed':  [{ label: 'Welcome!', emoji: '👋' }, { label: 'Need anything?', emoji: '💡' }, { label: 'I can show around', emoji: '🗺' }],
+  'chilling':     [{ label: 'Same vibe', emoji: '🌊' }, { label: 'Down to hang?', emoji: '🤝' }],
+  'need_recs':    [{ label: 'I got you', emoji: '💡' }, { label: 'Ask me anything', emoji: '🙋' }],
+  'landing_soon': [{ label: 'See you there!', emoji: '👋' }, { label: "I'm there now", emoji: '📍' }, { label: 'Tips for you', emoji: '💡' }],
+};
+const DEFAULT_SIGNALS = [{ label: 'Wave', emoji: '👋' }, { label: 'Same vibe', emoji: '✨' }, { label: 'Interested', emoji: '👀' }];
 
 const COUNTRY_EMOJIS: Record<string, string> = {
   'US':'🇺🇸','GB':'🇬🇧','JP':'🇯🇵','FR':'🇫🇷','DE':'🇩🇪','BR':'🇧🇷','MX':'🇲🇽','CA':'🇨🇦','AU':'🇦🇺','IN':'🇮🇳',
@@ -306,14 +321,11 @@ function ComposeBox({ userProfile, city, country, onPost }: {
 }
 
 // ── Profile Bubble — Mini Passport ──────────────────────────────────────────
-function ProfileBubble({ profile, loading, onClose, onPoke }: {
+function ProfileBubble({ profile, loading, onClose, onSignal }: {
   profile: any; loading: boolean; onClose: () => void;
-  onPoke: (uid: string, message: string) => void;
+  onSignal: (uid: string, message: string) => void;
 }) {
-  const [showNote, setShowNote] = useState(false);
-  const [noteText, setNoteText] = useState('');
-  const [poked, setPoked] = useState(false);
-  const [noteSent, setNoteSent] = useState(false);
+  const [sent, setSent] = useState<string | null>(null);
 
   if (!profile) return null;
   const stamps: string[] = profile.countries_visited || [];
@@ -321,16 +333,11 @@ function ProfileBubble({ profile, loading, onClose, onPoke }: {
   const type = TRAVELER_TYPES[profile.traveler_type] || null;
   const status = profile.current_vibe && STATUSES[profile.current_vibe] ? STATUSES[profile.current_vibe] : null;
   const sColor = (i: number) => ['#e8553a','#47d4ff','#ff8c47','#c847ff','#47ff8c','#f0ff6a'][i % 6];
+  const signals = profile.current_vibe && SIGNAL_ACTIONS[profile.current_vibe] ? SIGNAL_ACTIONS[profile.current_vibe] : DEFAULT_SIGNALS;
 
-  const handlePoke = () => {
-    if (profile.id) onPoke(profile.id, '👋 poked you!');
-    setPoked(true); setTimeout(() => setPoked(false), 2000);
-  };
-  const handleNote = () => {
-    if (!noteText.trim() || !profile.id) return;
-    onPoke(profile.id, noteText.trim());
-    setNoteSent(true); setNoteText('');
-    setTimeout(() => { setNoteSent(false); setShowNote(false); }, 2000);
+  const handleSignal = (label: string, emoji: string) => {
+    if (profile.id) onSignal(profile.id, `${emoji} ${label}`);
+    setSent(label); setTimeout(() => setSent(null), 2500);
   };
 
   return (
@@ -352,8 +359,11 @@ function ProfileBubble({ profile, loading, onClose, onPoke }: {
           <div style={{ padding:'16px' }}>
             {/* Identity */}
             <div style={{ display:'flex',gap:12,alignItems:'center',marginBottom:14 }}>
-              <div style={{ width:48,height:48,borderRadius:'50%',border:'2px solid #1a1a1a',background:'#111',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0 }}>
-                {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width:'100%',height:'100%',objectFit:'cover' }} /> : '✈️'}
+              <div style={{ position:'relative' }}>
+                <div style={{ width:48,height:48,borderRadius:'50%',border:'2px solid #1a1a1a',background:'#111',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0 }}>
+                  {profile.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width:'100%',height:'100%',objectFit:'cover' }} /> : '✈️'}
+                </div>
+                {status && <div style={{ position:'absolute',bottom:-2,right:-2,width:12,height:12,borderRadius:'50%',background:'#47ff8c',border:'2px solid #0d0d0d' }} />}
               </div>
               <div style={{ flex:1,minWidth:0 }}>
                 <div style={{ fontSize:14,fontWeight:500,color:'#fff',marginBottom:2 }}>@{profile.username || 'traveler'}</div>
@@ -387,7 +397,7 @@ function ProfileBubble({ profile, loading, onClose, onPoke }: {
               </div>
             )}
 
-            {/* Stamps — visual icons */}
+            {/* Stamps */}
             <div style={{ marginBottom:14 }}>
               <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:8 }}>
                 Stamps{stamps.length > 0 ? ` · ${stamps.length}` : ''}
@@ -407,30 +417,28 @@ function ProfileBubble({ profile, loading, onClose, onPoke }: {
               )}
             </div>
 
-            {/* Interaction — Poke + Note */}
-            <div style={{ borderTop:'1px solid #141414',paddingTop:12,display:'flex',gap:6 }}>
-              <button onClick={handlePoke} disabled={poked} style={{
-                flex:1,background:poked?'rgba(232,85,58,0.08)':'rgba(232,85,58,0.05)',border:'1px solid rgba(232,85,58,0.15)',borderRadius:6,padding:'8px 0',
-                fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.1em',textTransform:'uppercase',color:poked?'#e8553a':'#888',cursor:poked?'default':'pointer',transition:'all 0.2s',
-              }}>{poked ? '👋 Poked!' : '👋 Poke'}</button>
-              <button onClick={() => setShowNote(!showNote)} style={{
-                flex:1,background:showNote?'rgba(71,212,255,0.08)':'rgba(71,212,255,0.05)',border:'1px solid rgba(71,212,255,0.15)',borderRadius:6,padding:'8px 0',
-                fontFamily:'DM Mono, monospace',fontSize:9,letterSpacing:'0.1em',textTransform:'uppercase',color:showNote?'#47d4ff':'#888',cursor:'pointer',transition:'all 0.2s',
-              }}>💬 Note</button>
-            </div>
-            {showNote && (
-              <div style={{ marginTop:8 }}>
-                {noteSent ? (
-                  <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#47d4ff',textAlign:'center',padding:'8px 0',letterSpacing:'0.15em' }}>✓ Note sent!</div>
-                ) : (
-                  <div style={{ display:'flex',gap:6 }}>
-                    <input value={noteText} onChange={e => setNoteText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleNote()}
-                      placeholder="Say something..." autoFocus style={{ flex:1,background:'#111',border:'1px solid #1a1a1a',borderRadius:6,padding:'8px 10px',color:'#fff',fontFamily:'DM Mono, monospace',fontSize:10,outline:'none' }} />
-                    <button onClick={handleNote} disabled={!noteText.trim()} style={{ background:'#47d4ff',color:'#080808',border:'none',borderRadius:6,padding:'8px 12px',fontFamily:'DM Mono, monospace',fontSize:9,cursor:'pointer',fontWeight:500,opacity:noteText.trim()?1:0.4 }}>→</button>
-                  </div>
-                )}
+            {/* Quick Signals — contextual to their status */}
+            <div style={{ borderTop:'1px solid #141414',paddingTop:12 }}>
+              <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:8 }}>
+                {status ? 'React to their status' : 'Send a signal'}
               </div>
-            )}
+              {sent ? (
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:10,color:'#47ff8c',textAlign:'center',padding:'10px 0',letterSpacing:'0.15em' }}>✓ Sent "{sent}"</div>
+              ) : (
+                <div style={{ display:'flex',flexWrap:'wrap',gap:5 }}>
+                  {signals.map(s => (
+                    <button key={s.label} onClick={() => handleSignal(s.label, s.emoji)} style={{
+                      background:'rgba(255,255,255,0.03)',border:'1px solid #1a1a1a',borderRadius:6,padding:'7px 10px',
+                      fontFamily:'DM Mono, monospace',fontSize:9,color:'#888',cursor:'pointer',transition:'all 0.15s',
+                      display:'flex',alignItems:'center',gap:4,
+                    }}
+                    onMouseOver={e => { (e.target as HTMLElement).style.borderColor = '#333'; (e.target as HTMLElement).style.color = '#ccc'; }}
+                    onMouseOut={e => { (e.target as HTMLElement).style.borderColor = '#1a1a1a'; (e.target as HTMLElement).style.color = '#888'; }}
+                    >{s.emoji} {s.label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Footer */}
             <div style={{ marginTop:10,textAlign:'right' }}>
@@ -459,6 +467,7 @@ export default function GroundPage() {
   const [filter, setFilter] = useState('All');
   const [profileBubble, setProfileBubble] = useState<any>(null);
   const [bubbleLoading, setBubbleLoading] = useState(false);
+  const [nearbyUsers, setNearbyUsers] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -471,12 +480,14 @@ export default function GroundPage() {
         const memberships = await rawGet(`community_members?user_id=eq.${session.user.id}&select=community_slug`, tok);
         setJoined((Array.isArray(memberships) ? memberships : []).map((m: any) => m.community_slug));
       }
-      const [postsData, commData] = await Promise.all([
+      const [postsData, commData, activeUsers] = await Promise.all([
         rawGet('posts?select=*,author:profiles(username,avatar_url),comments(id,post_id,user_id,content,created_at,author:profiles(username,avatar_url))&order=created_at.desc&limit=80', tok),
         rawGet('communities?select=*&order=member_count.desc', tok),
+        rawGet('profiles?select=id,username,avatar_url,city,current_vibe,traveler_type&current_vibe=not.is.null&order=updated_at.desc&limit=20', tok),
       ]);
       setPosts(Array.isArray(postsData) ? postsData : []);
       setCommunities(Array.isArray(commData) ? commData : []);
+      setNearbyUsers(Array.isArray(activeUsers) ? activeUsers : []);
       try { const res = await fetch('/api/cities'); const data = await res.json(); setCityScores(data.cities || []); } catch {}
       setLoading(false);
     })();
@@ -511,9 +522,8 @@ export default function GroundPage() {
     setBubbleLoading(false);
   };
 
-  const handlePoke = async (targetUid: string, message: string) => {
+  const handleSignal = async (targetUid: string, message: string) => {
     if (!userId || !token) return;
-    // Create a post as a poke/note — tagged to the user
     try {
       await rawPost('posts', token, {
         user_id: userId, content: `@${profileBubble?.username || 'someone'} ${message}`,
@@ -643,6 +653,16 @@ export default function GroundPage() {
           .g-loading { display: flex; flex-direction: column; align-items: center; padding: 60px 0; gap: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #333; letter-spacing: 0.2em; }
           .g-dot { width: 6px; height: 6px; border-radius: 50%; background: #e8553a; animation: pulse 1.2s ease-in-out infinite; }
           @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+          .g-nearby { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+          .g-nearby::-webkit-scrollbar { display: none; }
+          .g-nearby-card { flex-shrink: 0; width: 90px; background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 12px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+          .g-nearby-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
+          .g-nearby-avatar { position: relative; width: 40px; height: 40px; }
+          .g-nearby-avatar-img { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid #222; background: #111; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+          .g-nearby-avatar-img img { width: 100%; height: 100%; object-fit: cover; }
+          .g-nearby-active { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: #47ff8c; border: 2px solid #0d0d0d; }
+          .g-nearby-name { font-family: 'DM Mono', monospace; font-size: 9px; color: #ccc; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+          .g-nearby-status { font-family: 'DM Mono', monospace; font-size: 7px; color: #555; text-align: center; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
           @media (max-width: 600px) { .g-page { padding: 64px 16px 140px; } .g-grid { grid-template-columns: 1fr 1fr; } .g-cities-grid { grid-template-columns: 1fr 1fr; } .g-stats { grid-template-columns: 1fr 1fr; } }
         `}</style>
 
@@ -652,12 +672,47 @@ export default function GroundPage() {
             <p className="g-eyebrow">Real-time · Local · Global</p>
             <h1 className="g-title">On the<br /><em>ground.</em></h1>
 
-            {/* Live activity pulse */}
+            {/* Live activity pulse — status-aware */}
             <div className="g-activity-bar">
               <div className="g-activity-dot" />
-              <span>{posts.length > 0 ? `${new Set(posts.slice(0, 20).map(p => p.user_id)).size}+ people active` : 'Be the first on the ground'}</span>
-              {posts.length > 0 && <span className="g-activity-plans">{posts.filter(p => p.type === 'plan').length} plans live</span>}
+              {(() => {
+                const goingOut = nearbyUsers.filter(u => u.current_vibe === 'going_out').length;
+                const exploring = nearbyUsers.filter(u => u.current_vibe === 'exploring').length;
+                const plans = posts.filter(p => p.type === 'plan').length;
+                const parts: string[] = [];
+                if (nearbyUsers.length > 0) parts.push(`${nearbyUsers.length} active`);
+                if (goingOut > 0) parts.push(`${goingOut} going out`);
+                if (exploring > 0) parts.push(`${exploring} exploring`);
+                return <span>{parts.length > 0 ? parts.join(' · ') : 'Be the first on the ground'}</span>;
+              })()}
+              {posts.filter(p => p.type === 'plan').length > 0 && (
+                <span className="g-activity-plans">{posts.filter(p => p.type === 'plan').length} plans</span>
+              )}
             </div>
+
+            {/* Who's around — horizontal scroll of active users */}
+            {nearbyUsers.length > 0 && (
+              <>
+                <div className="g-section">Who's around<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{nearbyUsers.length}</span></div>
+                <div className="g-nearby">
+                  {nearbyUsers.filter(u => u.id !== userId).map(u => {
+                    const s = u.current_vibe && STATUSES[u.current_vibe] ? STATUSES[u.current_vibe] : null;
+                    return (
+                      <div key={u.id} className="g-nearby-card" onClick={() => openProfile(u.id)}>
+                        <div className="g-nearby-avatar">
+                          <div className="g-nearby-avatar-img">
+                            {u.avatar_url ? <img src={u.avatar_url} alt="" /> : '✈️'}
+                          </div>
+                          <div className="g-nearby-active" />
+                        </div>
+                        <div className="g-nearby-name">@{u.username || '?'}</div>
+                        {s && <div className="g-nearby-status">{s.icon} {s.label}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
 
             {userId && <ComposeBox userProfile={userProfile} onPost={handlePost} />}
             <div className="g-filters">
@@ -756,7 +811,7 @@ export default function GroundPage() {
         </div>
       </>
     </PageReveal>
-    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onPoke={handlePoke} />
+    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onSignal={handleSignal} />
     </>
   );
 }

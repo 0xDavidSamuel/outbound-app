@@ -25,6 +25,7 @@ const VIBES = [
   { id: 'just_landed',  label: 'Just landed',          icon: '✈️' },
   { id: 'chilling',     label: 'Taking it easy',       icon: '🌊' },
   { id: 'need_recs',    label: 'Need recommendations', icon: '💡' },
+  { id: 'landing_soon', label: 'Landing soon',         icon: '🛬' },
 ];
 
 const COUNTRY_EMOJIS: Record<string, string> = {
