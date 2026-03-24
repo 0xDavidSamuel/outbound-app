@@ -189,11 +189,16 @@ function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenPr
       {post.image_url && <img className="g-post-img" src={post.image_url} alt="" />}
       <div className="g-post-actions">
         {post.type === 'plan' ? (
-          <button className={`g-action g-join${liked ? ' joined' : ''}`} onClick={() => onLike(post)}>
-            {liked ? '✓ Going' : '→ I\'m in'} {post.likes.length > 0 && <span className="g-join-count">{post.likes.length} going</span>}
-          </button>
+          !isOwn && (
+            <button className={`g-action g-join${liked ? ' joined' : ''}`} onClick={() => onLike(post)}>
+              {liked ? '✓ Going' : '→ I\'m in'} {post.likes.length > 0 && <span className="g-join-count">{post.likes.length} going</span>}
+            </button>
+          )
         ) : (
-          !globalView && <button className={`g-action${liked ? ' liked' : ''}`} onClick={() => onLike(post)}>{liked ? '♥' : '♡'} {post.likes.length > 0 && post.likes.length}</button>
+          !globalView && !isOwn && <button className={`g-action${liked ? ' liked' : ''}`} onClick={() => onLike(post)}>{liked ? '♥' : '♡'} {post.likes.length > 0 && post.likes.length}</button>
+        )}
+        {post.type === 'plan' && isOwn && post.likes.length > 0 && (
+          <span className="g-join-count" style={{ fontFamily:'DM Mono, monospace',fontSize:10,color:'#e8553a',padding:'6px 10px' }}>{post.likes.length} going</span>
         )}
         {allowComments && <button className="g-action" onClick={() => setShowComments(!showComments)}>💬 {comments.length > 0 && comments.length}</button>}
         {globalView && post.type !== 'plan' && post.city && (
@@ -337,10 +342,12 @@ function ComposeBox({ userProfile, city, country, onPost }: {
 }
 
 // ── Profile Bubble — Mini Passport ──────────────────────────────────────────
-function ProfileBubble({ profile, loading, onClose, onSignal, signalCounts }: {
+function ProfileBubble({ profile, loading, onClose, onSignal, signalCounts, alreadySent, isOwn }: {
   profile: any; loading: boolean; onClose: () => void;
   onSignal: (uid: string, message: string) => void;
   signalCounts: Record<string, number>;
+  alreadySent: boolean;
+  isOwn: boolean;
 }) {
   const [sent, setSent] = useState<string | null>(null);
 
@@ -436,38 +443,71 @@ function ProfileBubble({ profile, loading, onClose, onSignal, signalCounts }: {
             </div>
 
             {/* Quick Signals — contextual to their status */}
-            <div style={{ borderTop:'1px solid #141414',paddingTop:12 }}>
-              <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8 }}>
-                <span style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase' }}>
-                  {status ? 'React to their status' : 'Send a signal'}
-                </span>
-                {totalSignals > 0 && (
-                  <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#e8553a',letterSpacing:'0.1em' }}>
-                    {totalSignals} signal{totalSignals !== 1 ? 's' : ''}
+            {!isOwn && (
+              <div style={{ borderTop:'1px solid #141414',paddingTop:12 }}>
+                <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8 }}>
+                  <span style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase' }}>
+                    {alreadySent ? 'Signal sent' : status ? 'React to their status' : 'Send a signal'}
                   </span>
+                  {totalSignals > 0 && (
+                    <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#e8553a',letterSpacing:'0.1em' }}>
+                      {totalSignals} signal{totalSignals !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+                {sent && (
+                  <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#47ff8c',textAlign:'center',padding:'4px 0 6px',letterSpacing:'0.15em' }}>✓ Sent "{sent}"</div>
+                )}
+                {alreadySent && !sent ? (
+                  <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#555',textAlign:'center',padding:'8px 0',letterSpacing:'0.1em' }}>
+                    You already sent a signal
+                  </div>
+                ) : !alreadySent && (
+                  <div style={{ display:'flex',flexWrap:'wrap',gap:5 }}>
+                    {signalOptions.map(s => {
+                      const key = `${s.emoji} ${s.label}`;
+                      const count = signalCounts[key] || 0;
+                      return (
+                        <button key={s.label} onClick={() => doSignal(s.label, s.emoji)} style={{
+                          background: count > 0 ? 'rgba(232,85,58,0.06)' : 'rgba(255,255,255,0.03)',
+                          border: `1px solid ${count > 0 ? 'rgba(232,85,58,0.2)' : '#1a1a1a'}`,
+                          borderRadius:6,padding:'7px 10px',
+                          fontFamily:'DM Mono, monospace',fontSize:9,color: count > 0 ? '#e8553a' : '#888',
+                          cursor:'pointer',transition:'all 0.15s',display:'flex',alignItems:'center',gap:4,
+                        }}>
+                          {s.emoji} {s.label}{count > 0 && <span style={{ fontSize:8,opacity:0.7,marginLeft:2 }}>({count})</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
-              {sent && (
-                <div style={{ fontFamily:'DM Mono, monospace',fontSize:9,color:'#47ff8c',textAlign:'center',padding:'4px 0 6px',letterSpacing:'0.15em' }}>✓ Sent "{sent}"</div>
-              )}
-              <div style={{ display:'flex',flexWrap:'wrap',gap:5 }}>
-                {signalOptions.map(s => {
-                  const key = `${s.emoji} ${s.label}`;
-                  const count = signalCounts[key] || 0;
-                  return (
-                    <button key={s.label} onClick={() => doSignal(s.label, s.emoji)} style={{
-                      background: count > 0 ? 'rgba(232,85,58,0.06)' : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${count > 0 ? 'rgba(232,85,58,0.2)' : '#1a1a1a'}`,
-                      borderRadius:6,padding:'7px 10px',
-                      fontFamily:'DM Mono, monospace',fontSize:9,color: count > 0 ? '#e8553a' : '#888',
-                      cursor:'pointer',transition:'all 0.15s',display:'flex',alignItems:'center',gap:4,
-                    }}>
-                      {s.emoji} {s.label}{count > 0 && <span style={{ fontSize:8,opacity:0.7,marginLeft:2 }}>({count})</span>}
-                    </button>
-                  );
-                })}
+            )}
+
+            {/* Signal counts visible on own profile */}
+            {isOwn && totalSignals > 0 && (
+              <div style={{ borderTop:'1px solid #141414',paddingTop:12 }}>
+                <div style={{ fontFamily:'DM Mono, monospace',fontSize:7,letterSpacing:'0.3em',color:'#333',textTransform:'uppercase',marginBottom:8 }}>
+                  Signals received
+                </div>
+                <div style={{ display:'flex',flexWrap:'wrap',gap:5 }}>
+                  {signalOptions.map(s => {
+                    const key = `${s.emoji} ${s.label}`;
+                    const count = signalCounts[key] || 0;
+                    if (count === 0) return null;
+                    return (
+                      <span key={s.label} style={{
+                        background:'rgba(232,85,58,0.06)',border:'1px solid rgba(232,85,58,0.2)',
+                        borderRadius:6,padding:'7px 10px',fontFamily:'DM Mono, monospace',fontSize:9,color:'#e8553a',
+                        display:'flex',alignItems:'center',gap:4,
+                      }}>
+                        {s.emoji} {s.label} <span style={{ fontSize:8,opacity:0.7 }}>({count})</span>
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Footer */}
             <div style={{ marginTop:10,textAlign:'right' }}>
@@ -514,18 +554,21 @@ export default function GroundPage() {
       const nearby = Array.isArray(activeUsers) ? activeUsers : [];
       setNearbyUsers(nearby);
 
-      // Batch-load signal counts for all active users
+      // Batch-load signal counts for all active users + track which ones current user already signaled
       if (nearby.length > 0) {
         try {
           const uids = nearby.map((u: any) => u.id).join(',');
-          const allSignals = await rawGet(`signals?to_user_id=in.(${uids})&select=to_user_id,message`, tok);
+          const allSignals = await rawGet(`signals?to_user_id=in.(${uids})&select=to_user_id,from_user_id,message`, tok);
           if (Array.isArray(allSignals)) {
             const grouped: Record<string, Record<string, number>> = {};
+            const sent = new Set<string>();
             allSignals.forEach((s: any) => {
               if (!grouped[s.to_user_id]) grouped[s.to_user_id] = {};
               grouped[s.to_user_id][s.message] = (grouped[s.to_user_id][s.message] || 0) + 1;
+              if (session && s.from_user_id === session.user.id) sent.add(s.to_user_id);
             });
             setSignals(grouped);
+            setSentSignals(sent);
           }
         } catch {}
       }
@@ -544,12 +587,13 @@ export default function GroundPage() {
 
   const handleLike = async (post: Post) => {
     if (!userId || !token) return;
+    // Can't join/like your own post
+    if (post.user_id === userId) return;
     const liked = post.likes.includes(userId);
     const newLikes = liked ? post.likes.filter(id => id !== userId) : [...post.likes, userId];
     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, likes: newLikes } : p));
     await rawPatch(`posts?id=eq.${post.id}`, token, { likes: newLikes });
-    // Notify on like/join (not on unlike)
-    if (!liked && post.user_id !== userId) {
+    if (!liked) {
       const msg = post.type === 'plan'
         ? `@${userProfile?.username || 'someone'} joined your plan`
         : `@${userProfile?.username || 'someone'} liked your post`;
@@ -589,12 +633,19 @@ export default function GroundPage() {
   // Signals — persisted in Supabase
   const [signals, setSignals] = useState<Record<string, Record<string, number>>>({});
 
+  // Track which users the current user has already signaled (to prevent spam)
+  const [sentSignals, setSentSignals] = useState<Set<string>>(new Set());
+
   const loadSignalsFor = async (uid: string) => {
     try {
-      const rows = await rawGet(`signals?to_user_id=eq.${uid}&select=message`, token || SUPABASE_KEY);
+      const rows = await rawGet(`signals?to_user_id=eq.${uid}&select=message,from_user_id`, token || SUPABASE_KEY);
       if (!Array.isArray(rows)) return {};
       const counts: Record<string, number> = {};
-      rows.forEach((r: any) => { counts[r.message] = (counts[r.message] || 0) + 1; });
+      rows.forEach((r: any) => {
+        counts[r.message] = (counts[r.message] || 0) + 1;
+        // Track if current user already signaled this person
+        if (r.from_user_id === userId) setSentSignals(prev => new Set(prev).add(uid));
+      });
       setSignals(prev => ({ ...prev, [uid]: counts }));
       return counts;
     } catch { return {}; }
@@ -602,6 +653,12 @@ export default function GroundPage() {
 
   const handleSignal = async (targetUid: string, message: string) => {
     if (!userId || !token) return;
+    // Block self-signal
+    if (targetUid === userId) return;
+    // Block duplicate — one signal per user per target
+    if (sentSignals.has(targetUid)) return;
+
+    setSentSignals(prev => new Set(prev).add(targetUid));
     setSignals(prev => {
       const userSignals = { ...(prev[targetUid] || {}) };
       userSignals[message] = (userSignals[message] || 0) + 1;
@@ -609,7 +666,6 @@ export default function GroundPage() {
     });
     try {
       await rawPost('signals', token, { from_user_id: userId, to_user_id: targetUid, message });
-      // Notify the target
       notify(targetUid, 'signal', `@${userProfile?.username || 'someone'} sent you a signal: ${message}`);
     } catch {}
   };
@@ -880,7 +936,7 @@ export default function GroundPage() {
         </div>
       </>
     </PageReveal>
-    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onSignal={handleSignal} signalCounts={lastBubbleId ? (signals[lastBubbleId] || {}) : {}} />
+    <ProfileBubble profile={profileBubble} loading={bubbleLoading} onClose={() => setProfileBubble(null)} onSignal={handleSignal} signalCounts={lastBubbleId ? (signals[lastBubbleId] || {}) : {}} alreadySent={sentSignals.has(lastBubbleId)} isOwn={lastBubbleId === userId} />
     </>
   );
 }
