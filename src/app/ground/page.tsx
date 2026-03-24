@@ -138,10 +138,12 @@ async function rawDelete(path: string, token: string) {
 }
 
 // ── Post Card ──────────────────────────────────────────────────────────────
-function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenProfile, onNotify }: {
+function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenProfile, onNotify, allowComments = true, globalView = false }: {
   post: Post; userId: string; token: string; userProfile: any;
   onLike: (post: Post) => void; onDelete: (id: string) => void; onOpenProfile: (uid: string) => void;
   onNotify: (targetUid: string, type: string, message: string, postId?: string) => void;
+  allowComments?: boolean;
+  globalView?: boolean;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText]   = useState('');
@@ -191,11 +193,16 @@ function PostCard({ post, userId, token, userProfile, onLike, onDelete, onOpenPr
             {liked ? '✓ Going' : '→ I\'m in'} {post.likes.length > 0 && <span className="g-join-count">{post.likes.length} going</span>}
           </button>
         ) : (
-          <button className={`g-action${liked ? ' liked' : ''}`} onClick={() => onLike(post)}>{liked ? '♥' : '♡'} {post.likes.length > 0 && post.likes.length}</button>
+          !globalView && <button className={`g-action${liked ? ' liked' : ''}`} onClick={() => onLike(post)}>{liked ? '♥' : '♡'} {post.likes.length > 0 && post.likes.length}</button>
         )}
-        <button className="g-action" onClick={() => setShowComments(!showComments)}>💬 {comments.length > 0 && comments.length}</button>
+        {allowComments && <button className="g-action" onClick={() => setShowComments(!showComments)}>💬 {comments.length > 0 && comments.length}</button>}
+        {globalView && post.type !== 'plan' && post.city && (
+          <span style={{ fontFamily:'DM Mono, monospace',fontSize:8,color:'#333',letterSpacing:'0.1em',marginLeft:'auto' }}>
+            tap 📍 to interact in room
+          </span>
+        )}
       </div>
-      {showComments && (
+      {allowComments && showComments && (
         <div className="g-comments">
           {comments.map(c => (
             <div key={c.id} className="g-comment">
@@ -636,9 +643,9 @@ export default function GroundPage() {
   const citiesInCountry = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; const fromPosts = new Set(posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).map(p => p.city).filter(Boolean)); return [...fromPosts].sort() as string[]; }, [view, posts]);
   const currentCityScore = useMemo(() => { if (typeof view !== 'object' || !('city' in view)) return null; return cityScores.find(c => c.name.toLowerCase().includes((view as any).city.toLowerCase())) || null; }, [view, cityScores]);
 
-  const renderPostList = (postList: Post[], emptyMsg: string) => (
+  const renderPostList = (postList: Post[], emptyMsg: string, allowComments = true, globalView = false) => (
     postList.length === 0 ? <div className="g-empty">{emptyMsg}</div> : (
-      <div className="g-posts">{postList.map(post => <PostCard key={post.id} post={post} userId={userId} token={token} userProfile={userProfile} onLike={handleLike} onDelete={handleDelete} onOpenProfile={openProfile} onNotify={notify} />)}</div>
+      <div className="g-posts">{postList.map(post => <PostCard key={post.id} post={post} userId={userId} token={token} userProfile={userProfile} onLike={handleLike} onDelete={handleDelete} onOpenProfile={openProfile} onNotify={notify} allowComments={allowComments} globalView={globalView} />)}</div>
     )
   );
 
@@ -814,14 +821,13 @@ export default function GroundPage() {
               </>
             )}
 
-            {userId && <ComposeBox userProfile={userProfile} onPost={handlePost} />}
             <div className="g-filters">
               {['All', 'Plans', 'Now', 'Intel', 'Questions', 'Looking For'].map(f => (
                 <button key={f} className={`g-filter${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
               ))}
             </div>
             <div className="g-section">What's happening<div className="g-section-line" /></div>
-            {loading ? <div className="g-loading"><div className="g-dot" />loading...</div> : renderPostList(globalPosts, 'no posts yet. be the first to share.')}
+            {loading ? <div className="g-loading"><div className="g-dot" />loading...</div> : renderPostList(globalPosts, 'no posts yet. enter a city room to share.', false, true)}
 
             <div className="g-section" style={{ marginTop: 32 }}>Destination rooms<div className="g-section-line" /><span style={{ whiteSpace: 'nowrap' }}>{cityScores.length} cities</span></div>
             <div className="g-cities-grid">
@@ -881,9 +887,8 @@ export default function GroundPage() {
                   ))}
                 </div>
               </>}
-              {userId && <ComposeBox userProfile={userProfile} country={community.name} onPost={handlePost} />}
               <div className="g-section">What's happening<div className="g-section-line" /></div>
-              {renderPostList(countryPosts, `no posts from ${community.name} yet. be the first.`)}
+              {renderPostList(countryPosts, `no posts from ${community.name} yet. enter a city room to post.`, false, true)}
             </>;
           })()}
 
