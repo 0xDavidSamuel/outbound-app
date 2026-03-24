@@ -488,11 +488,9 @@ export default function GroundPage() {
   const [token, setToken] = useState('');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [communities, setCommunities] = useState<Community[]>([]);
   const [cityScores, setCityScores] = useState<CityScore[]>([]);
-  const [joined, setJoined] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'home' | { country: Community } | { city: string; country: string }>('home');
+  const [view, setView] = useState<'home' | { city: string; country: string }>('home');
   const [filter, setFilter] = useState('All');
   const [profileBubble, setProfileBubble] = useState<any>(null);
   const [bubbleLoading, setBubbleLoading] = useState(false);
@@ -507,16 +505,12 @@ export default function GroundPage() {
         setUserId(session.user.id); setToken(session.access_token); tok = session.access_token;
         const profiles = await rawGet(`profiles?id=eq.${session.user.id}&select=*`, tok);
         if (profiles?.[0]) setUserProfile(profiles[0]);
-        const memberships = await rawGet(`community_members?user_id=eq.${session.user.id}&select=community_slug`, tok);
-        setJoined((Array.isArray(memberships) ? memberships : []).map((m: any) => m.community_slug));
       }
-      const [postsData, commData, activeUsers] = await Promise.all([
+      const [postsData, activeUsers] = await Promise.all([
         rawGet('posts?select=*,author:profiles(username,avatar_url),comments(id,post_id,user_id,content,created_at,author:profiles(username,avatar_url))&order=created_at.desc&limit=80', tok),
-        rawGet('communities?select=*&order=member_count.desc', tok),
         rawGet('profiles?select=id,username,avatar_url,city,current_vibe,traveler_type&current_vibe=not.is.null&order=updated_at.desc&limit=20', tok),
       ]);
       setPosts(Array.isArray(postsData) ? postsData : []);
-      setCommunities(Array.isArray(commData) ? commData : []);
       const nearby = Array.isArray(activeUsers) ? activeUsers : [];
       setNearbyUsers(nearby);
 
@@ -639,8 +633,6 @@ export default function GroundPage() {
     return list.slice(0, 40);
   }, [posts, filter]);
   const cityPosts = useMemo(() => { if (typeof view !== 'object' || !('city' in view)) return []; return posts.filter(p => p.city?.toLowerCase() === (view as any).city.toLowerCase()).slice(0, 40); }, [posts, view]);
-  const countryPosts = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; return posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).slice(0, 40); }, [posts, view]);
-  const citiesInCountry = useMemo(() => { if (typeof view !== 'object' || !('country' in view) || 'city' in view) return []; const name = (view as { country: Community }).country.name; const fromPosts = new Set(posts.filter(p => p.country?.toLowerCase() === name.toLowerCase()).map(p => p.city).filter(Boolean)); return [...fromPosts].sort() as string[]; }, [view, posts]);
   const currentCityScore = useMemo(() => { if (typeof view !== 'object' || !('city' in view)) return null; return cityScores.find(c => c.name.toLowerCase().includes((view as any).city.toLowerCase())) || null; }, [view, cityScores]);
 
   const renderPostList = (postList: Post[], emptyMsg: string, allowComments = true, globalView = false) => (
@@ -864,38 +856,10 @@ export default function GroundPage() {
             </div>
           </>}
 
-          {typeof view === 'object' && 'country' in view && !('city' in view) && (() => {
-            const community = (view as { country: Community }).country;
-            return <>
-              <button className="g-back" onClick={() => setView('home')}>← Ground</button>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 52 }}>{community.emoji}</div>
-                <div style={{ flex: 1, minWidth: 200 }}>
-                  <h1 className="g-title" style={{ marginBottom: 8 }}>{community.name}</h1>
-                  <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6, fontWeight: 300, marginBottom: 10 }}>{community.description}</p>
-                  <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#333', letterSpacing: '0.2em', textTransform: 'uppercase' }}>{community.member_count} members</div>
-                </div>
-              </div>
-              {citiesInCountry.length > 0 && <>
-                <div className="g-section">City rooms<div className="g-section-line" /></div>
-                <div className="g-city-list">
-                  {citiesInCountry.map(city => (
-                    <div key={city} className="g-city-card" onClick={() => setView({ city, country: community.name })}>
-                      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 13, color: '#ccc' }}>📍 {city}</span>
-                      <span className="g-country-arrow">→</span>
-                    </div>
-                  ))}
-                </div>
-              </>}
-              <div className="g-section">What's happening<div className="g-section-line" /></div>
-              {renderPostList(countryPosts, `no posts from ${community.name} yet. enter a city room to post.`, false, true)}
-            </>;
-          })()}
-
           {typeof view === 'object' && 'city' in view && (() => {
             const { city, country } = view as { city: string; country: string };
             return <>
-              <button className="g-back" onClick={() => { const comm = communities.find(c => c.name === country); if (comm) setView({ country: comm }); else setView('home'); }}>← {country}</button>
+              <button className="g-back" onClick={() => setView('home')}>← Ground</button>
               <h1 className="g-title" style={{ marginBottom: 8 }}>{city}<em>.</em></h1>
               <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: '#e8553a', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 24 }}>📍 {city}, {country}</p>
               {currentCityScore && <>
